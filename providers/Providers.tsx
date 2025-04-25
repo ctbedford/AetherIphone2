@@ -5,7 +5,6 @@ import { TamaguiProvider } from 'tamagui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
-import { NativeWindProvider } from '@/components/ui/nativewind-setup';
 import { ToastProvider } from './ToastProvider';
 import config from '../tamagui.config';
 import { trpc } from '../utils/trpc';
@@ -175,11 +174,11 @@ export function Providers({ children }: { children: ReactNode }) {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <TamaguiProvider config={config} defaultTheme={currentTheme}>
-          <NativeWindProvider theme={currentTheme}>
+          
             <ToastProvider>
               {children}
             </ToastProvider>
-          </NativeWindProvider>
+          
         </TamaguiProvider>
       </QueryClientProvider>
     </trpc.Provider>
