@@ -112,22 +112,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   });
   
   // Get toast background color based on type
-  const getToastBackgroundColor = () => {
+  const getToastBackgroundColor = useCallback(() => {
+    if (!theme) return 'transparent';
+    
     switch (toastOptions.type) {
       case 'success':
-        return theme?.green6?.get() || '#22c55e'; // Default green if theme is undefined
+        return theme.green6?.val || theme.green9?.val || '$green9';
       case 'error':
-        return theme?.red6?.get() || '#ef4444'; // Default red if theme is undefined
+        return theme.red6?.val || theme.red9?.val || '$red9';
       case 'info':
       default:
-        return theme?.blue6?.get() || '#3b82f6'; // Default blue if theme is undefined
+        return theme.blue6?.val || theme.blue9?.val || '$blue9';
     }
-  };
+  }, [theme, toastOptions.type]);
   
   // Get toast text color
-  const getToastTextColor = () => {
-    return theme?.color?.get() || '#ffffff';
-  };
+  const getToastTextColor = useCallback(() => {
+    return theme?.color?.val || undefined;
+  }, [theme]);
 
   return (
     <ToastContext.Provider value={{ showToast, hideToast }}>
@@ -142,11 +144,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         >
           <YStack flex={1} paddingRight={10}>
             {toastOptions.title && (
-              <Text fontSize={16} fontWeight="bold" color={getToastTextColor()}>
+              <Text fontSize={16} fontWeight="bold" color={getToastTextColor() as any}>
                 {toastOptions.title}
               </Text>
             )}
-            <Text fontSize={14} color={getToastTextColor()}>
+            <Text fontSize={14} color={getToastTextColor() as any}>
               {toastOptions.message}
             </Text>
           </YStack>
@@ -155,7 +157,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             circular
             chromeless
             onPress={hideToast}
-            icon={<Text color={getToastTextColor()} opacity={0.7}>×</Text>}
+            icon={<Text color={getToastTextColor() as any} opacity={0.7}>×</Text>}
           />
         </Animated.View>
       )}

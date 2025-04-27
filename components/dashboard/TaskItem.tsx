@@ -42,16 +42,14 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
       pressStyle={{ opacity: 0.7 }}
       space="$1" // Add space between XStack and Date Text
     >
-      // @ts-ignore // TODO: Investigate Tamagui prop type issue
-      <XStack ai="center"> {/* Use XStack for horizontal layout */}
+      <XStack alignItems="center"> {/* Use XStack for horizontal layout */}
         {/* Priority Dot using YStack */}
-        // @ts-ignore // TODO: Investigate Tamagui prop type issue
         <YStack 
-          w="$2" // Use size token for width
-          h="$2" // Use size token for height
+          width="$2" // Use size token for width
+          height="$2" // Use size token for height
           borderRadius="$10" // Use a large radius token
           backgroundColor={priorityColor} 
-          mr="$2" // Use space token for margin
+          marginRight="$2" // Use space token for margin
         />
         <Text 
           fontSize="$4" // Use font size token

@@ -34,10 +34,8 @@ export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps)
       backgroundColor="$backgroundStrong"
       padding="$3"
       borderRadius="$4"
-      // @ts-ignore // TODO: Investigate Tamagui prop type issue
-      ai="center"
-      // @ts-ignore // TODO: Investigate Tamagui prop type issue
-      jc="space-between"
+      alignItems="center"
+      justifyContent="space-between"
       space="$3"
     >
       <YStack flex={1}>
@@ -46,8 +44,7 @@ export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps)
         </Text>
         
         {habit.streak > 0 && (
-          // @ts-ignore // TODO: Investigate Tamagui prop type issue
-          <Text color="$warning" fontSize="$2" mt="$1">
+          <Text color="$warning" fontSize="$2" marginTop="$1">
             🔥 {habit.streak} day streak
           </Text>
         )}

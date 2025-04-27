@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, XStack, Card } from 'tamagui';
-import ProgressRing from '../aether/ProgressRing';
+import ProgressRing from '@/components/aether/ProgressRing';
 
 interface Goal {
   id: string;
@@ -26,8 +26,7 @@ export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps)
       pressStyle={{ opacity: 0.8 }}
       padding="$3"
     >
-      // @ts-ignore // TODO: Investigate Tamagui prop type issue
-      <XStack ai="center" space="$3">
+      <XStack alignItems="center" space="$3">
         <ProgressRing
           progress={goal.progress}
           size={40}

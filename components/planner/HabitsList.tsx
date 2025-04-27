@@ -104,8 +104,8 @@ function HabitItem({
           checked={isChecked}
           onCheckedChange={handleToggle}
           disabled={isUpdating}
-          borderColor={colors.border.default}
-          backgroundColor={isChecked ? colors.status.success : undefined}
+          borderColor="$gray8"
+          backgroundColor={isChecked ? "$green9" : undefined}
           opacity={isUpdating ? 0.5 : 1}
           size="$5"
         />
@@ -114,7 +114,7 @@ function HabitItem({
           <Text 
             fontSize="$4" 
             fontWeight="$2" 
-            color={colors.content.primary}
+            color="$color"
             textDecorationLine={isChecked ? 'line-through' : 'none'}
             opacity={isChecked ? 0.8 : 1}
           >
@@ -122,7 +122,7 @@ function HabitItem({
           </Text>
           
           <XStack space="$3" alignItems="center">
-            <Text fontSize="$2" color={colors.content.subtle}>
+            <Text fontSize="$2" color="$gray10">
               {getFrequencyText()}
             </Text>
             

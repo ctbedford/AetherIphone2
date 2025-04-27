@@ -38,8 +38,7 @@ export default function StateIndicator({ state, onPress }: StateIndicatorProps) 
           {state.name}
         </Text>
         
-        // @ts-ignore // TODO: Investigate Tamagui prop type issue
-        <XStack ai="baseline" space="$2"> {/* Align text by baseline, add space */}
+        <XStack alignItems="baseline" space="$2"> {/* Align text by baseline, add space */}
           <Text fontSize="$5" fontWeight="600" color="$color"> {/* Use tokens */}
             {state.currentValue}
           </Text>

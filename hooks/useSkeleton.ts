@@ -42,6 +42,21 @@ export interface SkeletonOptions {
    * @default true
    */
   autoStart?: boolean;
+  /**
+   * Loading state to determine if skeletons should be shown
+   * @default false
+   */
+  isLoading?: boolean;
+  /**
+   * Number of skeleton items to generate
+   * @default 1
+   */
+  count?: number;
+  /**
+   * Type of skeleton to generate
+   * @default 'card'
+   */
+  type?: 'card' | 'row' | 'circle';
 }
 
 /**
@@ -125,11 +140,25 @@ export function useSkeleton(options: SkeletonOptions = {}) {
     translateX.value = withTiming(-1, { duration: 200 });
   };
   
+  // Generate array of skeletons based on count and type
+  const generateSkeletons = () => {
+    if (!options.isLoading) return [];
+    
+    const count = options.count || 1;
+    const type = options.type || 'card';
+    
+    return Array.from({ length: count }).map((_, index) => ({
+      key: `skeleton-${index}`,
+      type,
+    }));
+  };
+  
   return {
     baseColor,
     shimmerStyle,
     styles,
     startAnimation,
     stopAnimation,
+    skeletons: generateSkeletons(),
   };
 } 
