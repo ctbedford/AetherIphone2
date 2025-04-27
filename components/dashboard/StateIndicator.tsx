@@ -1,18 +1,14 @@
 import React from 'react';
 // Use Tamagui components
 import { Text, XStack, YStack, Card } from 'tamagui'; 
-// Removed TouchableOpacity, View from react-native
-// import { TouchableOpacity, View } from 'react-native';
+// Import RouterOutputs for inferred types
+import { RouterOutputs } from '@/utils/trpc';
 
-interface State {
-  id: string;
-  name: string;
-  currentValue: number | string;
-  lastUpdated: string | null;
-}
+// Define prop type using inferred type from router
+type DashboardTrackedState = RouterOutputs['dashboard']['getDashboardData']['trackedStates'][number];
 
 interface StateIndicatorProps {
-  state: State;
+  state: DashboardTrackedState; // Use the inferred type
   onPress: () => void;
 }
 
@@ -34,7 +30,7 @@ export default function StateIndicator({ state, onPress }: StateIndicatorProps) 
       // No explicit background, will use default Card background from theme
     >
       <YStack space="$1"> {/* Main container for text */}
-        <Text fontSize="$3" color="$colorSecondary"> {/* Use tokens */}
+        <Text fontSize="$3" color="$colorMuted"> {/* Use tokens */}
           {state.name}
         </Text>
         
@@ -42,7 +38,7 @@ export default function StateIndicator({ state, onPress }: StateIndicatorProps) 
           <Text fontSize="$5" fontWeight="600" color="$color"> {/* Use tokens */}
             {state.currentValue}
           </Text>
-          <Text color="$colorSecondary" fontSize="$2"> {/* Use tokens */}
+          <Text color="$colorMuted" fontSize="$2"> {/* Use tokens */}
             {formattedTime}
           </Text>
         </XStack>

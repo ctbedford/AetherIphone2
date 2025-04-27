@@ -1,4 +1,4 @@
-import { createTamagui, createTokens } from 'tamagui';
+import { createTamagui, createTokens, createFont } from 'tamagui';
 
 // --- 1. Define your Tokens ---
 const tokens = createTokens({
@@ -94,7 +94,14 @@ const tokens = createTokens({
     blue11: '#074774',
     blue12: '#062640',
 
-    // iOS standard colors
+    // Aether brand colors
+    brandBlue: '#007AFF',  // Primary brand blue (same as iOS blue)
+    brandGreen: '#34C759', // Success actions, completion
+    brandYellow: '#FFCC00', // Warnings, badges
+    brandRed: '#FF3B30',    // Errors, destructive actions
+    brandPurple: '#5E5CE6',  // Secondary accent
+    
+    // iOS standard colors (keeping for compatibility)
     red9: '#FF3B30', // iOS red
     green9: '#34C759', // iOS green
     yellow9: '#FFCC00', // iOS yellow
@@ -116,6 +123,13 @@ const tokens = createTokens({
     gray10_dark: '#D1D1D6', // iOS gray4
     gray11_dark: '#E5E5EA', // iOS gray5
     gray12_dark: '#F2F2F7', // iOS gray6
+    
+    // Aether brand dark theme colors
+    brandBlue_dark: '#0A84FF', // Slightly brighter blue for dark mode
+    brandGreen_dark: '#30D158', // Slightly brighter green for dark mode
+    brandYellow_dark: '#FFD60A', // Slightly brighter yellow for dark mode
+    brandRed_dark: '#FF453A', // Slightly brighter red for dark mode
+    brandPurple_dark: '#5E5CE6', // Same as light mode
 
     blue1_dark: '#052b4c',
     blue2_dark: '#06355f',
@@ -199,78 +213,157 @@ const tokens = createTokens({
   },
 });
 
-// --- 2. Define your Themes ---
-const light = {
-  background: tokens.color.white,
-  backgroundHover: tokens.color.gray3,
-  backgroundPress: tokens.color.gray4,
-  backgroundFocus: tokens.color.gray4,
-  backgroundStrong: tokens.color.gray2, // For cards
-  backgroundTransparent: tokens.color.transparent,
+// --- NEW: Define Fonts --- 
+const interFont = createFont({
+  family: 'Inter',
+  // Define sizes based on your fontSize tokens
+  size: {
+    1: 12,
+    2: 14,
+    3: 15,
+    4: 16,
+    5: 18,
+    6: 20,
+    7: 24,
+    8: 30,
+    9: 36,
+    true: 15, // Default body size
+  },
+  // Define line heights based on your lineHeight tokens
+  lineHeight: {
+    1: 16,
+    2: 20,
+    3: 22,
+    4: 24,
+    5: 28,
+    6: 32,
+    true: 22,
+  },
+  // Define weights based on your fontWeight tokens and loaded fonts
+  weight: {
+    4: '400', // Corresponds to Inter-Medium loaded as 'Inter'
+    7: '700', // Corresponds to Inter-Bold loaded as 'InterBold'
+    true: '400', // Default weight
+  },
+  // Define letter spacing based on your letterSpacing tokens
+  letterSpacing: {
+    1: 0,
+    2: 0.2,
+    3: 0.4,
+    true: 0,
+  },
+  // Use face to map weights to the specific font family names Expo loads
+  face: {
+    400: { normal: 'Inter', italic: 'Inter' }, // Assuming no italic variant loaded for 400
+    700: { normal: 'InterBold', italic: 'InterBold' }, // Assuming no italic variant loaded for 700
+  },
+});
 
-  color: tokens.color.black, // High contrast text
+// --- 2. Define Theme Variables ---
+const light = {
+  background: tokens.color.gray1,
+  backgroundHover: tokens.color.gray2,
+  backgroundPress: tokens.color.gray3,
+  backgroundFocus: tokens.color.gray2,
+  backgroundStrong: tokens.color.gray3, // For content backgrounds
+  backgroundTransparent: tokens.color.gray1,
+  
+  color: tokens.color.gray12, // Default text color - high contrast
   colorHover: tokens.color.gray11,
   colorPress: tokens.color.gray10,
-  colorFocus: tokens.color.gray10,
-  colorSecondary: tokens.color.gray11, // Lower contrast text
-  colorTertiary: tokens.color.gray9,
-
+  colorFocus: tokens.color.gray11,
+  colorTransparent: 'transparent',
+  colorMuted: tokens.color.gray11, // Secondary text
+  
+  // Variant/state colors (success, error, etc.)
+  color1: tokens.color.gray1, // Lowest (often unused)
+  color2: tokens.color.gray2,
+  color3: tokens.color.gray3,
+  color4: tokens.color.gray4,
+  color5: tokens.color.gray5,
+  color6: tokens.color.gray6,
+  color7: tokens.color.gray7,
+  color8: tokens.color.gray8,
+  color9: tokens.color.gray9,
+  color10: tokens.color.gray10,
+  color11: tokens.color.gray11,
+  color12: tokens.color.gray12, // Highest
+  
+  // Borders, from subtle to visible
   borderColor: tokens.color.gray6,
   borderColorHover: tokens.color.gray7,
-  borderColorPress: tokens.color.gray8,
-  borderColorFocus: tokens.color.blue9, // Accent focus border
-
-  primary: tokens.color.blue9, // iOS blue
-  primaryHover: tokens.color.blue10,
-  primaryPress: tokens.color.blue8,
-  primaryFocus: tokens.color.blue10,
-
-  error: tokens.color.red9, // iOS red
-  warning: tokens.color.yellow9, // iOS yellow
-  success: tokens.color.green9, // iOS green
-  info: tokens.color.blue9, // iOS blue
+  borderColorFocus: tokens.color.gray8,
+  borderColorPress: tokens.color.gray7,
+  
+  // Shadows
+  shadowColor: tokens.color.gray8,
+  shadowColorHover: tokens.color.gray9,
+  
+  // Interactive colors
+  primary: tokens.color.brandBlue, // Primary action color (Aether brand blue)
+  secondary: tokens.color.brandPurple, // Secondary action color (Aether brand purple)
+  success: tokens.color.brandGreen, // Success states (Aether brand green)
+  error: tokens.color.brandRed, // Error states (Aether brand red)
+  warn: tokens.color.brandYellow, // Warning states (Aether brand yellow)
+  info: tokens.color.brandBlue, // Info states (Aether brand blue)
 
   // Card-specific backgrounds for different elevations
   cardBackground: tokens.color.white,
-  cardBackgroundHover: tokens.color.gray2,
-  cardBackgroundPress: tokens.color.gray3,
+  cardBackgroundHover: tokens.color.gray1,
+  cardBackgroundPress: tokens.color.gray2,
   
   // Input backgrounds
-  inputBackground: tokens.color.gray1,
-  inputBackgroundHover: tokens.color.white,
-  inputBackgroundFocus: tokens.color.white,
+  inputBackground: tokens.color.gray3,
+  inputBackgroundHover: tokens.color.gray4,
+  inputBackgroundFocus: tokens.color.gray4,
 };
 
 const dark = {
-  background: tokens.color.gray1_dark, // iOS dark background
-  backgroundHover: tokens.color.gray3_dark,
-  backgroundPress: tokens.color.gray4_dark,
-  backgroundFocus: tokens.color.gray4_dark,
-  backgroundStrong: tokens.color.gray2_dark,
-  backgroundTransparent: tokens.color.transparent,
-
-  color: tokens.color.white, // High contrast text
+  background: tokens.color.gray1_dark,
+  backgroundHover: tokens.color.gray2_dark,
+  backgroundPress: tokens.color.gray3_dark,
+  backgroundFocus: tokens.color.gray2_dark,
+  backgroundStrong: tokens.color.gray3_dark, // For content backgrounds
+  backgroundTransparent: tokens.color.gray1_dark,
+  
+  color: tokens.color.gray12_dark, // Default text color - high contrast
   colorHover: tokens.color.gray11_dark,
   colorPress: tokens.color.gray10_dark,
-  colorFocus: tokens.color.gray10_dark,
-  colorSecondary: tokens.color.gray11_dark,
-  colorTertiary: tokens.color.gray9_dark,
-
+  colorFocus: tokens.color.gray11_dark,
+  colorTransparent: 'transparent',
+  colorMuted: tokens.color.gray11_dark, // Secondary text
+  
+  // Variant/state colors (success, error, etc.)
+  color1: tokens.color.gray1_dark, // Lowest (often unused)
+  color2: tokens.color.gray2_dark,
+  color3: tokens.color.gray3_dark,
+  color4: tokens.color.gray4_dark,
+  color5: tokens.color.gray5_dark,
+  color6: tokens.color.gray6_dark,
+  color7: tokens.color.gray7_dark,
+  color8: tokens.color.gray8_dark,
+  color9: tokens.color.gray9_dark,
+  color10: tokens.color.gray10_dark,
+  color11: tokens.color.gray11_dark,
+  color12: tokens.color.gray12_dark, // Highest
+  
+  // Borders, from subtle to visible
   borderColor: tokens.color.gray6_dark,
   borderColorHover: tokens.color.gray7_dark,
-  borderColorPress: tokens.color.gray8_dark,
-  borderColorFocus: tokens.color.blue9_dark,
-
-  primary: tokens.color.blue9_dark, // iOS dark mode blue
-  primaryHover: tokens.color.blue10_dark,
-  primaryPress: tokens.color.blue8_dark,
-  primaryFocus: tokens.color.blue10_dark,
-
-  error: tokens.color.red9_dark,
-  warning: tokens.color.yellow9_dark,
-  success: tokens.color.green9_dark,
-  info: tokens.color.blue9_dark,
-
+  borderColorFocus: tokens.color.gray8_dark,
+  borderColorPress: tokens.color.gray7_dark,
+  
+  // Shadows
+  shadowColor: tokens.color.gray8_dark,
+  shadowColorHover: tokens.color.gray9_dark,
+  
+  // Interactive colors
+  primary: tokens.color.brandBlue_dark, // Primary action color (Aether brand blue)
+  secondary: tokens.color.brandPurple_dark, // Secondary action color (Aether brand purple)
+  success: tokens.color.brandGreen_dark, // Success states (Aether brand green)
+  error: tokens.color.brandRed_dark, // Error states (Aether brand red)
+  warn: tokens.color.brandYellow_dark, // Warning states (Aether brand yellow)
+  info: tokens.color.brandBlue_dark, // Info states (Aether brand blue)
   // Card-specific backgrounds for different elevations
   cardBackground: tokens.color.gray2_dark,
   cardBackgroundHover: tokens.color.gray3_dark,
@@ -282,25 +375,20 @@ const dark = {
   inputBackgroundFocus: tokens.color.gray2_dark,
 };
 
-// --- 3. Create the Config ---
+// --- 3. Create the Config --- 
 const config = createTamagui({
   tokens,
   themes: {
     light,
     dark,
-    // Component sub-themes
-    light_Button: {
-      background: tokens.color.blue9,
-      backgroundHover: tokens.color.blue10,
-      backgroundPress: tokens.color.blue8,
-      color: tokens.color.white,
-    },
-    dark_Button: {
-      background: tokens.color.blue9_dark,
-      backgroundHover: tokens.color.blue10_dark,
-      backgroundPress: tokens.color.blue8_dark,
-      color: tokens.color.white,
-    }
+  },
+  fonts: {
+    // Tamagui uses the key 'body' for the default font
+    body: interFont, 
+    // You can add other font aliases if needed, like 'heading'
+    heading: interFont, 
+    // Keep mono if you use it, but ensure SpaceMono is also defined with createFont if loaded
+    // mono: spaceMonoFont, 
   },
   shorthands: {
     m: 'margin',
@@ -360,4 +448,4 @@ declare module 'tamagui' {
   interface TamaguiCustomConfig extends AppConfig {}
 }
 
-export default config; 
+export default config;

@@ -1,6 +1,7 @@
 // File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/_layout.tsx
 import { Slot, SplashScreen } from 'expo-router';
 import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Providers } from '../providers/Providers'; // Adjust path if necessary
 import { useFonts } from 'expo-font'; // Assuming you might load fonts
 
@@ -31,9 +32,11 @@ export default function RootLayout() {
   }
 
   return (
-    <Providers>
-      <Slot />
-    </Providers>
+    <SafeAreaProvider>
+      <Providers>
+        <Slot />
+      </Providers>
+    </SafeAreaProvider>
   );
 }
 

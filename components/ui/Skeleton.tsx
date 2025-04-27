@@ -1,21 +1,23 @@
 import React from 'react';
-import { View, DimensionValue } from 'react-native';
-import { YStack, XStack, styled } from 'tamagui';
+import { DimensionValue } from 'react-native';
+import { YStack, XStack, styled, Stack } from 'tamagui';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-const SkeletonBase = styled(View, {
-  backgroundColor: '#E1E9EE',
+const SkeletonBase = styled(Stack, {
+  name: 'SkeletonBase',
+  backgroundColor: '$gray5',
   overflow: 'hidden',
   position: 'relative',
   variants: {
     colorMode: {
-      light: { backgroundColor: '#E1E9EE' },
-      dark: { backgroundColor: '#2A2A2A' },
+      light: { backgroundColor: '$gray5' },
+      dark: { backgroundColor: '$gray9' },
     },
   } as const,
 });
 
-const SkeletonShimmer = styled(View, {
+const SkeletonShimmer = styled(Stack, {
+  name: 'SkeletonShimmer',
   position: 'absolute',
   top: 0,
   left: 0,
@@ -36,11 +38,9 @@ export function Skeleton({ width = '100%', height = 20, borderRadius = 4 }: Skel
   return (
     <SkeletonBase
       colorMode={colorScheme === 'dark' ? 'dark' : 'light'}
-      style={{
-        width,
-        height,
-        borderRadius,
-      }}
+      width={width}
+      height={height}
+      borderRadius={borderRadius}
     />
   );
 }

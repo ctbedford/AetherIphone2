@@ -9,6 +9,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
+    "test:ci": "jest --ci",
+    "test:coverage": "jest --coverage",
+    "test:update": "jest --updateSnapshot",
     "lint": "expo lint",
     "generate-types": "node ./scripts/generate-trpc-types.js",
     "generate-hooks": "node ./scripts/generate-trpc-client.js",
@@ -16,7 +19,20 @@
     "dev": "npm run generate && expo start"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|tamagui|@tamagui/.*|solito|moti|@motify/.*)"
+    ],
+    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect", "./jest.setup.js"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "collectCoverageFrom": [
+      "**/*.{js,jsx,ts,tsx}",
+      "!**/node_modules/**",
+      "!**/babel.config.js",
+      "!**/jest.setup.js"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
@@ -35,10 +51,11 @@
     "@tamagui/shorthands": "^1.126.1",
     "@tamagui/stacks": "^1.126.1",
     "@tamagui/themes": "^1.126.1",
-    "@tamagui/toast": "^1.126.2",
+    "@tamagui/toast": "^1.126.1",
     "@tanstack/query-async-storage-persister": "^5.74.4",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-persist-client": "^5.74.4",
+    "@testing-library/react-native": "^13.2.0",
     "@trpc/client": "^11.1.0",
     "@trpc/react-query": "^11.1.0",
     "@trpc/server": "^11.1.0",
@@ -79,6 +96,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@tamagui/babel-plugin": "^1.126.1",
+    "@testing-library/jest-native": "^5.4.3",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
@@ -88,6 +106,7 @@
     "eslint-config-expo": "~8.0.1",
     "jest": "^29.2.1",
     "jest-expo": "~52.0.6",
+    "msw": "^2.1.5",
     "postcss": "^8.5.3",
     "react-test-renderer": "18.3.1",
     "supabase": "^2.22.4",

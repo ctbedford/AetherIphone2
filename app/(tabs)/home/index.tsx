@@ -1,11 +1,10 @@
 // File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/home/index.tsx
 import React, { useCallback } from 'react';
 import { YStack, H1, Text, XStack, Button, ScrollView, Spinner } from 'tamagui';
-import { RefreshControl, SafeAreaView } from 'react-native';
-import { useToastController } from '@tamagui/toast';
+import { SafeAreaView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { trpc } from '@/utils/trpc';
+import { trpc, RouterOutputs } from '@/utils/trpc';
 import DashboardSection from '@/components/dashboard/DashboardSection';
 import GoalSummaryCard from '@/components/dashboard/GoalSummaryCard';
 import HabitCheckItem from '@/components/dashboard/HabitCheckItem';
@@ -15,12 +14,17 @@ import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
 import { SkeletonCard, SkeletonRow } from '@/components/ui/Skeleton';
 import { useSkeleton } from '@/hooks/useSkeleton';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useToastController } from '@tamagui/toast';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const toast = useToastController();
   
-  // Use tRPC hooks to fetch data
+  // Define types using RouterOutputs for clarity and safety
+  type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
+  type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
+
+  // Use tRPC hooks to fetch data - Types are inferred but can be explicitly used
   const { 
     data: dashboardData, 
     isLoading, 
@@ -65,7 +69,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
       <ScrollView 
-        style={{ flex: 1 }}
+        flex={1}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
           <RefreshControl
@@ -75,7 +79,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <YStack padding="$4" space="$4">
+        <YStack padding="$4" space="$5">
           {/* Header */}
           <YStack space="$1">
             <H1>{greeting}</H1>
@@ -83,24 +87,22 @@ export default function HomeScreen() {
           </YStack>
 
           {/* Quick Actions */}
-          <XStack space="$2" justifyContent="flex-start">
+          <XStack space="$2" justifyContent="flex-start" flexShrink={1} alignSelf="stretch">
             <Button
-              size="$3"
+              size="$2"
               themeInverse
               onPress={() => {
-                // Use type assertion for dynamic routes
-                router.push('/planner/add-task' as any);
+                router.push('/planner/add-task');
               }}
             >
               <Ionicons name="add-outline" size={18} color="white" />
               New Task
             </Button>
             <Button
-              size="$3"
+              size="$2"
               themeInverse
               onPress={() => {
-                // Use type assertion for dynamic routes
-                router.push('/planner/add-habit' as any);
+                router.push('/planner/add-habit');
               }}
             >
               <Ionicons name="repeat-outline" size={18} color="white" />
@@ -111,7 +113,7 @@ export default function HomeScreen() {
           {/* Goals Section */}
           <DashboardSection 
             title="Goals"
-            onSeeAll={() => router.push('/planner' as any)}
+            onSeeAll={() => router.push('/planner')}
           >
             {isLoading ? (
               renderSkeletons()
@@ -127,19 +129,14 @@ export default function HomeScreen() {
                 isEmpty={true}
                 text="No goals yet"
                 actionText="Create a goal"
-                onAction={() => router.push('/planner/add-goal' as any)}
+                onAction={() => router.push('/planner/add-goal')}
               />
             ) : (
               <YStack space="$3">
-                {dashboardData.goals.slice(0, 3).map((goal) => (
+                {dashboardData.goals.slice(0, 3).map((goal: DashboardGoal) => (
                   <GoalSummaryCard 
                     key={goal.id}
-                    goal={{
-                      id: goal.id,
-                      title: goal.title,
-                      progress: goal.progress || 0,
-                      tasks: goal.tasks || { total: 0, completed: 0 }
-                    }}
+                    goal={goal}
                     onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } } as any)}
                   />
                 ))}
@@ -150,7 +147,7 @@ export default function HomeScreen() {
           {/* Today's Habits */}
           <DashboardSection 
             title="Today's Habits"
-            onSeeAll={() => router.push('/planner?tab=habits' as any)}
+            onSeeAll={() => router.push('/planner?tab=habits')}
           >
             {isLoading ? (
               renderSkeletons()
@@ -166,19 +163,14 @@ export default function HomeScreen() {
                 isEmpty={true}
                 text="No habits for today"
                 actionText="Create a habit"
-                onAction={() => router.push('/planner/add-habit' as any)}
+                onAction={() => router.push('/planner/add-habit')}
               />
             ) : (
               <YStack space="$2">
-                {dashboardData.habits.slice(0, 4).map((habit) => (
+                {dashboardData.habits.slice(0, 4).map((habit: DashboardHabit) => (
                   <HabitCheckItem 
                     key={habit.id}
-                    habit={{
-                      id: habit.id,
-                      title: habit.title,
-                      completedToday: habit.completed || false,
-                      streak: habit.streak || 0
-                    }}
+                    habit={habit}
                     onToggle={(habitId, completed) => {
                       // Use today's date for the habit entry
                       const today = new Date().toISOString().split('T')[0];
@@ -208,26 +200,40 @@ export default function HomeScreen() {
             )}
           </DashboardSection>
 
-          {/* Current State */}
-          <DashboardSection title="Current State">
+          {/* Today's State */}
+          <DashboardSection
+            title="Today's State"
+            // TODO: Add navigation to a dedicated state tracking screen
+            onSeeAll={() => console.log('Navigate to State Tracking screen')}
+          >
             {isLoading ? (
-              <Spinner size="large" />
+              renderSkeletons() // Use generic skeletons or specific state skeletons
             ) : error ? (
-              <Text color="$color" fontWeight="bold" fontSize="$3" paddingHorizontal="$2" paddingVertical="$1" marginLeft="$2">
-                Failed to load state
-              </Text>
-            ) : dashboardData?.values && dashboardData.values.length > 0 ? (
-              <StateIndicator 
-                state={{
-                  id: dashboardData.values[0].id || 'current-state',
-                  name: dashboardData.values[0].name || 'Current State',
-                  currentValue: dashboardData.values[0].value || dashboardData.values[0].description || 'Unknown',
-                  lastUpdated: dashboardData.values[0].updated_at || null
-                }}
-                onPress={() => {/* Navigate to state details */}}
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load state"
+              />
+            ) : !dashboardData?.trackedStates || dashboardData.trackedStates.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No states being tracked"
+                actionText="Track a state"
+                // TODO: Navigate to state definition creation screen
+                onAction={() => console.log('Navigate to Add State screen')}
               />
             ) : (
-              <Text color="$gray10">No current state defined</Text>
+              <XStack space="$3" flexWrap="wrap"> 
+                {dashboardData.trackedStates.map((stateData) => (
+                  <StateIndicator
+                    key={stateData.id}
+                    state={stateData} // Pass the formatted state data object
+                    // TODO: Handle interaction - e.g., navigate to state detail/entry screen
+                    onPress={() => console.log('State pressed:', stateData.id)}
+                  />
+                ))}
+              </XStack>
             )}
           </DashboardSection>
 

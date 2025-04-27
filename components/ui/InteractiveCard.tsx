@@ -10,11 +10,19 @@ const InteractiveCard = styled(Card, {
 
   hoverStyle: {
     y: -2,
-    shadowColor: '$colorTransparent',
+    shadowColor: '$color.transparent',
+    backgroundColor: '$backgroundHover',
   },
   pressStyle: {
     scale: 0.97,
+    backgroundColor: '$backgroundPress',
   },
+  focusStyle: {
+    backgroundColor: '$backgroundFocus',
+    outlineColor: '$borderColorFocus',
+  },
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
 });
 
 export default InteractiveCard;

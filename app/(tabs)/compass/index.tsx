@@ -5,7 +5,9 @@ import { SafeAreaView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '@/utils/trpc';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import EmptyOrSkeleton from '@/components/EmptyOrSkeleton';
+import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
+import { RouterOutputs } from '@/utils/trpc';
+import { router } from 'expo-router';
 
 interface TabData {
   key: string;
@@ -98,49 +100,42 @@ export default function CompassScreen() {
 // Principles Tab
 function PrinciplesTab() {
   const theme = useTheme();
-  // In a real implementation, you would fetch principles from tRPC
-  // const { data: principles, isLoading, error, refetch } = trpc.value.list.useQuery();
+  // Fetch principles (values) using tRPC
+  const { data: principles, isLoading, error, refetch } = trpc.value.getValues.useQuery();
   
-  // For now, we'll use mock data
-  const principles = [
-    { id: '1', title: 'Be Present', description: 'Focus on the now, not the past or future' },
-    { id: '2', title: 'Choose Growth', description: 'Embrace challenges as opportunities to learn' },
-    { id: '3', title: 'Practice Gratitude', description: 'Appreciate what you have in your life' },
-  ];
-  
-  const isLoading = false;
-  const error = null;
-  
+  // Define the inferred type
+  type PrincipleValue = RouterOutputs['value']['getValues'][number];
+
   if (isLoading) {
-    return <EmptyOrSkeleton isLoading={true} />;
+    return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
   }
   
   if (error) {
     return (
-      <Text color="$red9">Failed to load principles</Text>
+      <EmptyOrSkeleton isEmpty={false} isError={true} onRetry={refetch} text="Failed to load principles" />
     );
   }
   
   if (!principles || principles.length === 0) {
     return (
-      <YStack alignItems="center" justifyContent="center" padding="$8">
-        <Ionicons name="compass-outline" size={60} color={theme.gray8?.val} />
-        <Text textAlign="center" color="$gray9" marginTop="$4">
-          No principles defined yet
-        </Text>
-        <Button marginTop="$4">
-          Add Your First Principle
-        </Button>
-      </YStack>
+      <EmptyOrSkeleton 
+        isEmpty={true} 
+        text="No principles defined yet" 
+        actionText="Add Your First Principle" 
+        // TODO: Create '/compass/add-value' route 
+        // onAction={() => router.push('/compass/add-value')} // Navigate to add screen
+      />
     );
   }
   
   return (
     <YStack space="$4">
-      {principles.map((principle) => (
+      {principles.map((principle: PrincipleValue) => (
         <Card key={principle.id} padding="$4" bordered elevation="$1">
-          <Text fontSize="$5" fontWeight="bold">{principle.title}</Text>
-          <Text color="$gray10" marginTop="$2">{principle.description}</Text>
+          <Text fontSize="$5" fontWeight="bold">{principle.name}</Text>
+          {principle.description && (
+            <Text color="$gray10" marginTop="$2">{principle.description}</Text>
+          )}
         </Card>
       ))}
     </YStack>
@@ -150,52 +145,44 @@ function PrinciplesTab() {
 // States Tab
 function StatesTab() {
   const theme = useTheme();
-  // In a real implementation, you would fetch states from tRPC
-  // const { data: states, isLoading, error, refetch } = trpc.trackedState.list.useQuery();
-  
-  // For now, we'll use mock data
-  const states = [
-    { id: '1', title: 'Focused', description: 'Deep concentration on a single task' },
-    { id: '2', title: 'Creative', description: 'Open to new ideas and thinking broadly' },
-    { id: '3', title: 'Reflective', description: 'Thinking about past experiences and learning' },
-  ];
-  
-  const isLoading = false;
-  const error = null;
+  // Fetch states using tRPC
+  const { data: states, isLoading, error, refetch } = trpc.state.getTrackedStates.useQuery({}); // Pass empty object as input
+
+  // Define the inferred type
+  type TrackedStateItem = RouterOutputs['state']['getTrackedStates'][number];
   
   if (isLoading) {
-    return <EmptyOrSkeleton isLoading={true} />;
+    return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
   }
   
   if (error) {
     return (
-      <Text color="$red9">Failed to load states</Text>
+      <EmptyOrSkeleton isEmpty={false} isError={true} onRetry={refetch} text="Failed to load states" />
     );
   }
   
   if (!states || states.length === 0) {
     return (
-      <YStack alignItems="center" justifyContent="center" padding="$8">
-        <Ionicons name="pulse-outline" size={60} color={theme.gray8?.val} />
-        <Text textAlign="center" color="$gray9" marginTop="$4">
-          No states defined yet
-        </Text>
-        <Button marginTop="$4">
-          Add Your First State
-        </Button>
-      </YStack>
+      <EmptyOrSkeleton 
+        isEmpty={true} 
+        text="No states defined yet" 
+        actionText="Add Your First State" 
+        // TODO: Create '/compass/add-state' route
+        // onAction={() => router.push('/compass/add-state')} // Navigate to add screen
+      />
     );
   }
   
   return (
     <YStack space="$4">
-      {states.map((state) => (
+      {states.map((state: TrackedStateItem) => (
         <Card key={state.id} padding="$4" bordered elevation="$1">
           <XStack alignItems="center" space="$3">
-            <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: theme.blue9?.val }} />
-            <Text fontSize="$5" fontWeight="bold">{state.title}</Text>
+            <Text fontSize="$5" fontWeight="bold">{state.name}</Text>
           </XStack>
-          <Text color="$gray10" marginTop="$2">{state.description}</Text>
+          {state.category && (
+            <Text color="$gray10" marginTop="$2">Category: {state.category}</Text>
+          )}
         </Card>
       ))}
     </YStack>

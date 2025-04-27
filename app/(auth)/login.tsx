@@ -1,8 +1,7 @@
 // Login Screen
 import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
-import { YStack, H1, Input, Button, Text, XStack, Spinner } from 'tamagui';
-import { Image } from 'react-native';
+import { YStack, H1, Input, Button, Text, XStack, Spinner, Image } from 'tamagui';
 import { supabase } from '@/utils/supabase';
 import { useToastController } from '@tamagui/toast';
 
@@ -45,7 +44,9 @@ export default function LoginScreen() {
         {/* Replace with your app logo */}
         <Image 
           source={require('@/assets/images/icon.png')} 
-          style={{ width: 100, height: 100, marginBottom: 24 }} 
+          width={100} 
+          height={100} 
+          marginBottom="$6" 
           resizeMode="contain"
         />
         <H1>Welcome to Aether</H1>

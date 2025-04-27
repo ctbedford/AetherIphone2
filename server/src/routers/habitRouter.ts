@@ -5,14 +5,50 @@ import { TRPCError } from "@trpc/server";
 export const habitRouter = router({
   getHabits: protectedProcedure
     .query(async ({ ctx }) => {
-      const { data, error } = await ctx.supabaseAdmin
-        .from("habits")
-        .select("*")
-        .eq("user_id", ctx.userId)
-        .order("created_at", { ascending: false });
+      try {
+        // Fetch all habits for the user
+        const { data: habits, error: habitsError } = await ctx.supabaseAdmin
+          .from('habits')
+          .select('*')
+          .eq('user_id', ctx.userId)
+          .order('created_at', { ascending: false });
 
-      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
-      return data || [];
+        if (habitsError) throw habitsError;
+        if (!habits) return [];
+
+        // Compute today's date string for completed flag
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Fetch today's habit entries for completed flag
+        const { data: habitEntriesToday, error: todayEntriesError } = await ctx.supabaseAdmin
+          .from('habit_entries')
+          .select('habit_id')
+          .eq('user_id', ctx.userId)
+          .eq('entry_date', todayStr)
+          .in('habit_id', habits.map(h => h.id));
+
+        if (todayEntriesError) throw todayEntriesError;
+
+        // Build map of completed habits for today
+        const completedMap = (habitEntriesToday || []).reduce<Record<string, boolean>>((acc, entry) => {
+          acc[entry.habit_id] = true;
+          return acc;
+        }, {});
+
+        // Format habits with title and completed flag
+        const formattedHabits = habits.map(h => ({
+          ...h, // Keep other original fields
+          title: h.name, // Map name to title
+          completed: !!completedMap[h.id] // Add completed flag
+        }));
+
+        return formattedHabits;
+      } catch (error: any) {
+         throw new TRPCError({ 
+           code: 'INTERNAL_SERVER_ERROR', 
+           message: error.message || 'Failed to fetch habits'
+         });
+      }
     }),
 
   getHabitById: protectedProcedure

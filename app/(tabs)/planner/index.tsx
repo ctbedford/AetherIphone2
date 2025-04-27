@@ -1,12 +1,14 @@
 // File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/planner/index.tsx
-import React, { useState } from 'react';
-import { YStack, XStack, Text, Tabs, Button, ScrollView } from 'tamagui';
-import { SafeAreaView } from 'react-native';
+import React, { useState, Suspense } from 'react';
+import { YStack, XStack, Text, Tabs, Button, Spinner, Card } from 'tamagui';
+import { SafeAreaView, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { trpc } from '@/utils/trpc';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
+import { RouterOutputs } from '@/utils/api-types';
+import { SectionError } from '@/components/ui/ErrorBanner';
 
 interface TabData {
   key: string;
@@ -112,6 +114,9 @@ function GoalsTab() {
   // Fetch goals using tRPC
   const { data: goals, isLoading, error, refetch } = trpc.goal.getGoals.useQuery();
   
+  // Define the inferred type for a single goal
+  type PlannerGoal = RouterOutputs['goal']['getGoals'][number];
+
   if (isLoading) {
     return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
   }
@@ -133,20 +138,20 @@ function GoalsTab() {
         isEmpty={true} 
         text="No goals yet" 
         actionText="Create a goal" 
-        onAction={() => router.push('/planner/add-goal' as any)} 
+        onAction={() => router.push('/planner/add-goal')} 
       />
     );
   }
   
   return (
     <YStack space="$4">
-      {goals.map((goal: { id: string; title: string; dueDate?: string }) => (
+      {goals.map((goal: PlannerGoal) => (
         <Button 
           key={goal.id} 
           height="$12" 
           justifyContent="flex-start" 
           paddingHorizontal="$3"
-          onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } } as any)}
+          onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } })}
         >
           <YStack>
             <Text fontWeight="bold">{goal.title}</Text>
@@ -165,6 +170,9 @@ function HabitsTab() {
   // Fetch habits using tRPC
   const { data: habits, isLoading, error, refetch } = trpc.habit.getHabits.useQuery();
   
+  // Define the inferred type for a single habit
+  type PlannerHabit = RouterOutputs['habit']['getHabits'][number];
+
   if (isLoading) {
     return <EmptyOrSkeleton isLoading={isLoading} count={3} type="row" />;
   }
@@ -186,14 +194,14 @@ function HabitsTab() {
         isEmpty={true} 
         text="No habits yet" 
         actionText="Create a habit" 
-        onAction={() => router.push('/planner/add-habit' as any)} 
+        onAction={() => router.push('/planner/add-habit')} 
       />
     );
   }
   
   return (
     <YStack space="$3">
-      {habits.map((habit: { id: string; title: string; completed?: boolean }) => (
+      {habits.map((habit: PlannerHabit) => (
         <XStack 
           key={habit.id} 
           justifyContent="space-between" 
@@ -204,7 +212,7 @@ function HabitsTab() {
           borderColor="$gray5"
           pressStyle={{ opacity: 0.7 }}
           tag="pressable"
-          onPress={() => router.push({ pathname: '/planner/habit/[id]', params: { id: habit.id } } as any)}
+          onPress={() => router.push({ pathname: '/planner/habit/[id]', params: { id: habit.id } })}
         >
           <Text>{habit.title}</Text>
           <Button

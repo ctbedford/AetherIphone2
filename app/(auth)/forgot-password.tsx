@@ -1,8 +1,7 @@
 // Forgot Password Screen
 import React, { useState } from 'react';
 import { Link } from 'expo-router';
-import { YStack, H1, Input, Button, Text, Spinner } from 'tamagui';
-import { Image } from 'react-native';
+import { YStack, H1, Input, Button, Text, Spinner, Image } from 'tamagui';
 import { supabase } from '@/utils/supabase';
 import { useToastController } from '@tamagui/toast';
 
@@ -30,8 +29,9 @@ export default function ForgotPasswordScreen() {
 
       setSuccess(true);
       toast.show('Password reset email sent!', { type: 'success' });
-    } catch (error) {
-      toast.show(error.message || 'Failed to send reset email', { type: 'error' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
+      toast.show(errorMessage, { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,9 @@ export default function ForgotPasswordScreen() {
         {/* Replace with your app logo */}
         <Image 
           source={require('@/assets/images/icon.png')} 
-          style={{ width: 100, height: 100, marginBottom: 24 }} 
+          width={100} 
+          height={100} 
+          marginBottom="$6" 
           resizeMode="contain"
         />
         <H1>Reset Password</H1>

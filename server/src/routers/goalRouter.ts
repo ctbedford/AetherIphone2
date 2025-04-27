@@ -13,7 +13,15 @@ export const goalRouter = router({
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return goals;
+        
+        // Format goals to align with client expectations
+        const formattedGoals = (goals || []).map(g => ({
+          ...g, // Keep other original fields
+          title: g.name, // Map name to title
+          dueDate: g.target_date // Map target_date to dueDate
+        }));
+
+        return formattedGoals;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

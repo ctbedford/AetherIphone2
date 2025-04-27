@@ -1,19 +1,15 @@
 // Rewards screen with grid/list toggle and claim functionality
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { YStack, XStack, Text, Button, ScrollView, Card, Checkbox, useTheme, H1 } from 'tamagui';
-import { SafeAreaView, View, FlatList, ImageBackground } from 'react-native';
+import { SafeAreaView, View, FlatList, ImageBackground, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '@/utils/trpc';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { RouterOutputs } from '@/utils/trpc'; // Import RouterOutputs
+import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton'; // Import helper component
 
-interface Reward {
-  id: string;
-  title: string;
-  description: string;
-  pointCost: number;
-  imagePath?: string;
-  claimed: boolean;
-}
+// Define inferred type for rewards
+type RewardItem = RouterOutputs['rewards']['getAvailableRewards'][number];
 
 enum ViewMode {
   Grid = 'grid',
@@ -25,60 +21,55 @@ export default function RewardsScreen() {
   const colorScheme = useColorScheme();
   const theme = useTheme();
   
-  // In a real implementation, you would fetch rewards from tRPC
-  // const { data: rewards, isLoading, error, refetch } = trpc.rewards.list.useQuery();
+  // Fetch available rewards from tRPC
+  const { 
+    data: rewards, 
+    isLoading, 
+    error, 
+    refetch 
+  } = trpc.rewards.getAvailableRewards.useQuery();
+
+  // Mutation for claiming rewards
+  const claimMutation = trpc.rewards.earnReward.useMutation({
+    onSuccess: (data) => {
+      console.log('Reward claimed successfully:', data);
+      // Maybe show confetti?
+      Alert.alert('Reward Claimed!', `You spent ${data.reward.points_spent} points. Remaining: ${data.remainingPoints}`);
+      refetch(); // Refetch the list of available rewards
+    },
+    onError: (err) => {
+      console.error('Failed to claim reward:', err);
+      Alert.alert('Claim Failed', err.message || 'Could not claim reward.');
+    }
+  });
   
-  // For now, we'll use mock data
-  const rewards: Reward[] = [
-    { 
-      id: '1', 
-      title: 'Movie Night', 
-      description: 'Take a break and enjoy a movie of your choice', 
-      pointCost: 50, 
-      claimed: false,
-      imagePath: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=300&auto=format&fit=crop'
-    },
-    { 
-      id: '2', 
-      title: 'Coffee Break', 
-      description: 'A nice coffee break during your workday', 
-      pointCost: 20, 
-      claimed: false,
-      imagePath: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop'
-    },
-    { 
-      id: '3', 
-      title: 'Day Off', 
-      description: 'Take a day off to recharge and rest', 
-      pointCost: 200, 
-      claimed: false,
-      imagePath: 'https://images.unsplash.com/photo-1501426026826-31c667bdf23d?q=80&w=300&auto=format&fit=crop'
-    },
-    { 
-      id: '4', 
-      title: 'Special Meal', 
-      description: 'Treat yourself to a special meal at your favorite restaurant', 
-      pointCost: 100, 
-      claimed: false,
-      imagePath: 'https://images.unsplash.com/photo-1592861956120-e524fc739696?q=80&w=300&auto=format&fit=crop'
-    },
-    { 
-      id: '5', 
-      title: 'New Book', 
-      description: 'Buy yourself a new book you have been wanting to read', 
-      pointCost: 40, 
-      claimed: true,
-      imagePath: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=300&auto=format&fit=crop'
-    },
-  ];
+  const handleClaimReward = useCallback((id: string) => {
+    if (claimMutation.isPending) return; // Prevent double-clicks
+    
+    Alert.alert(
+      'Confirm Claim',
+      'Are you sure you want to spend points on this reward?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Claim', 
+          onPress: () => {
+            claimMutation.mutate({ lootId: id });
+          },
+          style: 'default'
+        }
+      ]
+    );
+  }, [claimMutation]);
   
-  const handleClaimReward = (id: string) => {
-    // In a real app, this would call an API
-    console.log(`Claiming reward ${id}`);
-    // Show confetti and haptic feedback
-  };
-  
-  const renderItem = ({ item }: { item: Reward }) => {
+  const renderItem = ({ item }: { item: RewardItem }) => { // Use inferred type
+    // Assuming backend field is image_url, map to imagePath
+    const imagePath = item.image_url; 
+    // All items from getAvailableRewards are considered claimable (not yet claimed)
+    const claimed = false; 
+    // Map required_points to pointCost
+    const pointCost = item.required_points;
+
     if (viewMode === ViewMode.Grid) {
       return (
         <Card
@@ -89,10 +80,10 @@ export default function RewardsScreen() {
           margin="$2"
           overflow="hidden"
           elevation="$2"
-          opacity={item.claimed ? 0.7 : 1}
+          opacity={claimed ? 0.7 : 1}
         >
           <ImageBackground
-            source={{ uri: item.imagePath }}
+            source={{ uri: imagePath }}
             style={{ width: '100%', height: 100 }}
           >
             <View style={{ 
@@ -104,24 +95,24 @@ export default function RewardsScreen() {
               padding: 4
             }}>
               <Text color="white" fontSize="$2" fontWeight="bold">
-                {item.pointCost} pts
+                {pointCost} pts
               </Text>
             </View>
           </ImageBackground>
           
           <YStack padding="$2" flex={1} justifyContent="space-between">
             <Text fontSize="$4" fontWeight="bold" numberOfLines={1}>
-              {item.title}
+              {item.name}
             </Text>
             
             <Button
               size="$2"
-              themeInverse={item.claimed}
-              backgroundColor={item.claimed ? undefined : theme.green9.val}
+              themeInverse={claimed}
+              backgroundColor={claimed ? undefined : theme.green9.val}
               onPress={() => handleClaimReward(item.id)}
-              disabled={item.claimed}
+              disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
             >
-              {item.claimed ? 'Claimed' : 'Claim'}
+              {claimMutation.isPending && claimMutation.variables?.lootId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
             </Button>
           </YStack>
         </Card>
@@ -132,10 +123,10 @@ export default function RewardsScreen() {
           bordered
           margin="$2"
           padding="$3"
-          opacity={item.claimed ? 0.7 : 1}
+          opacity={claimed ? 0.7 : 1}
         >
           <XStack space="$3" alignItems="center">
-            {item.imagePath && (
+            {imagePath && (
               <View style={{ 
                 width: 60, 
                 height: 60, 
@@ -144,26 +135,26 @@ export default function RewardsScreen() {
                 backgroundColor: theme.gray3.val
               }}>
                 <ImageBackground
-                  source={{ uri: item.imagePath }}
+                  source={{ uri: imagePath }}
                   style={{ width: '100%', height: '100%' }}
                 />
               </View>
             )}
             
             <YStack flex={1} space="$1">
-              <Text fontSize="$5" fontWeight="bold">{item.title}</Text>
+              <Text fontSize="$5" fontWeight="bold">{item.name}</Text>
               <Text fontSize="$3" color="$gray11" numberOfLines={2}>{item.description}</Text>
-              <Text fontSize="$3" color="$blue10" fontWeight="500">{item.pointCost} points</Text>
+              <Text fontSize="$3" color="$blue10" fontWeight="500">{pointCost} points</Text>
             </YStack>
             
             <Button
               size="$3"
-              backgroundColor={item.claimed ? undefined : theme.green9.val}
-              themeInverse={item.claimed}
+              backgroundColor={claimed ? undefined : theme.green9.val}
+              themeInverse={claimed}
               onPress={() => handleClaimReward(item.id)}
-              disabled={item.claimed}
+              disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
             >
-              {item.claimed ? 'Claimed' : 'Claim'}
+              {claimMutation.isPending && claimMutation.variables?.lootId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
             </Button>
           </XStack>
         </Card>
@@ -219,24 +210,28 @@ export default function RewardsScreen() {
           </Card>
         </YStack>
         
-        {/* Rewards List/Grid */}
-        {viewMode === ViewMode.Grid ? (
+        {/* Content Area */} 
+        <EmptyOrSkeleton 
+          isLoading={isLoading}
+          isError={!!error}
+          isEmpty={!rewards || rewards.length === 0}
+          count={viewMode === ViewMode.Grid ? 4 : 3}
+          type={viewMode === ViewMode.Grid ? 'card' : 'row'} // Adjust skeleton type
+          text={error ? error.message : "No rewards available right now."}
+          actionText="Refresh"
+          onRetry={refetch}
+          onAction={refetch} // Action for empty state could also be refresh
+        >
           <FlatList
             data={rewards}
             renderItem={renderItem}
-            keyExtractor={item => item.id}
-            numColumns={2}
-            contentContainerStyle={{ paddingVertical: 10 }}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            keyExtractor={(item) => item.id}
+            numColumns={viewMode === ViewMode.Grid ? 2 : 1}
+            key={viewMode} // Change key on viewMode switch to force re-render
+            contentContainerStyle={{ paddingBottom: 50 }}
           />
-        ) : (
-          <FlatList
-            data={rewards}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ paddingVertical: 10 }}
-          />
-        )}
+        </EmptyOrSkeleton>
+
       </YStack>
     </SafeAreaView>
   );

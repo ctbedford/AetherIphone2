@@ -22,7 +22,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home" // Matches the 'home' folder name
+        name="home" // Just the folder name, not the path with index
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
@@ -31,7 +31,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="planner" // Matches the 'planner' folder name
+        name="planner" // Just the folder name, not the path with index
         options={{
           title: 'Planner',
           tabBarIcon: ({ color, size }) => (
@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="compass" // Matches the 'compass' folder name
+        name="compass" // Just the folder name, not the path with index
         options={{
           title: 'Compass',
           tabBarIcon: ({ color, size }) => (
@@ -49,7 +49,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="rewards" // Matches the 'rewards' folder name
+        name="rewards" // Just the folder name, not the path with index
         options={{
           title: 'Rewards',
           tabBarIcon: ({ color, size }) => (
@@ -58,7 +58,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings" // Matches the 'settings' folder name
+        name="settings" // Just the folder name, not the path with index
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (

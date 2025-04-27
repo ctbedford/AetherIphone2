@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Text, XStack, Button, YStack } from 'tamagui';
 import * as Haptics from 'expo-haptics';
+import { RouterOutputs } from '@/utils/trpc';
 
-interface Habit {
-  id: string;
-  title: string;
-  streak: number;
-  completedToday: boolean;
-}
+type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
 
 interface HabitCheckItemProps {
-  habit: Habit;
+  habit: DashboardHabit;
   onToggle: (habitId: string, completed: boolean) => void;
 }
 
 export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps) {
-  const [checked, setChecked] = useState(habit.completedToday);
+  const [checked, setChecked] = useState(habit.completed);
   
   // Update local state if the prop changes
   useEffect(() => {
-    setChecked(habit.completedToday);
-  }, [habit.completedToday]);
+    setChecked(habit.completed);
+  }, [habit.completed]);
   
   const handleToggle = () => {
     const newValue = !checked;
@@ -44,7 +40,7 @@ export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps)
         </Text>
         
         {habit.streak > 0 && (
-          <Text color="$warning" fontSize="$2" marginTop="$1">
+          <Text color="$orange10" fontSize="$2" marginTop="$1">
             🔥 {habit.streak} day streak
           </Text>
         )}
@@ -63,4 +59,4 @@ export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps)
       </Button>
     </XStack>
   );
-} 
+}

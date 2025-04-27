@@ -1,16 +1,19 @@
+import config from '../tamagui.config';
+// --- Debugging ---
+// console.log('Tamagui Config Loaded in Providers:', !!config, config?.tokens ? 'Tokens found' : 'Tokens MISSING');
+// --- End Debugging ---
 import { TRPCClientError } from '@trpc/client';
 import { observable } from '@trpc/server/observable';
 import { useState, useEffect, type ReactNode } from 'react';
 import { TamaguiProvider } from 'tamagui';
+import { ToastProvider as TamaguiToastProvider, ToastViewport as TamaguiToastViewport } from '@tamagui/toast';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
-
-import { ToastProvider } from './ToastProvider';
-import config from '../tamagui.config';
 import { trpc } from '../utils/trpc';
 import { useUiStore } from '@/stores/uiStore';
 import { supabase } from '@/utils/supabase';
 import { queryClient, persister, initializeNetworkMonitoring, resumeMutationsAndInvalidate } from '@/utils/query-client';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Create a superjson transformer
 // Note: In a real app, you'd use superjson when available
@@ -28,6 +31,19 @@ persistQueryClient({
     shouldDehydrateMutation: () => false,
   },
 });
+
+// New component for the viewport using safe area
+const CurrentToastViewport = () => {
+  const { top, left, right } = useSafeAreaInsets();
+  return (
+    <TamaguiToastViewport
+      flexDirection="column-reverse" // Stack new toasts at the top
+      top={top + 10} // Add 10px padding below status bar
+      left={left + 10} // Add 10px padding from sides
+      right={right + 10}
+    />
+  );
+};
 
 export function Providers({ children }: { children: ReactNode }) {
   // Get theme state from Zustand
@@ -174,13 +190,19 @@ export function Providers({ children }: { children: ReactNode }) {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <TamaguiProvider config={config} defaultTheme={currentTheme}>
-          
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          
+          {/* Ensure native is false/default for custom toasts */}
+          <TamaguiToastProvider swipeDirection="horizontal">
+            {/* Render children (the rest of the app) */}
+            {children}
+            {/* Use the new safe-area aware viewport */}
+            <CurrentToastViewport />
+            {/* Remove the old named viewport
+            <ToastViewport name="global_top" top={50} left={0} right={0} /> */}
+            {/* Add other viewports if needed (e.g., bottom)
+            <ToastViewport name="global_bottom" bottom={10} left={0} right={0} /> */}
+          </TamaguiToastProvider>
         </TamaguiProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );
-} 
+}

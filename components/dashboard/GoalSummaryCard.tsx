@@ -1,19 +1,12 @@
 import React from 'react';
 import { Text, XStack, Card } from 'tamagui';
 import ProgressRing from '@/components/aether/ProgressRing';
+import { RouterOutputs } from '@/utils/trpc';
 
-interface Goal {
-  id: string;
-  title: string;
-  progress: number;
-  tasks?: {
-    total: number;
-    completed: number;
-  };
-}
+type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
 
 interface GoalSummaryCardProps {
-  goal: Goal;
+  goal: DashboardGoal;
   onPress: () => void;
 }
 
@@ -45,4 +38,4 @@ export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps)
       </XStack>
     </Card>
   );
-} 
+}

@@ -1,7 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Stack, useTheme, ColorTokens } from 'tamagui';
 import Svg, { Circle } from 'react-native-svg';
-import { useTheme } from 'tamagui';
 
 interface ProgressRingProps {
   progress: number;  // 0 to 1 (or 0 to 100 as percentage)
@@ -9,7 +8,7 @@ interface ProgressRingProps {
   strokeWidth?: number;
   primaryColor?: string;
   secondaryColor?: string;
-  backgroundColor?: string;
+  backgroundColor?: ColorTokens | 'transparent' | undefined;
 }
 
 /**
@@ -38,7 +37,7 @@ export default function ProgressRing({
   const secondary = secondaryColor || theme.gray4.val;
 
   return (
-    <View style={{ width: size, height: size, backgroundColor }}>
+    <Stack width={size} height={size} backgroundColor={backgroundColor} alignItems="center" justifyContent="center">
       <Svg width={size} height={size}>
         {/* Background circle */}
         <Circle
@@ -64,6 +63,6 @@ export default function ProgressRing({
           transform={`rotate(-90, ${size / 2}, ${size / 2})`} // Start from top
         />
       </Svg>
-    </View>
+    </Stack>
   );
 }
