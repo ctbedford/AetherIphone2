@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'tamagui';
 import { AetherCard } from '@/components/ui/primitives/AetherCard';
+import { render, fireEvent } from '../../../test-utils';
 
 describe('AetherCard Component', () => {
   it('renders correctly with default props', () => {

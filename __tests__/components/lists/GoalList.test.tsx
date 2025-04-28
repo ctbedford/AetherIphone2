@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent } from '../test-utils';
 import { GoalList, GoalCard } from '@/components/lists/GoalList';
 import { router } from 'expo-router';
 

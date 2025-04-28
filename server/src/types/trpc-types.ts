@@ -143,7 +143,7 @@ export const HabitEntry = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   habit_id: z.string().uuid(),
-  date: z.string(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
   completed: z.boolean().default(false),
   quantity_value: z.number().int().nullish(),
   notes: z.string().nullish(),

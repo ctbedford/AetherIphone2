@@ -1,13 +1,29 @@
 import '@testing-library/jest-native/extend-expect';
-import { mockTamagui } from '@tamagui/core/testing';
 import { StyleSheet } from 'react-native';
 
-// Mock Tamagui for testing
-mockTamagui({
-  // Use Native StyleSheet for testing
-  // This allows us to check styles in tests
-  createStyle: (style) => StyleSheet.create({ style }).style,
+// Mock tRPC procedures *before* routers are imported by tests
+jest.mock('./server/src/router', () => {
+  // console.log('MOCKING ./server/src/router'); // Debugging line
+  const actualTrpc = jest.requireActual('./server/src/router');
+
+  // Simple mock procedure chain structure
+  const mockProcedure = {
+    input: jest.fn().mockReturnThis(),
+    output: jest.fn().mockReturnThis(),
+    query: jest.fn((resolver) => resolver), // Pass resolver through
+    mutation: jest.fn((resolver) => resolver), // Pass resolver through
+    use: jest.fn().mockReturnThis(), // Mock middleware usage
+  };
+
+  return {
+    ...actualTrpc, // Keep other exports (like appRouter if needed elsewhere, though unlikely in unit tests)
+    router: jest.fn((definition) => definition), // Mock the router factory function
+    publicProcedure: mockProcedure,
+    protectedProcedure: mockProcedure,
+  };
 });
+
+// No longer using global mockTamagui
 
 // Mock the router from expo-router
 jest.mock('expo-router', () => ({

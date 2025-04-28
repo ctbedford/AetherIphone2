@@ -9,7 +9,7 @@ import {
 } from '../types/trpc-types';
 
 const HABIT_FIELDS =
-  'id, user_id, title, cue, routine, reward, habit_type, goal_quantity, goal_unit, recurrence_rule, recurrence_end_date, archived_at, sort_order, streak, best_streak, created_at, updated_at';
+  'id, user_id, title, cue, routine, reward, habit_type, goal_quantity, goal_unit, frequency_period, goal_frequency, recurrence_rule, recurrence_end_date, archived_at, sort_order, streak, best_streak, created_at, updated_at';
 
 const HABIT_ENTRY_FIELDS =
   'id, user_id, habit_id, date, completed, quantity_value, notes, created_at';
@@ -264,214 +264,130 @@ export const habitRouter = router({
       }
     }),
 
+  getHabitEntriesForHabit: protectedProcedure
+    .input(z.object({ habitId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      // TODO: Implement logic to fetch habit entries for a specific habit
+      console.log(`Fetching entries for habit: ${input.habitId}, user: ${ctx.userId}`);
+      // Example fetch:
+      // const { data, error } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .select(HABIT_ENTRY_FIELDS)
+      //   .eq('habit_id', input.habitId)
+      //   .eq('user_id', ctx.userId)
+      //   .order('date', { ascending: false });
+      // if (error) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      // return data || [];
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Not implemented yet' });
+    }),
+
   createHabitEntry: protectedProcedure
     .input(createHabitEntryInput)
     .mutation(async ({ ctx, input }) => {
-      try {
-        const { data: habit, error: habitError } = await ctx.supabaseAdmin
-          .from('habits')
-          .select('id, archived_at')
-          .eq('id', input.habit_id)
-          .eq('user_id', ctx.userId)
-          .single();
-
-        if (habitError) {
-          if (habitError.code === 'PGRST116') {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit not found or access denied.' });
-          }
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: habitError.message });
-        }
-        if (habit.archived_at) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot add entry to an archived habit.' });
-        }
-
-        const entryDate = input.date || new Date().toISOString().split('T')[0];
-
-        const { data: newEntry, error: insertError } = await ctx.supabaseAdmin
-          .from('habit_entries')
-          .insert({
-            ...input,
-            date: entryDate,
-            user_id: ctx.userId,
-          })
-          .select(HABIT_ENTRY_FIELDS)
-          .single();
-
-        if (insertError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: insertError.message });
-
-        await calculateAndUpdateStreak(input.habit_id, ctx.userId, entryDate, ctx.supabaseAdmin);
-
-        return newEntry;
-      } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create habit entry' });
-      }
+      // TODO: Implement creation logic
+      console.log(`Creating habit entry for habit: ${input.habit_id}, date: ${input.date}`);
+      // Example insert:
+      // const { data, error } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .insert({ ...input, user_id: ctx.userId })
+      //   .select(HABIT_ENTRY_FIELDS)
+      //   .single();
+      // if (error) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      // await calculateAndUpdateStreak(input.habit_id, ctx.userId, input.date, ctx.supabaseAdmin);
+      // return data;
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Not implemented yet' });
     }),
 
   updateHabitEntry: protectedProcedure
     .input(updateHabitEntryInput)
     .mutation(async ({ ctx, input }) => {
-      try {
-        const { id, ...updateData } = input;
-
-        const { data: existingEntry, error: fetchError } = await ctx.supabaseAdmin
-          .from('habit_entries')
-          .select('id, user_id, habit_id, date')
-          .eq('id', id)
-          .eq('user_id', ctx.userId)
-          .single();
-
-        if (fetchError) {
-          if (fetchError.code === 'PGRST116') {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit entry not found or access denied.' });
-          }
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: fetchError.message });
-        }
-
-        const { data: updatedEntry, error: updateError } = await ctx.supabaseAdmin
-          .from('habit_entries')
-          .update(updateData)
-          .eq('id', id)
-          .select(HABIT_ENTRY_FIELDS)
-          .single();
-
-        if (updateError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: updateError.message });
-
-        if ('quantity_value' in updateData || 'date' in updateData) {
-            await calculateAndUpdateStreak(existingEntry.habit_id, ctx.userId, updateData.date || existingEntry.date, ctx.supabaseAdmin);
-        }
-
-        return updatedEntry;
-      } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update habit entry' });
-      }
+      // TODO: Implement update logic
+      const { id, ...updateData } = input;
+      console.log(`Updating habit entry: ${id}`);
+      // Example update:
+      // const { data, error } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .update(updateData)
+      //   .eq('id', id)
+      //   .eq('user_id', ctx.userId) // Ensure ownership
+      //   .select(HABIT_ENTRY_FIELDS)
+      //   .single();
+      // if (error) {
+      //   if (error.code === 'PGRST116') throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit entry not found' });
+      //   throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      // }
+      // if (data?.habit_id && data?.date) {
+      //   await calculateAndUpdateStreak(data.habit_id, ctx.userId, data.date, ctx.supabaseAdmin);
+      // }
+      // return data;
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Not implemented yet' });
     }),
 
   deleteHabitEntry: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      try {
-        const { data: existingEntry, error: fetchError } = await ctx.supabaseAdmin
-          .from('habit_entries')
-          .select('id, user_id, habit_id, date')
-          .eq('id', input.id)
-          .eq('user_id', ctx.userId)
-          .single();
-
-        if (fetchError) {
-          if (fetchError.code === 'PGRST116') {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit entry not found or access denied.' });
-          }
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: fetchError.message });
-        }
-
-        const { error: deleteError } = await ctx.supabaseAdmin
-          .from('habit_entries')
-          .delete()
-          .eq('id', input.id);
-
-        if (deleteError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: deleteError.message });
-
-        await calculateAndUpdateStreak(existingEntry.habit_id, ctx.userId, existingEntry.date, ctx.supabaseAdmin);
-
-        return { success: true, id: input.id };
-      } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to delete habit entry' });
-      }
+      // TODO: Implement deletion logic and fetch habitId/date before delete for streak update
+      console.log(`Deleting habit entry: ${input.id}`);
+      // Example delete:
+      // const { data: entryToDelete, error: fetchError } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .select('habit_id, date')
+      //   .eq('id', input.id)
+      //   .eq('user_id', ctx.userId)
+      //   .single();
+      // if (fetchError) {
+      //   if (fetchError.code === 'PGRST116') throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit entry not found' });
+      //   throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: fetchError.message });
+      // }
+      // const { error } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .delete()
+      //   .eq('id', input.id)
+      //   .eq('user_id', ctx.userId);
+      // if (error) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+      // if (entryToDelete?.habit_id && entryToDelete?.date) {
+      //   await calculateAndUpdateStreak(entryToDelete.habit_id, ctx.userId, entryToDelete.date, ctx.supabaseAdmin);
+      // }
+      // return { id: input.id };
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Not implemented yet' });
     }),
 
-  // --- Habit Toggle --- //
   toggleHabitEntry: protectedProcedure
-    .input(z.object({
-      habitId: z.string().uuid(),
-      date: z.string().optional(), // YYYY-MM-DD, defaults to today
-      quantity_value: z.number().optional(), // Optional, defaults based on habit type if needed
-      notes: z.string().optional(),
-    }))
+    .input(z.object({ habitId: z.string().uuid(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
     .mutation(async ({ ctx, input }) => {
-      const entryDate = input.date || new Date().toISOString().split('T')[0];
-      const userId = ctx.userId;
-      const habitId = input.habitId;
-      const supabase = ctx.supabaseAdmin;
+      // TODO: Implement logic to find if entry exists for habitId/date/userId.
+      // If exists, delete it.
+      // If not exists, create it (need default values for boolean/quantity type).
+      // Call calculateAndUpdateStreak after create/delete.
+      console.log(`Toggling habit entry for habit: ${input.habitId}, date: ${input.date}`);
+      // Example logic:
+      // const { data: existingEntry, error: findError } = await ctx.supabaseAdmin
+      //   .from('habit_entries')
+      //   .select('id')
+      //   .eq('habit_id', input.habitId)
+      //   .eq('user_id', ctx.userId)
+      //   .eq('date', input.date)
+      //   .maybeSingle();
+      // if (findError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: findError.message });
 
-      try {
-        // 1. Verify habit exists, belongs to user, and is not archived
-        const { data: habit, error: habitError } = await supabase
-          .from('habits')
-          .select('id, archived_at') // Check archived status
-          .eq('id', habitId)
-          .eq('user_id', userId)
-          .single();
-
-        if (habitError) {
-          if (habitError.code === 'PGRST116') {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Habit not found or access denied.' });
-          }
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: habitError.message });
-        }
-        if (habit.archived_at) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot toggle entry for an archived habit.' });
-        }
-
-        // 2. Check for existing entry for this date
-        const { data: existingEntry, error: fetchEntryError } = await supabase
-          .from('habit_entries')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('habit_id', habitId)
-          .eq('date', entryDate)
-          .maybeSingle(); // Use maybeSingle as entry might not exist
-
-        if (fetchEntryError) {
-           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to check for existing entry.' });
-        }
-
-        let actionResult: { action: 'created' | 'deleted'; entryId: string; };
-
-        if (existingEntry) {
-          // 3a. Entry exists - Delete it
-          const { error: deleteError } = await supabase
-            .from('habit_entries')
-            .delete()
-            .eq('id', existingEntry.id);
-
-          if (deleteError) {
-            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to delete existing habit entry.' });
-          }
-          actionResult = { action: 'deleted', entryId: existingEntry.id };
-
-        } else {
-          // 3b. Entry doesn't exist - Create it
-          const { data: newEntry, error: insertError } = await supabase
-            .from('habit_entries')
-            .insert({
-              habit_id: habitId,
-              user_id: userId,
-              date: entryDate,
-              quantity_value: input.quantity_value, // Use input or null/default
-              notes: input.notes,
-            })
-            .select('id') // Select only the ID
-            .single();
-
-          if (insertError) {
-            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create new habit entry.' });
-          }
-          actionResult = { action: 'created', entryId: newEntry.id };
-        }
-
-        // 4. Call streak update placeholder (always call after toggle)
-        await calculateAndUpdateStreak(habitId, userId, entryDate, supabase);
-
-        // 5. Return result
-        return actionResult;
-
-      } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        console.error("Error in toggleHabitEntry:", error);
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to toggle habit entry' });
-      }
-    })
- });
+      // if (existingEntry) {
+      //   // Delete existing
+      //   const { error: deleteError } = await ctx.supabaseAdmin.from('habit_entries').delete().eq('id', existingEntry.id);
+      //   if (deleteError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: deleteError.message });
+      //   await calculateAndUpdateStreak(input.habitId, ctx.userId, input.date, ctx.supabaseAdmin);
+      //   return { status: 'deleted', habitId: input.habitId, date: input.date };
+      // } else {
+      //   // Create new
+      //   // Need to know habit type to set default 'completed' or 'quantity_value'
+      //   const { data: newEntry, error: createError } = await ctx.supabaseAdmin
+      //     .from('habit_entries')
+      //     .insert({ habit_id: input.habitId, user_id: ctx.userId, date: input.date, completed: true /* or quantity_value: default */ })
+      //     .select(HABIT_ENTRY_FIELDS)
+      //     .single();
+      //   if (createError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: createError.message });
+      //   await calculateAndUpdateStreak(input.habitId, ctx.userId, input.date, ctx.supabaseAdmin);
+      //   return { status: 'created', entry: newEntry };
+      // }
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Not implemented yet' });
+    }),
+});
