@@ -159,7 +159,23 @@ resetSupabaseMocks();
 
 // --- Context Creation --- 
 
-export type TableName = 'goals' | 'subtasks' | 'tasks'; // Add other table names as needed
+// Expand this type as more tables are tested
+export type TableName = 
+  | 'users' 
+  | 'user_profiles' 
+  | 'user_settings'
+  | 'values'
+  | 'principles'
+  | 'goals' 
+  | 'tasks'
+  | 'habits'
+  | 'habit_entries'
+  | 'tracked_state_defs' 
+  | 'state_entries'     
+  | 'reminders'         
+  | 'goal_progress_notes'
+  | 'rewards'           
+  | 'user_badges';       
 
 /**
  * Creates a TRPC context with a mocked Supabase client.
@@ -188,3 +204,6 @@ export function createTestContext(userId: string | null = 'test-user-id', supaba
     supabase,
   });
 }
+
+// Export mockDeep so it can be used directly in tests if needed
+export { mockDeep };

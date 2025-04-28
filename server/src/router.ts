@@ -28,6 +28,8 @@ import { habitRouter } from './routers/habitRouter';
 import { trackedStateRouter } from './routers/trackedStateRouter';
 import { userRouter } from './routers/userRouter';
 import { rewardsRouter } from './routers/rewardsRouter';
+import { reminderRouter } from './routers/reminderRouter';
+import { goalProgressNoteRouter } from './routers/goalProgressNoteRouter';
 
 // Create the router with Supabase-backed procedures
 export const appRouter = router({
@@ -51,6 +53,8 @@ export const appRouter = router({
   habit: habitRouter,
   state: trackedStateRouter,
   rewards: rewardsRouter,
+  reminder: reminderRouter,
+  goalProgressNote: goalProgressNoteRouter,
 });
 
 // Export type router type

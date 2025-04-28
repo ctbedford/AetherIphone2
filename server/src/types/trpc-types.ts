@@ -285,6 +285,73 @@ export const updateReminderInput = createReminderInput.partial().extend({ id: z.
 // Goal Progress Notes
 export const createGoalProgressNoteInput = GoalProgressNote.omit({ id: true, user_id: true, created_at: true });
 
+// --- TrackedStateDef Inputs ---
+export const CreateTrackedStateDefInput = TrackedStateDef.omit({
+  id: true,
+  user_id: true,
+  created_at: true,
+  updated_at: true,
+});
+export const UpdateTrackedStateDefInput = TrackedStateDef.pick({ id: true })
+  .merge(CreateTrackedStateDefInput.partial());
+export const GetTrackedStateDefByIdInput = z.object({ id: z.string().uuid() });
+export const DeleteTrackedStateDefInput = z.object({ id: z.string().uuid() });
+
+// --- StateEntry Inputs ---
+export const CreateStateEntryInput = StateEntry.omit({
+  id: true,
+  user_id: true,
+}).extend({
+  timestamp: z.string().datetime().optional(), // Make timestamp optional on creation
+});
+export const UpdateStateEntryInput = StateEntry.pick({ id: true })
+  .merge(StateEntry.omit({ id: true, user_id: true, tracked_state_def_id: true }).partial()); // Don't allow changing user_id or tracked_state_def_id
+export const GetStateEntriesInput = z.object({
+  tracked_state_def_id: z.string().uuid(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  limit: z.number().int().positive().optional(),
+});
+export const DeleteStateEntryInput = z.object({ id: z.string().uuid() });
+
+// --- Reminder Inputs ---
+export const CreateReminderInput = Reminder.omit({
+  id: true,
+  user_id: true,
+  created_at: true,
+  updated_at: true,
+}).extend({
+  reminder_time: z.string().datetime(), // Ensure reminder_time is provided on creation
+});
+export const UpdateReminderInput = Reminder.pick({ id: true })
+  .merge(
+    Reminder.omit({
+      id: true,
+      user_id: true,
+      created_at: true,
+      updated_at: true,
+      // Prevent changing the entity it's linked to? Maybe allow message/time/active updates.
+      related_entity_id: true,
+      related_entity_type: true,
+    }).partial()
+  );
+export const GetRemindersForEntityInput = z.object({
+    related_entity_type: z.string(),
+    related_entity_id: z.string().uuid(),
+});
+export const DeleteReminderInput = z.object({ id: z.string().uuid() });
+
+// --- GoalProgressNote Inputs ---
+export const CreateGoalProgressNoteInput = GoalProgressNote.omit({
+  id: true,
+  user_id: true,
+  created_at: true,
+});
+export const UpdateGoalProgressNoteInput = GoalProgressNote.pick({ id: true })
+  .merge(GoalProgressNote.pick({ note: true }).partial()); // Only allow updating notes?
+export const GetGoalProgressNotesInput = z.object({ goal_id: z.string().uuid() });
+export const DeleteGoalProgressNoteInput = z.object({ id: z.string().uuid() });
+
 /* ------------------------------------------------------------------
  *  Aggregate Router Types – automatically inferred
  * ----------------------------------------------------------------*/

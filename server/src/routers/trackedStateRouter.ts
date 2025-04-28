@@ -1,107 +1,98 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
-import { CreateTrackedStateInput, UpdateTrackedStateInput } from '../types/trpc-types';
+import {
+  CreateTrackedStateDefInput,
+  UpdateTrackedStateDefInput,
+  GetTrackedStateDefByIdInput,
+  DeleteTrackedStateDefInput,
+  CreateStateEntryInput,
+  UpdateStateEntryInput,
+  GetStateEntriesInput,
+  DeleteStateEntryInput
+} from '../types/trpc-types';
 
-// Define fields for consistent selection
-const TRACKED_STATE_FIELDS = 'id, user_id, name, category, value, unit, notes, timestamp, created_at, updated_at';
+const TRACKED_STATE_DEF_FIELDS = 'id, user_id, name, category, unit, icon, target_min_value, target_max_value, created_at, updated_at';
+const STATE_ENTRY_FIELDS = 'id, user_id, tracked_state_def_id, value, timestamp, notes';
 
 export const trackedStateRouter = router({
-  getTrackedStates: protectedProcedure
-    .input(z.object({
-      category: z.string().optional(),
-    }))
-    .query(async ({ ctx, input }) => {
+  getDefinitions: protectedProcedure
+    .query(async ({ ctx }) => {
       try {
-        let query = ctx.supabaseAdmin
-          .from('tracked_states')
-          .select(TRACKED_STATE_FIELDS) // Use constant
-          .eq('user_id', ctx.userId);
-
-        if (input.category) {
-          query = query.eq('category', input.category);
-        }
-
-        // Order by timestamp (most recent measurement first) or created_at?
-        const { data: states, error } = await query.order('timestamp', { ascending: false });
+        const { data, error } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
+          .select(TRACKED_STATE_DEF_FIELDS)
+          .eq('user_id', ctx.userId)
+          .order('created_at', { ascending: true });
 
         if (error) throw error;
-        // TODO: Parse with TrackedState schema?
-        return states;
+        return data ?? [];
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch tracked states',
+          message: error.message || 'Failed to fetch tracked state definitions',
         });
-      }
+      } 
     }),
 
-  getTrackedStateById: protectedProcedure
-    .input(z.object({
-      id: z.string().uuid(), // Use UUID validation
-    }))
+  getDefinitionById: protectedProcedure
+    .input(GetTrackedStateDefByIdInput)
     .query(async ({ ctx, input }) => {
       try {
-        const { data: state, error } = await ctx.supabaseAdmin
-          .from('tracked_states')
-          .select(TRACKED_STATE_FIELDS)
+        const { data: definition, error } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
+          .select(TRACKED_STATE_DEF_FIELDS)
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
 
         if (error) {
           if (error.code === 'PGRST116') {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Tracked state not found.' });
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Tracked state definition not found.' });
           }
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
         }
-
-        // TODO: Parse with TrackedState schema?
-        return state;
+        return definition;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch tracked state',
+          message: error.message || 'Failed to fetch tracked state definition',
         });
       }
     }),
 
-  createTrackedState: protectedProcedure
-    .input(CreateTrackedStateInput) // Use imported Zod schema
+  createDefinition: protectedProcedure
+    .input(CreateTrackedStateDefInput)
     .mutation(async ({ ctx, input }) => {
       try {
-        const { data: state, error } = await ctx.supabaseAdmin
-          .from('tracked_states')
+        const { data: definition, error } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
           .insert({
             ...input,
             user_id: ctx.userId,
-            timestamp: input.timestamp || new Date().toISOString(), // Handle default timestamp
           })
-          .select(TRACKED_STATE_FIELDS)
+          .select(TRACKED_STATE_DEF_FIELDS)
           .single();
 
         if (error) throw error;
-        // TODO: Parse with TrackedState schema?
-        return state;
+        return definition;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to create tracked state',
+          message: error.message || 'Failed to create tracked state definition',
         });
       }
     }),
 
-  updateTrackedState: protectedProcedure
-    .input(UpdateTrackedStateInput) // Use imported Zod schema
+  updateDefinition: protectedProcedure
+    .input(UpdateTrackedStateDefInput)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input;
 
-        // First check if the tracked state exists and belongs to user
-        const { data: existingState, error: fetchError } = await ctx.supabaseAdmin
-          .from('tracked_states')
+        const { error: fetchError } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
           .select('id')
           .eq('id', id)
           .eq('user_id', ctx.userId)
@@ -110,41 +101,35 @@ export const trackedStateRouter = router({
         if (fetchError) {
           throw new TRPCError({
             code: fetchError.code === 'PGRST116' ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR',
-            message: 'Tracked state not found or access denied.',
+            message: 'Definition not found or access denied.',
           });
         }
 
-        // Update the tracked state
-        const { data: updatedState, error } = await ctx.supabaseAdmin
-          .from('tracked_states')
+        const { data: updatedDefinition, error } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
           .update(updateData)
           .eq('id', id)
           .eq('user_id', ctx.userId)
-          .select(TRACKED_STATE_FIELDS)
+          .select(TRACKED_STATE_DEF_FIELDS)
           .single();
 
         if (error) throw error;
-        // TODO: Parse with TrackedState schema?
-        return updatedState;
+        return updatedDefinition;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to update tracked state',
+          message: error.message || 'Failed to update tracked state definition',
         });
       }
     }),
 
-  deleteTrackedState: protectedProcedure
-    .input(z.object({
-      id: z.string().uuid(), // Use UUID validation
-    }))
+  deleteDefinition: protectedProcedure
+    .input(DeleteTrackedStateDefInput)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Check if the tracked state exists and belongs to user
-        const { data: existingState, error: fetchError } = await ctx.supabaseAdmin
-          .from('tracked_states')
+        const { error: fetchError } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
           .select('id')
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
@@ -153,13 +138,12 @@ export const trackedStateRouter = router({
         if (fetchError) {
           throw new TRPCError({
             code: fetchError.code === 'PGRST116' ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR',
-            message: 'Tracked state not found or access denied.',
+            message: 'Definition not found or access denied.',
           });
         }
 
-        // Delete the tracked state
         const { error } = await ctx.supabaseAdmin
-          .from('tracked_states')
+          .from('tracked_state_defs')
           .delete()
           .eq('id', input.id)
           .eq('user_id', ctx.userId);
@@ -168,75 +152,158 @@ export const trackedStateRouter = router({
         return { success: true, id: input.id };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to delete tracked state',
+          message: error.message || 'Failed to delete tracked state definition',
         });
       }
     }),
 
-  getStateHistory: protectedProcedure
-    .input(z.object({
-      name: z.string(),
-      category: z.string(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      limit: z.number().optional(),
-    }))
+  getEntries: protectedProcedure
+    .input(GetStateEntriesInput)
     .query(async ({ ctx, input }) => {
       try {
-        // Assuming history comes from the same table for now
-        // If a separate history table exists, this needs adjustment
         let query = ctx.supabaseAdmin
-          .from('tracked_states')
-          .select(TRACKED_STATE_FIELDS) // Use constant
+          .from('state_entries')
+          .select(STATE_ENTRY_FIELDS)
           .eq('user_id', ctx.userId)
-          .eq('name', input.name)
-          .eq('category', input.category);
+          .eq('tracked_state_def_id', input.tracked_state_def_id);
 
         if (input.startDate) {
-          query = query.gte('timestamp', input.startDate); // Filter by measurement timestamp
+          query = query.gte('timestamp', input.startDate);
         }
-
         if (input.endDate) {
           query = query.lte('timestamp', input.endDate);
         }
 
-        const { data: history, error } = await query.order('timestamp', { ascending: false }).limit(input.limit || 50);
+        query = query.order('timestamp', { ascending: false });
+
+        if (input.limit) {
+          query = query.limit(input.limit);
+        }
+
+        const { data: entries, error } = await query;
 
         if (error) throw error;
-        // TODO: Parse with TrackedState schema?
-        return history;
+        return entries ?? [];
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch state history',
+          message: error.message || 'Failed to fetch state entries',
         });
       }
     }),
 
-  // ---- Stubs for client compatibility ----
-  getLatest: protectedProcedure
-    .query(async ({ ctx }) => {
-      // TODO: Implement actual logic - maybe get distinct names/categories and latest timestamp/value for each?
-      // For now, return all states like getTrackedStates
+  createEntry: protectedProcedure
+    .input(CreateStateEntryInput)
+    .mutation(async ({ ctx, input }) => {
       try {
-        const { data: states, error } = await ctx.supabaseAdmin
-          .from('tracked_states')
-          .select('*')
+        const { error: defError } = await ctx.supabaseAdmin
+          .from('tracked_state_defs')
+          .select('id')
+          .eq('id', input.tracked_state_def_id)
           .eq('user_id', ctx.userId)
-          .order('timestamp', { ascending: false }); // Order by timestamp to potentially get latest easily
+          .single();
+
+        if (defError) {
+          throw new TRPCError({
+            code: defError.code === 'PGRST116' ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR',
+            message: 'Tracked state definition not found or invalid.',
+          });
+        }
+
+        const { data: entry, error } = await ctx.supabaseAdmin
+          .from('state_entries')
+          .insert({
+            ...input,
+            user_id: ctx.userId,
+            timestamp: input.timestamp || new Date().toISOString(),
+          })
+          .select(STATE_ENTRY_FIELDS)
+          .single();
 
         if (error) throw error;
-        console.log("[trackedStateRouter.getLatest] Stub called, returning all states");
-        // Maybe limit to first N distinct states here if needed later
-        return states || []; 
+        return entry;
       } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch tracked states (in getLatest stub)',
+          message: error.message || 'Failed to create state entry',
         });
       }
     }),
-}); 
+
+  updateEntry: protectedProcedure
+    .input(UpdateStateEntryInput)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...updateData } = input;
+
+        const { error: fetchError } = await ctx.supabaseAdmin
+          .from('state_entries')
+          .select('id')
+          .eq('id', id)
+          .eq('user_id', ctx.userId)
+          .single();
+
+        if (fetchError) {
+          throw new TRPCError({
+            code: fetchError.code === 'PGRST116' ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR',
+            message: 'Entry not found or access denied.',
+          });
+        }
+
+        const { data: updatedEntry, error } = await ctx.supabaseAdmin
+          .from('state_entries')
+          .update(updateData)
+          .eq('id', id)
+          .eq('user_id', ctx.userId)
+          .select(STATE_ENTRY_FIELDS)
+          .single();
+
+        if (error) throw error;
+        return updatedEntry;
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to update state entry',
+        });
+      }
+    }),
+
+  deleteEntry: protectedProcedure
+    .input(DeleteStateEntryInput)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { error: fetchError } = await ctx.supabaseAdmin
+          .from('state_entries')
+          .select('id')
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId)
+          .single();
+
+        if (fetchError) {
+          throw new TRPCError({
+            code: fetchError.code === 'PGRST116' ? 'NOT_FOUND' : 'INTERNAL_SERVER_ERROR',
+            message: 'Entry not found or access denied.',
+          });
+        }
+
+        const { error } = await ctx.supabaseAdmin
+          .from('state_entries')
+          .delete()
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId);
+
+        if (error) throw error;
+        return { success: true, id: input.id };
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to delete state entry',
+        });
+      }
+    }),
+});
