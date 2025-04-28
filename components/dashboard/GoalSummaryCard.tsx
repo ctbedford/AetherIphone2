@@ -30,7 +30,7 @@ export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps)
             {goal.title}
           </Text>
           {goal.tasks && (
-            <Text color="$colorSecondary" fontSize="$2">
+            <Text color="$gray9" fontSize="$2">
               {goal.tasks.completed}/{goal.tasks.total} tasks completed
             </Text>
           )}

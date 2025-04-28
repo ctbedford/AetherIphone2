@@ -266,8 +266,8 @@ export default function HomeScreen() {
                     task={{
                       id: task.id,
                       title: task.title,
-                      status: task.completed ? 'completed' : 'pending',
-                      due: task.dueDate,
+                      status: task.status || 'pending',
+                      due: task.due, // Using the correct property name from our API
                       priority: task.priority || 0
                     }}
                     onPress={() => {/* Navigate to task details */}}

@@ -401,4 +401,129 @@ export const habitRouter = router({
       
       return { id: input.id };
     }),
+    
+  // Dashboard toggle habit procedure
+  toggleHabit: protectedProcedure
+    .input(z.object({ 
+      habitId: z.string(), 
+      completed: z.boolean(),
+      date: z.string().optional() // Optional date, defaults to today
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Verify the habit belongs to the user
+        const { data: habit, error: habitError } = await ctx.supabaseAdmin
+          .from("habits")
+          .select("*")
+          .eq("id", input.habitId)
+          .eq("user_id", ctx.userId)
+          .single();
+
+        if (habitError) throw new TRPCError({ 
+          code: habitError.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
+          message: "Habit not found or access denied" 
+        });
+
+        // Get the date string (today if not provided)
+        const dateStr = input.date || new Date().toISOString().split('T')[0];
+        
+        // Check if we already have an entry for this date
+        const { data: existingEntry, error: entryError } = await ctx.supabaseAdmin
+          .from("habit_entries")
+          .select("*")
+          .eq("habit_id", input.habitId)
+          .eq("date", dateStr)
+          .single();
+          
+        if (input.completed) {
+          // Create or update the entry if we're completing the habit
+          if (existingEntry) {
+            // Update existing entry if it's already there but not completed
+            if (!existingEntry.completed) {
+              await ctx.supabaseAdmin
+                .from("habit_entries")
+                .update({ completed: true })
+                .eq("id", existingEntry.id);
+                
+              // Update streak
+              const newStreak = (habit.streak || 0) + 1;
+              const bestStreak = Math.max(newStreak, habit.best_streak || 0);
+              
+              await ctx.supabaseAdmin
+                .from("habits")
+                .update({ 
+                  streak: newStreak,
+                  best_streak: bestStreak
+                })
+                .eq("id", input.habitId);
+            }
+            // If it's already completed, do nothing (idempotent)
+          } else {
+            // Insert new entry
+            await ctx.supabaseAdmin
+              .from("habit_entries")
+              .insert({
+                habit_id: input.habitId,
+                user_id: ctx.userId,
+                date: dateStr,
+                completed: true
+              });
+              
+            // Update streak
+            const newStreak = (habit.streak || 0) + 1;
+            const bestStreak = Math.max(newStreak, habit.best_streak || 0);
+            
+            await ctx.supabaseAdmin
+              .from("habits")
+              .update({ 
+                streak: newStreak,
+                best_streak: bestStreak
+              })
+              .eq("id", input.habitId);
+          }
+        } else {
+          // We're unchecking a habit
+          if (existingEntry) {
+            // Remove the entry
+            await ctx.supabaseAdmin
+              .from("habit_entries")
+              .delete()
+              .eq("id", existingEntry.id);
+              
+            // Reset streak if it was for today
+            const today = new Date().toISOString().split('T')[0];
+            if (dateStr === today) {
+              await ctx.supabaseAdmin
+                .from("habits")
+                .update({ streak: 0 })
+                .eq("id", input.habitId);
+            }
+          }
+          // If no entry exists, do nothing (idempotent)
+        }
+        
+        // Return updated habit data
+        const { data: updatedHabit, error: updateError } = await ctx.supabaseAdmin
+          .from("habits")
+          .select("*")
+          .eq("id", input.habitId)
+          .single();
+          
+        if (updateError) throw updateError;
+        
+        return {
+          ...updatedHabit,
+          completed: input.completed
+        };
+      } catch (error: any) {
+        // Log error for debugging
+        console.error('Error toggling habit:', error);
+        
+        // Return a properly formatted error
+        throw new TRPCError({ 
+          code: 'INTERNAL_SERVER_ERROR', 
+          message: error.message || 'Failed to toggle habit'
+        });
+      }
+    }),
 }); 

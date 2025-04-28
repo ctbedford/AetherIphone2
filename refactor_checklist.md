@@ -27,7 +27,8 @@ This document is derived from a **second-pass audit** of the current codebase (`
 ## 2  Data Layer (tRPC ⇄ Supabase)
 | ID | Task | Tables / Types | Blocks |
 |:-|---|---|---|
-| DL-1 | [ ] Ensure **goalRouter**, **habitRouter**, **taskRouter** have full CRUD + list procedures. | `goals`, `habits`, `tasks` | |
+| DL-1 | [~] Ensure **goalRouter**, **habitRouter**, **taskRouter** have full CRUD + list procedures. | `goals`, `habits`, `tasks` | |
+| DL-1a | [x] Implement **habitRouter.toggleHabit** for dashboard habit check-in. | `habits`, `habit_entries` | |
 | DL-2 | [ ] Create **dashboardRouter.getDashboardData** aggregate query. | multiple | |
 | DL-3 | [ ] Add **analyticsRouter** (`streaks`, `goalProgress`, `points`). | materialised views | Compass |
 | DL-4 | [ ] Implement **rewardsRouter** (`list`, `earnReward`). | `rewards`, `points_ledger`, `badge_definitions` | Rewards |
