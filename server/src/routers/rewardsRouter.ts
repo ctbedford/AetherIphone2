@@ -11,9 +11,10 @@ export const rewardsRouter = router({
   getUserRewards: protectedProcedure
     .query(async ({ ctx }) => {
       try {
+        // Select specific fields aligned with our Zod types
         const { data: rewards, error } = await ctx.supabaseAdmin
           .from('user_rewards')
-          .select('*, rewards(*)')
+          .select('id, user_id, reward_id, earned_at, rewards(id, name, description, emoji, image_url, required_points, type)')
           .eq('user_id', ctx.userId)
           .order('earned_at', { ascending: false });
 
@@ -31,10 +32,10 @@ export const rewardsRouter = router({
   getAvailableRewards: protectedProcedure
     .query(async ({ ctx }) => {
       try {
-        // Get all rewards
+        // Get all rewards with specific fields
         const { data: allRewards, error: rewardsError } = await ctx.supabaseAdmin
           .from('rewards')
-          .select('*')
+          .select('id, name, description, emoji, image_url, required_points, type, can_earn_multiple')
           .order('required_points', { ascending: true });
 
         if (rewardsError) throw rewardsError;

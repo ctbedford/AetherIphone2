@@ -21,6 +21,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 // Import individual routers
 import { dashboardRouter } from './routers/dashboardRouter';
 import { valueRouter } from './routers/valueRouter';
+import { principleRouter } from './routers/principleRouter';
 import { goalRouter } from './routers/goalRouter';
 import { taskRouter } from './routers/taskRouter';
 import { habitRouter } from './routers/habitRouter';
@@ -44,6 +45,7 @@ export const appRouter = router({
   user: userRouter,
   dashboard: dashboardRouter,
   value: valueRouter,
+  principle: principleRouter,
   goal: goalRouter,
   task: taskRouter,
   habit: habitRouter,

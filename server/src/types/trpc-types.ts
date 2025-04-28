@@ -12,6 +12,15 @@ import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '../router';
 
 /* ------------------------------------------------------------------
+ *  Enums (keep in sync with DB enums)
+ * ----------------------------------------------------------------*/
+export const TaskStatusEnum = z.enum(['todo', 'doing', 'done', 'blocked', 'pending']);
+export const TaskPriorityEnum = z.enum(['low', 'medium', 'high']);
+export const RewardTypeEnum = z.enum(['badge', 'achievement', 'item', 'discount']);
+export const HabitTypeEnum = z.enum(['boolean', 'quantity']);
+export const HabitFrequencyPeriodEnum = z.enum(['day', 'week', 'month']);
+
+/* ------------------------------------------------------------------
  *  Domain Models (DB row shapes) – keep in sync with Supabase tables
  * ----------------------------------------------------------------*/
 export const UserProfile = z.object({
@@ -20,6 +29,7 @@ export const UserProfile = z.object({
   avatar_url: z.string().url().nullish(),
   full_name: z.string().nullish(),
   bio: z.string().nullish(),
+  points: z.number().int().nonnegative().default(0),
   time_zone: z.string().nullish(),
   onboarding_completed: z.boolean().default(false),
   created_at: z.string().datetime(),
@@ -39,6 +49,7 @@ export const UiPrefs = z.object({
   theme: z.enum(['system', 'light', 'dark']).default('system'),
   compact_view: z.boolean().default(false),
   show_completed_tasks: z.boolean().default(true),
+  first_day_of_week: z.number().int().min(0).max(6).default(0),
 });
 
 export const UserSettings = z.object({
@@ -56,19 +67,34 @@ export const Value = z.object({
   description: z.string().nullish(),
   color: z.string().nullish(),
   icon: z.string().nullish(),
+  sort_order: z.number().int().nullish(),
   created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
 });
 export type Value = z.infer<typeof Value>;
+
+export const Principle = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullish(),
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
+});
+export type Principle = z.infer<typeof Principle>;
 
 export const Goal = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   title: z.string(),
   description: z.string().nullish(),
-  status: z.enum(['active', 'completed', 'archived']),
-  target_date: z.string().datetime().nullish(),
-  value_id: z.string().uuid().nullish(),
-  created_at: z.string().datetime(),
+  progress: z.number().nullish(),
+  target_date: z.string().nullish(),
+  archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime().nullish(),
+  updated_at: z.string().datetime().nullish(),
 });
 export type Goal = z.infer<typeof Goal>;
 
@@ -76,65 +102,130 @@ export const Task = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   title: z.string(),
-  description: z.string().nullish(),
-  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
-  priority: z.enum(['low', 'medium', 'high']).nullish(),
+  notes: z.string().nullish(),
+  status: TaskStatusEnum.default('todo'),
+  priority: TaskPriorityEnum.nullish(),
   due_date: z.string().datetime().nullish(),
   goal_id: z.string().uuid().nullish(),
+  parent_task_id: z.string().uuid().nullish(),
+  recurrence_rule: z.string().nullish(),
+  recurrence_end_date: z.string().datetime().nullish(),
+  archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(),
   created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
 });
 export type Task = z.infer<typeof Task>;
 
 export const Habit = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullish(),
-  goal_frequency: z.number().positive(),
-  frequency_period: z.enum(['day', 'week', 'month']),
-  color: z.string().nullish(),
-  streak: z.number().nonnegative(),
-  best_streak: z.number().nonnegative(),
+  title: z.string(),
+  cue: z.string().nullish(),
+  routine: z.string().nullish(),
+  reward: z.string().nullish(),
+  streak: z.number().nonnegative().default(0),
+  best_streak: z.number().nonnegative().default(0),
+  habit_type: HabitTypeEnum.default('boolean'),
+  goal_quantity: z.number().int().nullish(),
+  goal_unit: z.string().nullish(),
+  frequency_period: HabitFrequencyPeriodEnum.default('day'),
+  goal_frequency: z.number().int().positive().default(1),
+  recurrence_rule: z.string().nullish(),
+  recurrence_end_date: z.string().datetime().nullish(),
+  archived_at: z.string().datetime().nullish(),
   created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
 });
 export type Habit = z.infer<typeof Habit>;
 
-export const TrackedState = z.object({
+export const HabitEntry = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  habit_id: z.string().uuid(),
+  date: z.string(),
+  completed: z.boolean().default(false),
+  quantity_value: z.number().int().nullish(),
+  notes: z.string().nullish(),
+  created_at: z.string().datetime(),
+});
+export type HabitEntry = z.infer<typeof HabitEntry>;
+
+export const TrackedStateDef = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   name: z.string(),
   category: z.string(),
-  current_value: z.union([z.number(), z.string()]),
-  timestamp: z.string().datetime(),
+  unit: z.string().nullish(),
+  icon: z.string().nullish(),
+  target_min_value: z.number().nullish(),
+  target_max_value: z.number().nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
 });
-export type TrackedState = z.infer<typeof TrackedState>;
+export type TrackedStateDef = z.infer<typeof TrackedStateDef>;
 
-/* ----------------------------- Rewards ---------------------------*/
-export const Badge = z.object({
+export const StateEntry = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  name: z.string(),
-  emoji: z.string().length(2).nullish(),
-  description: z.string(),
+  tracked_state_def_id: z.string().uuid(),
+  value: z.number(),
+  timestamp: z.string().datetime(),
+  notes: z.string().nullish(),
+});
+export type StateEntry = z.infer<typeof StateEntry>;
+
+export const Reward = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  type: RewardTypeEnum,
+  title: z.string(),
+  description: z.string().nullish(),
+  icon: z.string().nullish(),
+  points_cost: z.number().int().nullish(),
+  metadata: z.record(z.any()).nullish(),
+  claimed: z.boolean().default(false),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type Reward = z.infer<typeof Reward>;
+
+export const BadgeDefinition = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  description: z.string().nullish(),
+  icon: z.string(),
+});
+export type BadgeDefinition = z.infer<typeof BadgeDefinition>;
+
+export const UserBadge = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  badge_id: z.string().uuid(),
   earned_at: z.string().datetime(),
 });
-export const Streak = z.object({
+export type UserBadge = z.infer<typeof UserBadge>;
+
+export const Reminder = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  habit_id: z.string().uuid(),
-  length: z.number().positive(),
-  best: z.number().positive(),
+  related_entity_type: z.string(),
+  related_entity_id: z.string().uuid(),
+  reminder_time: z.string().datetime(),
+  is_active: z.boolean().default(true),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
 });
-export const Loot = z.object({
+export type Reminder = z.infer<typeof Reminder>;
+
+export const GoalProgressNote = z.object({
   id: z.string().uuid(),
+  goal_id: z.string().uuid(),
   user_id: z.string().uuid(),
-  title: z.string(),
-  icon: z.string().nullish(),
-  claimed: z.boolean().default(false),
+  note: z.string(),
+  created_at: z.string().datetime(),
 });
-export type Badge = z.infer<typeof Badge>;
-export type Streak = z.infer<typeof Streak>;
-export type Loot = z.infer<typeof Loot>;
+export type GoalProgressNote = z.infer<typeof GoalProgressNote>;
 
 /* ------------------------------------------------------------------
  *  Router‑level Schemas – inputs & outputs for every procedure
@@ -150,28 +241,49 @@ export const updateSettingsInput = z.object({
 });
 
 // Values
-export const createValueInput = Value.omit({ id: true, user_id: true, created_at: true });
+export const createValueInput = Value.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updateValueInput = createValueInput.partial().extend({ id: z.string().uuid() });
 
+// Principles
+export const createPrincipleInput = Principle.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updatePrincipleInput = createPrincipleInput.partial().extend({ id: z.string().uuid() });
+
 // Goals
-export const createGoalInput = Goal.omit({ id: true, user_id: true, created_at: true });
+export const createGoalInput = Goal.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updateGoalInput = createGoalInput.partial().extend({ id: z.string().uuid() });
 
 // Tasks
-export const createTaskInput = Task.omit({ id: true, user_id: true, created_at: true });
+export const createTaskInput = Task.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updateTaskInput = createTaskInput.partial().extend({ id: z.string().uuid() });
-export const updateTaskStatusInput = z.object({ id: z.string().uuid(), status: Task.shape.status });
+export const updateTaskStatusInput = z.object({ id: z.string().uuid(), status: TaskStatusEnum });
 
 // Habits
-export const createHabitInput = Habit.omit({ id: true, user_id: true, created_at: true, streak: true, best_streak: true });
+export const createHabitInput = Habit.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updateHabitInput = createHabitInput.partial().extend({ id: z.string().uuid() });
 
-// Tracked States
-export const createTrackedStateInput = TrackedState.omit({ id: true, user_id: true, timestamp: true });
+// Habit Entries
+export const createHabitEntryInput = HabitEntry.omit({ id: true, user_id: true, created_at: true });
+export const updateHabitEntryInput = createHabitEntryInput.partial().extend({ id: z.string().uuid() });
+
+// Tracked State Definitions
+export const createTrackedStateDefInput = TrackedStateDef.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateTrackedStateDefInput = createTrackedStateDefInput.partial().extend({ id: z.string().uuid() });
+
+// State Entries
+export const createStateEntryInput = StateEntry.omit({ id: true, user_id: true });
+export const updateStateEntryInput = createStateEntryInput.partial().extend({ id: z.string().uuid() });
 
 // Rewards
-export const claimLootInput = z.object({ lootId: z.string().uuid() });
-export const awardBadgeInput = z.object({ badgeId: z.string().uuid() });
+export const createRewardInput = Reward.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateRewardInput = createRewardInput.partial().extend({ id: z.string().uuid() });
+export const claimRewardInput = z.object({ id: z.string().uuid() });
+
+// Reminders
+export const createReminderInput = Reminder.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateReminderInput = createReminderInput.partial().extend({ id: z.string().uuid() });
+
+// Goal Progress Notes
+export const createGoalProgressNoteInput = GoalProgressNote.omit({ id: true, user_id: true, created_at: true });
 
 /* ------------------------------------------------------------------
  *  Aggregate Router Types – automatically inferred
@@ -185,4 +297,4 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
   const utils = trpc.useUtils();
   type TasksOutput = RouterOutputs['task']['getTasks'];
   type CreateTaskInput = RouterInputs['task']['createTask'];
-*/ 
+*/

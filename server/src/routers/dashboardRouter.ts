@@ -2,6 +2,13 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
 
+// Define fields for consistent selection - align with Zod schemas & table structure
+const HABIT_FIELDS = 'id, user_id, name, description, habit_type, goal_quantity, goal_units, frequency_type, frequency_details, reminder_id, streak, best_streak, sort_order, created_at, updated_at'; // Added reminder_id
+const GOAL_FIELDS = 'id, user_id, name, description, priority, status, target_date, sort_order, created_at, updated_at'; // Use target_date
+const TASK_FIELDS = 'id, user_id, name, notes, status, priority, due_date, reminder_id, goal_id, sort_order, created_at, updated_at'; // Use due_date, reminder_id
+const HABIT_ENTRY_FIELDS = 'id, habit_id, user_id, date, quantity_value, notes, created_at';
+const TRACKED_STATE_DEF_FIELDS = 'id, user_id, name, description, data_type, unit, sort_order, active, notes, created_at, updated_at'; // Adjusted based on potential schema changes
+
 export const dashboardRouter = router({
   getDashboardData: protectedProcedure
     .input(
@@ -21,18 +28,20 @@ export const dashboardRouter = router({
         // --- Fetch Habits ---
         const { data: habits, error: habitsError } = await ctx.supabaseAdmin
           .from('habits')
-          .select('id, name, streak, best_streak, created_at') // Only select needed fields for better performance
+          .select(HABIT_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
-          .order('created_at', { ascending: false })
+          .is('archived_at', null) // Filter out archived
+          .order('sort_order', { ascending: true, nullsLast: true }) // Order by sort_order
           .limit(habitLimit);
         if (habitsError) throw habitsError;
 
         // --- Fetch Goals ---
         const { data: goals, error: goalsError } = await ctx.supabaseAdmin
           .from('goals')
-          .select('id, name, progress, created_at') // Only select needed fields
+          .select(GOAL_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
-          .order('created_at', { ascending: false })
+          .is('archived_at', null) // Filter out archived
+          .order('sort_order', { ascending: true, nullsLast: true }) // Order by sort_order
           .limit(goalLimit);
         if (goalsError) throw goalsError;
 
@@ -47,26 +56,27 @@ export const dashboardRouter = router({
         // 3. Either unassigned or associated with the dashboard goals
         const { data: tasks, error: tasksError } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('id, title, status, due, goal_id, priority')
+          .select(TASK_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
-          .neq('status', 'completed')
-          .or(`due.lte.${twoWeeksFromNow.toISOString()},due.is.null`)
-          .order('due', { ascending: true, nullsFirst: false })
+          .is('archived_at', null) // Filter out archived
+          .neq('status', 'completed') // Use correct enum value
+          .or(`due_date.lte.${twoWeeksFromNow.toISOString()},due_date.is.null`)
+          .order('due_date', { ascending: true, nullsFirst: false }) // Use 'due_date'
           .limit(taskLimit);
         if (tasksError) throw tasksError;
 
-        // --- Fetch Tracked State Definitions ---
-        const { data: trackedStates, error: statesError } = await ctx.supabaseAdmin
+        // --- Fetch Active Tracked State Definitions ---
+        const { data: trackedStateDefinitions, error: statesError } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
-          .select('*') // Select necessary fields
+          .select(TRACKED_STATE_DEF_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
-          .eq('active', true) // Only active states
-          .order('priority', { ascending: true }); // Order by priority
+          .eq('active', true)
+          .order('sort_order', { ascending: true, nullsLast: true }); // Use sort_order
         if (statesError) throw statesError;
         
         // --- Fetch Latest State Entries for Active Definitions ---
-        let latestEntriesMap: Record<string, { value: number | string | null; created_at: string }> = {};
-        const stateDefIds = (trackedStates || []).map(s => s.id);
+        let latestEntriesMap: Record<string, { value: any; created_at: string }> = {};
+        const stateDefIds = (trackedStateDefinitions || []).map(s => s.id);
 
         if (stateDefIds.length > 0) {
           // Use a CTE and ROW_NUMBER() to get the latest entry per state_id
@@ -93,27 +103,25 @@ export const dashboardRouter = router({
 
         // --- Process Habits for 'completed' flag ---
         const todayStr = new Date().toISOString().split('T')[0];
+        const habitIds = (habits || []).map(h => h.id);
         const { data: habitEntriesToday, error: todayEntriesError } = await ctx.supabaseAdmin
           .from('habit_entries')
-          .select('habit_id, completed') // Select completed status
+          .select('habit_id') // Only need habit_id to check existence
           .eq('user_id', ctx.userId)
-          .eq('date', todayStr) // Use 'date' column
-          .in('habit_id', (habits || []).map(h => h.id)); // Ensure habits is not null
+          .eq('date', todayStr) // Filter by date
+          .in('habit_id', habitIds);
         if (todayEntriesError) throw todayEntriesError;
 
-        const completedMap = (habitEntriesToday || []).reduce<Record<string, boolean>>((acc, entry) => {
-          if (entry.completed) { // Check the completed flag from the entry
-            acc[entry.habit_id] = true;
-          }
-          return acc;
-        }, {});
+        const completedHabitIds = new Set((habitEntriesToday || []).map(e => e.habit_id));
 
         const formattedHabits = (habits || []).map(h => ({
-          // Select specific fields needed by frontend
           id: h.id,
-          title: h.name, // Map name from DB to title for frontend
+          name: h.name, // Use name
+          description: h.description, // Pass other potentially useful fields
+          habit_type: h.habit_type,
           streak: h.streak,
-          completed: !!completedMap[h.id] // Determine completion from map
+          // Consider a habit completed if *any* entry exists for today
+          completed: completedHabitIds.has(h.id)
         }));
 
         // --- Process Goals for 'progress' ---
@@ -138,28 +146,37 @@ export const dashboardRouter = router({
           }, {});
         }
 
-        const formattedGoals = (goals || []).map(g => {
+        const formattedGoals = (goals || []).map((g) => {
           const { total = 0, completed: comp = 0 } = tasksMap[g.id] || {};
-          const progress = total > 0 ? (comp / total) : (g.progress || 0); // Use calculated or stored progress
+          // Calculate progress based on tasks, ignore goal.progress field for now
+          const progress = total > 0 ? comp / total : 0;
           return {
-            // Select specific fields needed by frontend
-            id: g.id, 
-            title: g.name, // Map name from DB to title for frontend
-            progress: Math.round(progress * 100) / 100, // Ensure progress is between 0 and 1, round
-            tasks: { total, completed: comp } // Re-add task counts
+            id: g.id,
+            name: g.name, // Use name
+            status: g.status, // Pass status directly
+            priority: g.priority, // Pass priority
+            progress: Math.round(progress * 100) / 100, // Keep calculated progress
           };
         });
 
+        // --- Format Tasks (Minimal formatting needed if TASK_FIELDS is correct) ---
+        const formattedTasks = (tasks || []).map((t) => ({
+          id: t.id,
+          name: t.name,
+          status: t.status,
+          priority: t.priority,
+          due_date: t.due_date, // Use due_date
+          // Add other fields as needed by the dashboard UI
+        }));
+
         // --- Format Tracked States with Latest Values ---
-        const formattedTrackedStates = (trackedStates || []).map(def => {
+        const formattedTrackedStates = (trackedStateDefinitions || []).map((def) => {
           const latestEntry = latestEntriesMap[def.id];
           return {
             id: def.id,
             name: def.name,
-            // Include scale/custom_labels if StateIndicator needs them later
-            // scale: def.scale,
-            // custom_labels: def.custom_labels,
-            currentValue: latestEntry ? latestEntry.value : 'N/A', // Provide default if no entry
+            unit: def.unit, // Use 'unit' field
+            currentValue: latestEntry ? latestEntry.value : null, // Default to null
             lastUpdated: latestEntry ? latestEntry.created_at : null,
           };
         });
@@ -198,12 +215,10 @@ export const dashboardRouter = router({
     }),
   
   getWeeklyProgress: protectedProcedure
-    .input(
-      z.object({
-        daysToInclude: z.number().min(1).max(30).default(7),
-        includeRawData: z.boolean().default(false)
-      }).optional()
-    )
+    .input(z.object({
+      daysToInclude: z.number().min(1).optional().default(7),
+      includeRawData: z.boolean().optional().default(false),
+    }).optional())
     .query(async ({ ctx, input }) => {
       try {
         // Calculate date range based on input or default to past week
@@ -231,24 +246,22 @@ export const dashboardRouter = router({
         // Get all habit entries for the specified date range
         const { data: habitEntries, error: entriesError } = await ctx.supabaseAdmin
           .from('habit_entries')
-          .select('id, habit_id, date, completed, habits:habit_id(id, name, frequency)')
+          .select(HABIT_ENTRY_FIELDS + ', habits:habit_id(' + HABIT_FIELDS + ')')
           .eq('user_id', ctx.userId)
           .gte('date', startDateStr)
           .lte('date', todayStr)
-          .order('date', { ascending: true });
-          
+          .in('habit_id', (relevantHabits || []).map(h => h.id)); // Only entries for relevant habits
+
         if (entriesError) throw entriesError;
         
-        // Get task completion data for the specified date range
-        const { data: completedTasks, error: tasksError } = await ctx.supabaseAdmin
+        // Get all tasks completed or due within the date range
+        const { data: relevantTasks, error: tasksError } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('id, title, status, updated_at, goal_id')
+          .select(TASK_FIELDS)
           .eq('user_id', ctx.userId)
-          .eq('status', 'completed')
-          .gte('updated_at', startDate.toISOString())
-          .lte('updated_at', today.toISOString())
-          .order('updated_at', { ascending: true });
-          
+          .is('archived_at', null)
+          .or(`due_date.gte.${startDateStr}.and.due_date.lte.${todayStr},status.eq.completed.and.updated_at.gte.${startDateStr}.and.updated_at.lte.${todayStr}`);
+
         if (tasksError) throw tasksError;
         
         // Get total tasks count for completion rate
@@ -259,14 +272,15 @@ export const dashboardRouter = router({
           
         if (countError) throw countError;
         
-        // Get all habits for the user
-        const { data: habits, error: habitsError } = await ctx.supabaseAdmin
+        // Get all relevant habits (active during the period, could use created_at < endDate)
+        const { data: relevantHabits, error: habitsError } = await ctx.supabaseAdmin
           .from('habits')
-          .select('id, name, frequency, streak, best_streak')
+          .select(HABIT_FIELDS)
           .eq('user_id', ctx.userId)
-          .eq('active', true) // Only include active habits
-          .order('created_at', { ascending: false });
-          
+          .is('archived_at', null)
+          .lte('created_at', todayStr); // Habit created before or on end date
+          // Optionally: .or(`archived_at.is.null,archived_at.gt.${startDateStr}`)
+
         if (habitsError) throw habitsError;
         
         // Get goal progress snapshots for the period
@@ -283,17 +297,17 @@ export const dashboardRouter = router({
         // -- AGGREGATE DATA BY DAY --
         
         // Create daily habit completion structure
-        const habitsByDay: Record<string, { completed: number; total: number; entries: any[] }> = {};
+        const habitsByDay: Record<string, { completed: number; total: number; entries: any[]; expected: number }> = {};
         dateRange.forEach(date => {
-          habitsByDay[date] = { completed: 0, total: 0, entries: [] };
+          habitsByDay[date] = { completed: 0, total: 0, entries: [], expected: 0 };
         });
         
-        // Process habit entries into daily stats
-        (habitEntries || []).forEach(entry => {
+        // Populate completed habits from entries (count existence, not completed flag)
+        habitEntries?.forEach((entry: any) => {
           const dateStr = (entry.date as string).split('T')[0];
           if (habitsByDay[dateStr]) {
-            habitsByDay[dateStr].total++;
-            if (entry.completed) {
+            // Only count one completion per habit per day
+            if (!habitsByDay[dateStr].entries.some((e: any) => e.habit_id === entry.habit_id)) {
               habitsByDay[dateStr].completed++;
             }
             habitsByDay[dateStr].entries.push(entry);
@@ -307,7 +321,7 @@ export const dashboardRouter = router({
         });
         
         // Process completed tasks into daily stats
-        (completedTasks || []).forEach(task => {
+        relevantTasks?.forEach(task => {
           const completedDate = (task.updated_at as string).split('T')[0];
           if (tasksByDay[completedDate]) {
             tasksByDay[completedDate].completed++;
@@ -315,13 +329,31 @@ export const dashboardRouter = router({
           }
         });
         
+        // Calculate expected habits per day based on frequency
+        const isHabitExpected = (habit: any, date: string): boolean => {
+          if (!habit.frequency_type || habit.frequency_type === 'daily') return true;
+          if (habit.frequency_type === 'specific_days') {
+            const dayOfWeek = new Date(date + 'T00:00:00Z').getDay();
+            return Array.isArray(habit.frequency_details?.days) && habit.frequency_details.days.includes(dayOfWeek);
+          }
+          // TODO: Add logic for 'weekly', 'monthly' etc. as needed
+          return false;
+        };
+        relevantHabits?.forEach(habit => {
+          dateRange.forEach(date => {
+            if (isHabitExpected(habit, date)) {
+              habitsByDay[date].expected++;
+            }
+          });
+        });
+        
         // Format into daily progress reports
         const dailyProgress = dateRange.map(date => {
           const habitStats = habitsByDay[date];
           const taskStats = tasksByDay[date];
           
-          const habitCompletionRate = habitStats.total > 0 
-            ? habitStats.completed / habitStats.total 
+          const habitCompletionRate = habitStats.expected > 0 
+            ? habitStats.completed / habitStats.expected 
             : 0;
             
           return {
@@ -329,7 +361,8 @@ export const dashboardRouter = router({
             habits: {
               total: habitStats.total,
               completed: habitStats.completed,
-              completionRate: habitCompletionRate
+              completionRate: habitCompletionRate,
+              expected: habitStats.expected
             },
             tasks: {
               completed: taskStats.completed

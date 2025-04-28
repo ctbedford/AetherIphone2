@@ -1,17 +1,11 @@
 import React from 'react';
 // Use Tamagui components
 import { Text, XStack, YStack, Checkbox, Spinner } from 'tamagui'; 
-import { trpc } from '../../utils/trpc';
+import { trpc, RouterOutputs } from '../../utils/trpc';
 import { Check } from '@tamagui/lucide-icons';
 
-interface Task {
-  id: string;
-  title: string;
-  status: string;
-  due?: string;
-  priority?: number;
-  completed?: boolean; // Add completed flag for convenience
-}
+// Use RouterOutputs to ensure type consistency with backend
+type Task = RouterOutputs['dashboard']['getDashboardData']['tasks'][number];
 
 interface TaskItemProps {
   task: Task;
@@ -19,6 +13,9 @@ interface TaskItemProps {
 }
 
 export default function TaskItem({ task, onPress }: TaskItemProps) {
+  // Determine if task is completed based on status
+  const isCompleted = task.status === 'completed';
+  
   // Setup toggleTask mutation with optimistic updates
   const utils = trpc.useContext();
   // Setup mutation for task toggling
@@ -92,7 +89,6 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
 
   // Handle checkbox toggle
   const handleToggle = () => {
-    const isCompleted = task.status === 'completed';
     toggleTaskMutation.mutate({
       taskId: task.id,
       completed: !isCompleted

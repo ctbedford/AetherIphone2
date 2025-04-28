@@ -1,27 +1,45 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
+import {
+  createTaskInput,
+  updateTaskInput,
+  updateTaskStatusInput,
+  TaskStatusEnum,
+  TaskPriorityEnum, // Import if needed for parsing/validation, though DB handles storage
+} from '../types/trpc-types';
+
+// Define fields for selection consistency
+const TASK_FIELDS =
+  'id, user_id, title, notes, status, priority, due_date, goal_id, parent_task_id, recurrence_rule, recurrence_end_date, archived_at, sort_order, created_at, updated_at';
 
 export const taskRouter = router({
-  getTasks: protectedProcedure
+  getTasks: protectedProcedure // Gets non-archived tasks
     .input(z.object({
-      goalId: z.string().optional(),
+      goalId: z.string().uuid().optional(),
+      // TODO: Add filters for status, priority, dates etc.?
     }))
     .query(async ({ ctx, input }) => {
       try {
         let query = ctx.supabaseAdmin
           .from('tasks')
-          .select('*')
-          .eq('user_id', ctx.userId);
-          
+          .select(TASK_FIELDS)
+          .eq('user_id', ctx.userId)
+          .is('archived_at', null); // Filter out archived
+
         if (input.goalId) {
           query = query.eq('goal_id', input.goalId);
         }
-        
-        const { data: tasks, error } = await query.order('created_at', { ascending: false });
+
+        // TODO: Add complex priority enum sorting? (e.g. high > medium > low)
+        const { data: tasks, error } = await query
+          .order('sort_order', { ascending: true, nullsFirst: false })
+          .order('due_date', { ascending: true, nullsFirst: false }) // Order by due date (nulls last)
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return tasks;
+        // TODO: Parse with Task schema?
+        return tasks || [];
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -32,13 +50,13 @@ export const taskRouter = router({
 
   getTaskById: protectedProcedure
     .input(z.object({
-      id: z.string(),
+      id: z.string().uuid(), // Use uuid validation
     }))
     .query(async ({ ctx, input }) => {
       try {
         const { data: task, error } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('*')
+          .select(TASK_FIELDS)
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
@@ -51,6 +69,7 @@ export const taskRouter = router({
           });
         }
 
+        // TODO: Parse with Task schema?
         return task;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
@@ -63,48 +82,67 @@ export const taskRouter = router({
     }),
 
   createTask: protectedProcedure
-    .input(z.object({
-      title: z.string(),
-      description: z.string().optional(),
-      due_date: z.string().optional(),
-      status: z.string().default('pending'),
-      priority: z.string().optional(),
-      goal_id: z.string().optional(),
-    }))
+    .input(createTaskInput) // Use imported input type
     .mutation(async ({ ctx, input }) => {
       try {
-        // If goal_id is provided, verify it belongs to user
+        // Verify goal_id if provided
         if (input.goal_id) {
           const { data: goal, error: goalError } = await ctx.supabaseAdmin
             .from('goals')
             .select('id')
             .eq('id', input.goal_id)
-            .eq('user_id', ctx.userId)
+            .eq('user_id', ctx.userId) // Ensure goal belongs to user
+            .is('archived_at', null) // Ensure goal is not archived
             .single();
-            
+
           if (goalError || !goal) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
-              message: 'Invalid goal ID or goal does not belong to user',
+              message: 'Invalid or archived goal ID',
             });
+          }
+        }
+
+        // Verify parent_task_id if provided
+        if (input.parent_task_id) {
+          const { data: parentTask, error: parentError } = await ctx.supabaseAdmin
+            .from('tasks')
+            .select('id')
+            .eq('id', input.parent_task_id)
+            .eq('user_id', ctx.userId) // Ensure parent belongs to user
+            .is('archived_at', null) // Ensure parent is not archived
+            .single();
+
+          if (parentError || !parentTask) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Invalid or archived parent task ID',
+            });
+          }
+          // Basic cycle check: cannot be its own parent
+          if (input.parent_task_id === input.id) { // input.id is undefined here, need generated ID first or disallow on create?
+             // Let DB handle FK constraint for now, but ideally prevent self-parenting.
+             // For simplicity, skip this check on create.
           }
         }
 
         const { data: task, error } = await ctx.supabaseAdmin
           .from('tasks')
           .insert({
-            title: input.title,
-            description: input.description,
-            due_date: input.due_date,
-            status: input.status,
-            priority: input.priority,
-            goal_id: input.goal_id,
+            ...input, // Spread validated input (includes new fields like parent_task_id, recurrence etc)
             user_id: ctx.userId,
+            // Ensure due_date is used if present in input
+            due_date: input.due_date ?? null, // Use correct field name
           })
-          .select()
+          .select(TASK_FIELDS)
           .single();
 
-        if (error) throw error;
+        if (error) {
+           // Handle specific errors like FK violations?
+           console.error("Create task error:", error);
+           throw error;
+        }
+        // TODO: Parse with Task schema?
         return task;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
@@ -117,22 +155,16 @@ export const taskRouter = router({
     }),
 
   updateTask: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      due_date: z.string().optional(),
-      status: z.string().optional(),
-      priority: z.string().optional(),
-      goal_id: z.string().optional(),
-    }))
+    .input(updateTaskInput) // Use imported input type
     .mutation(async ({ ctx, input }) => {
       try {
-        // First check if the task exists and belongs to user
+        const { id, ...updateData } = input; // Separate id from update payload
+
+        // Check ownership
         const { data: existingTask, error: fetchError } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('id')
-          .eq('id', input.id)
+          .select('id, parent_task_id') // Select parent_task_id for cycle check
+          .eq('id', id)
           .eq('user_id', ctx.userId)
           .single();
 
@@ -143,40 +175,78 @@ export const taskRouter = router({
           });
         }
 
-        // If goal_id is provided, verify it belongs to user
-        if (input.goal_id) {
+        // Verify goal_id if being updated
+        if (updateData.goal_id) {
           const { data: goal, error: goalError } = await ctx.supabaseAdmin
             .from('goals')
             .select('id')
-            .eq('id', input.goal_id)
+            .eq('id', updateData.goal_id)
             .eq('user_id', ctx.userId)
+            .is('archived_at', null)
             .single();
-            
+
           if (goalError || !goal) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
-              message: 'Invalid goal ID or goal does not belong to user',
+              message: 'Invalid or archived goal ID',
             });
           }
         }
+        // Handle setting goal_id to null
+        if (updateData.goal_id === null) {
+          updateData.goal_id = null;
+        }
 
-        // Update the task
+        // Verify parent_task_id if being updated
+        if (updateData.parent_task_id) {
+           // Basic cycle check
+           if (updateData.parent_task_id === id) {
+             throw new TRPCError({
+               code: 'BAD_REQUEST',
+               message: 'Task cannot be its own parent',
+             });
+           }
+          const { data: parentTask, error: parentError } = await ctx.supabaseAdmin
+            .from('tasks')
+            .select('id')
+            .eq('id', updateData.parent_task_id)
+            .eq('user_id', ctx.userId)
+            .is('archived_at', null)
+            .single();
+
+          if (parentError || !parentTask) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Invalid or archived parent task ID',
+            });
+          }
+          // TODO: Add deeper cycle detection if needed (check if new parent is a descendant)
+        }
+         // Handle setting parent_task_id to null
+        if (updateData.parent_task_id === null) {
+          updateData.parent_task_id = null;
+        }
+
+        // Ensure correct field name for due date if provided
+        const payload: Record<string, any> = { ...updateData };
+        if ('due_date' in payload) {
+          payload.due_date = payload.due_date ?? null;
+        }
+
         const { data: updatedTask, error } = await ctx.supabaseAdmin
           .from('tasks')
-          .update({
-            title: input.title,
-            description: input.description,
-            due_date: input.due_date,
-            status: input.status,
-            priority: input.priority,
-            goal_id: input.goal_id,
-          })
-          .eq('id', input.id)
+          .update(payload) // Pass validated update data
+          .eq('id', id)
           .eq('user_id', ctx.userId)
-          .select()
+          .select(TASK_FIELDS)
           .single();
 
-        if (error) throw error;
+        if (error) {
+             // Handle specific errors like FK violations?
+           console.error("Update task error:", error);
+           throw error;
+        }
+        // TODO: Parse with Task schema?
         return updatedTask;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
@@ -190,11 +260,11 @@ export const taskRouter = router({
 
   deleteTask: protectedProcedure
     .input(z.object({
-      id: z.string(),
+      id: z.string().uuid(), // Use uuid validation
     }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // Check if the task exists and belongs to user
+        // Check ownership
         const { data: existingTask, error: fetchError } = await ctx.supabaseAdmin
           .from('tasks')
           .select('id')
@@ -209,7 +279,8 @@ export const taskRouter = router({
           });
         }
 
-        // Delete the task
+        // Delete the task (consider implications for subtasks - maybe archive instead?)
+        // For now, direct delete.
         const { error } = await ctx.supabaseAdmin
           .from('tasks')
           .delete()
@@ -228,226 +299,259 @@ export const taskRouter = router({
       }
     }),
 
-  updateTaskStatus: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      status: z.string(),
-    }))
-    .mutation(async ({ ctx, input }) => {
+  // ---- Archive/Unarchive ----
+  listArchivedTasks: protectedProcedure
+    .query(async ({ ctx }) => {
       try {
-        // Check if the task exists and belongs to user
-        const { data: existingTask, error: fetchError } = await ctx.supabaseAdmin
+        const { data: tasks, error } = await ctx.supabaseAdmin
+          .from('tasks')
+          .select(TASK_FIELDS)
+          .eq('user_id', ctx.userId)
+          .not('archived_at', 'is', null) // Filter for archived tasks
+          .order('archived_at', { ascending: false })
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        // TODO: Parse with Task schema?
+        return tasks || [];
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to fetch archived tasks',
+        });
+      }
+    }),
+
+  archiveTask: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: Consider archiving subtasks recursively?
+      try {
+        const { data: updatedTask, error } = await ctx.supabaseAdmin
+          .from('tasks')
+          .update({ archived_at: new Date().toISOString() })
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId)
+          .select(TASK_FIELDS)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Task not found or you do not have permission to archive it.',
+            });
+          }
+          throw error;
+        }
+        // TODO: Parse with Task schema?
+        return updatedTask;
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to archive task',
+        });
+      }
+    }),
+
+  unarchiveTask: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+       // TODO: Consider check if parent is archived?
+      try {
+        const { data: updatedTask, error } = await ctx.supabaseAdmin
+          .from('tasks')
+          .update({ archived_at: null })
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId)
+          .select(TASK_FIELDS)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Task not found or you do not have permission to unarchive it.',
+            });
+          }
+          throw error;
+        }
+        // TODO: Parse with Task schema?
+        return updatedTask;
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to unarchive task',
+        });
+      }
+    }),
+
+  // ---- Status Update ----
+  updateTaskStatus: protectedProcedure
+    .input(updateTaskStatusInput) // Uses { id: string().uuid(), status: TaskStatusEnum }
+    .mutation(async ({ ctx, input }) => {
+       try {
+         // Check ownership first
+         const { data: existing, error: fetchErr } = await ctx.supabaseAdmin
           .from('tasks')
           .select('id')
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !existingTask) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Task not found or you do not have permission to update it',
-          });
-        }
+         if (fetchErr || !existing) {
+           throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found or permission denied.' });
+         }
 
-        // Update just the status
-        const { data: updatedTask, error } = await ctx.supabaseAdmin
-          .from('tasks')
-          .update({
-            status: input.status,
-          })
-          .eq('id', input.id)
-          .eq('user_id', ctx.userId)
-          .select()
-          .single();
+         // Perform update
+         const { data: updatedTask, error: updateErr } = await ctx.supabaseAdmin
+           .from('tasks')
+           .update({ status: input.status })
+           .eq('id', input.id)
+           .select(TASK_FIELDS)
+           .single();
 
-        if (error) throw error;
-        return updatedTask;
-      } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to update task status',
-        });
-      }
+         if (updateErr) throw updateErr;
+         // TODO: Parse with Task schema?
+         return updatedTask;
+       } catch (error: any) {
+         if (error instanceof TRPCError) throw error;
+         throw new TRPCError({
+           code: 'INTERNAL_SERVER_ERROR',
+           message: error.message || 'Failed to update task status',
+         });
+       }
     }),
 
-  // ---- Stubs for client compatibility ----
+  // ---- Refactored Stubs ----
   listToday: protectedProcedure
     .query(async ({ ctx }) => {
-      // TODO: Implement actual logic - filter by due_date === today
-      console.log("[taskRouter.listToday] Stub called");
-      return []; // Return empty array for now
-    }),
-
-  listActive: protectedProcedure // Note: client calls task.listToday, not task.listActive
-    .query(async ({ ctx }) => {
-      // TODO: Implement actual logic - filter by status != completed?
-      console.log("[taskRouter.listActive] Stub called");
-      return []; // Return empty array for now
-    }),
-    
-  // This procedure is deprecated - use toggleTask instead
-  toggleCompleted: protectedProcedure 
-    .input(z.object({ id: z.string(), completed: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      console.log("[taskRouter.toggleCompleted] Deprecated - use toggleTask instead");
-      // For backwards compatibility, just call the toggleTask logic directly
       try {
-        // Get current task data to check status and goal association
-        const { data: task, error: fetchError } = await ctx.supabaseAdmin
-          .from('tasks')
-          .select('id, status, goal_id, title')
-          .eq('id', input.id)
-          .eq('user_id', ctx.userId)
-          .single();
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
 
-        if (fetchError || !task) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Task not found or you do not have permission to update it',
-          });
-        }
-        
-        // Call the same logic as in toggleTask
-        const newStatus = input.completed ? 'completed' : 'in-progress';
-        const wasCompleted = task.status === 'completed';
-        
-        if ((newStatus === 'completed') === wasCompleted) {
-          return { ...task, completed: wasCompleted };
-        }
-        
-        const { data: updatedTask, error: updateError } = await ctx.supabaseAdmin
+        const { data: tasks, error } = await ctx.supabaseAdmin
           .from('tasks')
-          .update({
-            status: newStatus,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', input.id)
+          .select(TASK_FIELDS)
           .eq('user_id', ctx.userId)
-          .select('id, title, status, goal_id, updated_at')
-          .single();
-          
-        if (updateError) throw updateError;
-        
-        // Simplified version without goal updates for backwards compatibility
-        return {
-          ...updatedTask,
-          completed: newStatus === 'completed'
-        };
+          .is('archived_at', null)
+          .gte('due_date', todayStart.toISOString())
+          .lte('due_date', todayEnd.toISOString())
+          .order('sort_order', { ascending: true, nullsFirst: false })
+          .order('due_date', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        // TODO: Parse with Task schema?
+        return tasks || [];
       } catch (error: any) {
-        if (error instanceof TRPCError) throw error;
-        
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to toggle task completion',
-        });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Failed to list tasks for today' });
       }
     }),
-    
-  toggleTask: protectedProcedure
-    .input(z.object({ 
-      taskId: z.string(), 
-      completed: z.boolean() 
+
+  listUpcoming: protectedProcedure
+    .query(async ({ ctx }) => {
+       try {
+         const tomorrowStart = new Date();
+         tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+         tomorrowStart.setHours(0, 0, 0, 0);
+
+         const { data: tasks, error } = await ctx.supabaseAdmin
+           .from('tasks')
+           .select(TASK_FIELDS)
+           .eq('user_id', ctx.userId)
+           .is('archived_at', null)
+           .gte('due_date', tomorrowStart.toISOString()) // Due date is tomorrow or later
+           .order('due_date', { ascending: true, nullsFirst: false })
+           .order('sort_order', { ascending: true, nullsFirst: false })
+           .order('created_at', { ascending: false });
+
+         if (error) throw error;
+         // TODO: Parse with Task schema?
+         return tasks || [];
+       } catch (error: any) {
+         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Failed to list upcoming tasks' });
+       }
+    }),
+
+ listOverdue: protectedProcedure
+    .query(async ({ ctx }) => {
+       try {
+         const todayStart = new Date();
+         todayStart.setHours(0, 0, 0, 0);
+
+         const { data: tasks, error } = await ctx.supabaseAdmin
+           .from('tasks')
+           .select(TASK_FIELDS)
+           .eq('user_id', ctx.userId)
+           .is('archived_at', null)
+           .lt('due_date', todayStart.toISOString()) // Due date is before today
+           .not('status', 'in', `('${TaskStatusEnum.enum.done}')`) // Exclude completed tasks
+           .order('due_date', { ascending: true, nullsFirst: false })
+           .order('sort_order', { ascending: true, nullsFirst: false })
+           .order('created_at', { ascending: false });
+
+         if (error) throw error;
+         // TODO: Parse with Task schema?
+         return tasks || [];
+       } catch (error: any) {
+         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Failed to list overdue tasks' });
+       }
+    }),
+
+  toggleTask: protectedProcedure // Toggles between 'todo' and 'done'
+    .input(z.object({
+      taskId: z.string().uuid(),
     }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // Get current task data to check status and goal association
-        const { data: task, error: fetchError } = await ctx.supabaseAdmin
+        // 1. Fetch the current task
+        const { data: currentTask, error: fetchError } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('id, status, goal_id, title')
+          .select('id, status')
           .eq('id', input.taskId)
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !task) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Task not found or you do not have permission to update it',
-          });
+        if (fetchError || !currentTask) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Task not found or permission denied.' });
         }
-        
-        // Determine the new status based on the completed flag
-        const newStatus = input.completed ? 'completed' : 'in-progress';
-        const wasCompleted = task.status === 'completed';
-        
-        // Only update if the status is changing
-        if ((newStatus === 'completed') === wasCompleted) {
-          // No status change needed, return the task as is
-          return { ...task, completed: wasCompleted };
-        }
-        
-        // Update the task status
+
+        // 2. Determine the new status
+        const newStatus = currentTask.status === TaskStatusEnum.enum.done
+             ? TaskStatusEnum.enum.todo
+             : TaskStatusEnum.enum.done;
+
+        // 3. Update the task status
         const { data: updatedTask, error: updateError } = await ctx.supabaseAdmin
           .from('tasks')
-          .update({
-            status: newStatus,
-            updated_at: new Date().toISOString() // Update the timestamp
-          })
+          .update({ status: newStatus })
           .eq('id', input.taskId)
-          .eq('user_id', ctx.userId)
-          .select('id, title, status, goal_id, updated_at')
+          .select(TASK_FIELDS) // Return the full updated task
           .single();
-          
+
         if (updateError) throw updateError;
-        
-        // If the task is associated with a goal, update the goal progress
-        let updatedGoal = null;
-        if (task.goal_id) {
-          // Get all tasks for this goal to calculate new progress
-          const { data: goalTasks, error: tasksError } = await ctx.supabaseAdmin
-            .from('tasks')
-            .select('id, status')
-            .eq('goal_id', task.goal_id)
-            .eq('user_id', ctx.userId);
-            
-          if (tasksError) throw tasksError;
-          
-          // Calculate the new progress value
-          const totalTasks = goalTasks?.length || 0;
-          const completedTasks = goalTasks?.filter(t => t.status === 'completed').length || 0;
-          const newProgress = totalTasks > 0 ? completedTasks / totalTasks : 0;
-          
-          // Update the goal progress
-          const { data: goal, error: goalError } = await ctx.supabaseAdmin
-            .from('goals')
-            .update({
-              progress: newProgress,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', task.goal_id)
-            .eq('user_id', ctx.userId)
-            .select('id, name, progress')
-            .single();
-            
-          if (!goalError) {
-            updatedGoal = goal;
-            
-            // Add a progress snapshot for tracking
-            await ctx.supabaseAdmin
-              .from('goal_progress_snapshots')
-              .insert({
-                goal_id: task.goal_id,
-                progress: newProgress,
-                created_at: new Date().toISOString(),
-                user_id: ctx.userId
-              });
-          }
-        }
-        
-        return {
-          ...updatedTask,
-          completed: newStatus === 'completed',
-          goal: updatedGoal,
-        };
+        // TODO: Parse with Task schema?
+        return updatedTask;
+
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-        
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to toggle task completion',
+          message: error.message || 'Failed to toggle task status',
         });
       }
     }),
-}); 
+
+  // --- Obsolete Stubs (keep or remove based on client usage) ---
+  /*
+  getTasksByGoal: protectedProcedure ... // Covered by getTasks with goalId filter
+  getTodaysTasks: protectedProcedure ... // Replaced by listToday
+  getUpcomingTasks: protectedProcedure ... // Replaced by listUpcoming
+  updateTaskStatus_OLD: protectedProcedure ... // Replaced by updateTaskStatus and toggleTask
+  */
+
+});

@@ -7,7 +7,7 @@ export const userRouter = router({
     .query(async ({ ctx }) => {
       const { data, error } = await ctx.supabaseAdmin
         .from('profiles')
-        .select('*')
+        .select('id, username, avatar_url, full_name, bio, time_zone, onboarding_completed, created_at, updated_at')
         .eq('id', ctx.userId)
         .single();
         
@@ -40,7 +40,7 @@ export const userRouter = router({
     .query(async ({ ctx }) => {
       const { data, error } = await ctx.supabaseAdmin
         .from('user_settings')
-        .select('*')
+        .select('id, user_id, notification_preferences, ui_preferences')
         .eq('user_id', ctx.userId)
         .single();
         
@@ -148,7 +148,7 @@ export const userRouter = router({
     .query(async ({ ctx }) => {
       const { data, error } = await ctx.supabaseAdmin
         .from('profiles')
-        .select('onboarding_completed')
+        .select('id, onboarding_completed')
         .eq('id', ctx.userId)
         .single();
         

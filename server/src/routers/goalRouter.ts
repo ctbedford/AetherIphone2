@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
+import { createGoalInput, updateGoalInput } from '../types/trpc-types';
+
+const GOAL_FIELDS = 'id, user_id, title, description, progress, target_date, archived_at, sort_order, created_at, updated_at';
 
 export const goalRouter = router({
   getGoals: protectedProcedure
@@ -8,20 +11,15 @@ export const goalRouter = router({
       try {
         const { data: goals, error } = await ctx.supabaseAdmin
           .from('goals')
-          .select('*')
+          .select(GOAL_FIELDS)
           .eq('user_id', ctx.userId)
+          .is('archived_at', null)
+          .order('sort_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        
-        // Format goals to align with client expectations
-        const formattedGoals = (goals || []).map(g => ({
-          ...g, // Keep other original fields
-          title: g.name, // Map name to title
-          dueDate: g.target_date // Map target_date to dueDate
-        }));
 
-        return formattedGoals;
+        return goals || [];
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -32,13 +30,13 @@ export const goalRouter = router({
 
   getGoalById: protectedProcedure
     .input(z.object({
-      id: z.string(),
+      id: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
       try {
         const { data: goal, error } = await ctx.supabaseAdmin
           .from('goals')
-          .select('*')
+          .select(GOAL_FIELDS)
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
@@ -63,26 +61,16 @@ export const goalRouter = router({
     }),
 
   createGoal: protectedProcedure
-    .input(z.object({
-      title: z.string(),
-      description: z.string().optional(),
-      target_date: z.string().optional(),
-      status: z.string().default('active'),
-      value_id: z.string().optional(),
-    }))
+    .input(createGoalInput)
     .mutation(async ({ ctx, input }) => {
       try {
         const { data: goal, error } = await ctx.supabaseAdmin
           .from('goals')
           .insert({
-            title: input.title,
-            description: input.description,
-            target_date: input.target_date,
-            status: input.status,
-            value_id: input.value_id,
+            ...input,
             user_id: ctx.userId,
           })
-          .select()
+          .select(GOAL_FIELDS)
           .single();
 
         if (error) throw error;
@@ -96,21 +84,15 @@ export const goalRouter = router({
     }),
 
   updateGoal: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      target_date: z.string().optional(),
-      status: z.string().optional(),
-      value_id: z.string().optional(),
-    }))
+    .input(updateGoalInput)
     .mutation(async ({ ctx, input }) => {
       try {
-        // First check if the goal exists and belongs to user
+        const { id, ...updateData } = input;
+
         const { data: existingGoal, error: fetchError } = await ctx.supabaseAdmin
           .from('goals')
           .select('id')
-          .eq('id', input.id)
+          .eq('id', id)
           .eq('user_id', ctx.userId)
           .single();
 
@@ -121,19 +103,12 @@ export const goalRouter = router({
           });
         }
 
-        // Update the goal
         const { data: updatedGoal, error } = await ctx.supabaseAdmin
           .from('goals')
-          .update({
-            title: input.title,
-            description: input.description,
-            target_date: input.target_date,
-            status: input.status,
-            value_id: input.value_id,
-          })
-          .eq('id', input.id)
+          .update(updateData)
+          .eq('id', id)
           .eq('user_id', ctx.userId)
-          .select()
+          .select(GOAL_FIELDS)
           .single();
 
         if (error) throw error;
@@ -150,11 +125,10 @@ export const goalRouter = router({
 
   deleteGoal: protectedProcedure
     .input(z.object({
-      id: z.string(),
+      id: z.string().uuid(),
     }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // Check if the goal exists and belongs to user
         const { data: existingGoal, error: fetchError } = await ctx.supabaseAdmin
           .from('goals')
           .select('id')
@@ -169,7 +143,6 @@ export const goalRouter = router({
           });
         }
 
-        // Delete the goal
         const { error } = await ctx.supabaseAdmin
           .from('goals')
           .delete()
@@ -188,19 +161,17 @@ export const goalRouter = router({
       }
     }),
 
-  // ---- Stubs for client compatibility ----
   listActive: protectedProcedure
     .query(async ({ ctx }) => {
-      // TODO: Implement actual logic - filter status = 'active'?
-      // For now, return all goals like getGoals
       try {
         const { data: goals, error } = await ctx.supabaseAdmin
           .from('goals')
-          .select('*')
+          .select(GOAL_FIELDS)
           .eq('user_id', ctx.userId)
+          .is('archived_at', null)
+          .order('sort_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
         if (error) throw error;
-        console.log("[goalRouter.listActive] Stub called, returning all goals");
         return goals || [];
       } catch (error: any) {
         throw new TRPCError({
@@ -209,12 +180,86 @@ export const goalRouter = router({
         });
       }
     }),
-    
-  // Note: Client calls state.getLatest, not goal.getLatest.
-  // Adding stub here seems incorrect based on client calls.
-  getLatest: protectedProcedure 
+
+  listArchived: protectedProcedure
     .query(async ({ ctx }) => {
-      console.log("[goalRouter.getLatest] STUB CALLED - LIKELY INCORRECT ROUTER");
-      return [];
+      try {
+        const { data: goals, error } = await ctx.supabaseAdmin
+          .from('goals')
+          .select(GOAL_FIELDS)
+          .eq('user_id', ctx.userId)
+          .not('archived_at', 'is', null)
+          .order('archived_at', { ascending: false })
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return goals || [];
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to fetch archived goals',
+        });
+      }
     }),
-}); 
+
+  archiveGoal: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { data: updatedGoal, error } = await ctx.supabaseAdmin
+          .from('goals')
+          .update({ archived_at: new Date().toISOString() })
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId)
+          .select(GOAL_FIELDS)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') { 
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Goal not found or you do not have permission to archive it.',
+            });
+          }
+          throw error;
+        }
+        return updatedGoal;
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to archive goal',
+        });
+      }
+    }),
+
+  unarchiveGoal: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { data: updatedGoal, error } = await ctx.supabaseAdmin
+          .from('goals')
+          .update({ archived_at: null })
+          .eq('id', input.id)
+          .eq('user_id', ctx.userId)
+          .select(GOAL_FIELDS)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Goal not found or you do not have permission to unarchive it.',
+            });
+          }
+          throw error;
+        }
+        return updatedGoal;
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Failed to unarchive goal',
+        });
+      }
+    }),
+});

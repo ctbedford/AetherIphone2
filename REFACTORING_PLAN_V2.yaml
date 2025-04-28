@@ -1,0 +1,251 @@
+title: Aether iPhone App - Enhanced Refactoring Plan (Post-Schema Update)
+version: 2.0
+last_updated: 2025-04-28 # Update with current date when executing
+
+phases:
+  - phase: 0
+    name: Schema Update & Regeneration
+    description: >
+      Apply the enhanced database schema migration (`enhance_functional_schema.sql`) and regenerate all dependent types.
+      This sets the stage for implementing new features and aligning existing code with the improved data model.
+    status: Completed # Phase completed
+    tasks:
+      - id: SCHEMA-01
+        name: Apply Enhanced Schema Migration
+        details: >
+          Apply the `enhance_functional_schema.sql` migration to the Supabase database using
+          `supabase db push` or equivalent. Handle any manual data migration steps (e.g., for task priority enum mapping).
+        status: Completed # Assuming this was done prior to type generation
+        files_affected:
+          - supabase/migrations/ (new file applied)
+        testing_impact: None directly, but subsequent type generation depends on this. DB structure changes.
+      - id: SCHEMA-02
+        name: Regenerate Database Types
+        details: >
+          Run `npx supabase gen types typescript --linked > types/database.types.ts` to update
+          the TypeScript definitions based on the newly migrated schema, capturing all new tables and columns.
+        status: Completed # types/database.types.ts reflects new schema
+        files_affected:
+          - types/database.types.ts
+        testing_impact: Foundational for all subsequent type checking and tests. Existing code referencing old types will show errors.
+
+  - phase: 1
+    name: Backend Alignment (Enhanced Schema)
+    description: >
+      Update Zod schemas and tRPC routers to fully reflect the enhanced database schema,
+      including new fields for recurrence, archiving, sorting, habit types, reminders, etc.
+      Update server-side tests accordingly.
+    status: In Progress # Zod schemas done, Routers partially done
+    tasks:
+      - id: TYPE-02
+        name: Update Zod Schemas for Enhanced DB
+        details: >
+          Modify Zod schemas in `server/src/types/trpc-types.ts` for `Goal`, `Habit`, `Task`,
+          `Value`, `Principle`, `TrackedStateDef`, `HabitEntry`, `StateEntry` to include new fields
+          (recurrence_rule, archived_at, sort_order, habit_type, goal_quantity, goal_unit,
+          quantity_value, notes, target_min/max_value, etc.). Define new Zod schemas for
+          `Reminder` and `GoalProgressNote`. Ensure enums match DB enums defined in the migration.
+        status: Completed # server/src/types/trpc-types.ts updated
+        files_affected:
+          - server/src/types/trpc-types.ts
+        testing_impact: Server tests will fail until routers are updated. Foundational for frontend typing.
+      - id: BACKEND-06
+        name: Refactor Routers for Enhanced Schema & CRUD
+        details: >
+          Update all tRPC routers (`goalRouter`, `habitRouter`, `taskRouter`, `valueRouter`,
+          `trackedStateRouter`, `dashboardRouter`, etc.) to select, insert, and update
+          the new fields defined in TYPE-02. Implement filtering for `archived_at` (e.g., `isNull('archived_at')`
+          for active items). Add procedures for managing `Reminder` and `GoalProgressNote` tables. Update existing procedures to handle new fields (e.g., `habit_type`, `quantity_value` in habit logic).
+        status: In Progress # Routers completed: Value, Principle, Goal, Task, Dashboard, Habit. Remaining: trackedStateRouter, reminderRouter, goalProgressNoteRouter
+        files_affected:
+          - server/src/routers/*.ts
+        testing_impact: Requires significant updates to server tests (`__tests__/server/`) to mock and assert new fields and procedures.
+      - id: BACKEND-07
+        name: Update Server Tests for Enhanced Schema
+        details: >
+          Rewrite/update all tests in `__tests__/server/` to mock the enhanced Supabase schema
+          (using `test-helpers.ts`) and assert that router procedures correctly handle the new
+          fields, types (enums), and logic (e.g., archiving filters, recurrence handling if tested at router level).
+        status: Not Started # Tests need update for new schema/logic
+        files_affected:
+          - __tests__/server/**/*.test.ts
+          - __tests__/server/test-helpers.ts
+        testing_impact: Ensures backend logic aligns with the new database structure.
+
+  - phase: 2
+    name: Frontend Type Consumption & Test Overhaul (Enhanced Schema)
+    description: >
+      Update frontend components and hooks to use the inferred `RouterOutputs` based on the
+      enhanced backend schema from Phase 1. Remove remaining type casts and overhaul the UI test suite.
+    status: Partially Implemented # Basic structure exists, but needs alignment with *new* types
+    tasks:
+      - id: FRONTEND-04
+        name: Update Frontend Components for Enhanced Types
+        details: >
+          Refactor components in `app/` and `components/` (including `HomeScreen`, `PlannerScreen`,
+          dashboard items, list items) to strictly use `RouterOutputs` inferred from the Phase 1
+          backend changes. Access properties using correct names and types (including new fields like
+          `archived_at`, `sort_order`, `quantity_value`, `notes`, etc., where applicable). Remove remaining
+          `as any` / `@ts-ignore`.
+        status: Partially Implemented # Needs update for new fields/types
+        files_affected:
+          - app/**/*.tsx
+          - components/**/*.tsx
+        testing_impact: Requires updating UI tests with mocks matching the *new* `RouterOutputs`.
+      - id: TEST-02
+        name: Overhaul Jest UI Test Suite & Config (Enhanced Schema)
+        details: >
+          Update all UI tests (`__tests__/` excluding `server/`) mocks, assertions, and snapshots
+          to reflect the enhanced data structures and component props. Address flaky tests.
+          Consolidate Jest configurations if still needed (remove `jest.server.config.js` if redundant).
+        status: Partially Implemented # Needs update for new fields/types and config consolidation
+        files_affected:
+          - __tests__/**/*.test.tsx
+          - __tests__/**/*.snap
+          - jest.config.ui.js
+          - jest.setup.js
+          - jest.config.server.js / jest.server.config.js
+
+  - phase: 3
+    name: Feature Implementation (Core Functionality)
+    description: >
+      Build out core user-facing features leveraging the enhanced schema, including missing screens,
+      recurrence, sub-tasks, reminders, archiving, and sorting.
+    status: Not Started # Core features leveraging new schema are not built
+    tasks:
+      - id: FEAT-03
+        name: Implement Recurrence UI & Logic
+        details: >
+          Add UI elements (e.g., in creation/edit modals) for setting `recurrence_rule` on tasks/habits.
+          Update frontend logic to display recurring items correctly in lists/calendars.
+        status: Not Started
+        files_affected:
+          - components/modals/* (TBD)
+          - app/(tabs)/planner/index.tsx
+          - components/lists/*.tsx
+        testing_impact: Requires new UI tests for recurrence configuration and display.
+      - id: FEAT-04
+        name: Implement Sub-task UI & Logic
+        details: >
+          Allow creating tasks linked via `parent_task_id`. Update task detail screens and lists
+          to display parent/child relationships and potentially roll up progress.
+        status: Not Started
+        files_affected:
+          - components/modals/AddTask.tsx (TBD)
+          - app/(tabs)/planner/task/[id].tsx (TBD)
+          - components/lists/TaskList.tsx
+        testing_impact: Requires new UI tests for sub-task creation, display, and interaction.
+      - id: FEAT-05
+        name: Implement Reminders UI & Logic
+        details: >
+          Add UI for setting `reminder_time` on tasks/goals/habits using the new `reminders` table.
+          Implement logic to schedule/manage these reminders (potentially via `expo-notifications`).
+        status: Not Started
+        files_affected:
+          - components/modals/* (TBD)
+          - utils/notifications.ts (TBD)
+          - server/src/routers/reminderRouter.ts (TBD)
+        testing_impact: Requires new UI tests for setting reminders and potentially integration tests for notification scheduling.
+      - id: FEAT-06
+        name: Implement Archiving UI & Logic
+        details: >
+          Add "Archive" buttons/actions to goals, tasks, habits. Update list queries/filters
+          to respect the `archived_at` field. Provide an "Archived Items" view (perhaps in Settings).
+        status: Not Started
+        files_affected:
+          - components/lists/*.tsx
+          - app/(tabs)/planner/*
+          - app/(tabs)/settings/* (TBD Archive View)
+        testing_impact: Requires UI tests for archive actions and filtering.
+      - id: FEAT-07
+        name: Implement Manual Sorting UI & Logic
+        details: >
+          Add drag-and-drop functionality (e.g., using `react-native-gesture-handler` + `reanimated`)
+          to lists where `sort_order` exists (Goals, Values, Principles, Tasks). Update backend to
+          handle reordering mutations.
+        status: Not Started
+        files_affected:
+          - components/lists/*.tsx
+          - app/(tabs)/planner/index.tsx
+          - app/(tabs)/compass/index.tsx
+        testing_impact: Requires complex UI interaction tests for drag-and-drop.
+      - id: FEAT-08
+        name: Implement Enhanced Habit Tracking UI
+        details: >
+          Update habit creation/edit modals and habit entry UI to support `habit_type` (boolean/quantity),
+          `goal_quantity`, `goal_unit`, and entry `notes`/`quantity_value`. Update `HabitToggleRow` or replace.
+        status: Not Started
+        files_affected:
+          - components/modals/AddHabit.tsx (TBD)
+          - components/lists/HabitList.tsx
+          - components/ui/HabitToggleRow.tsx (or replacement)
+        testing_impact: Requires UI tests for quantity input, notes, and different habit type displays.
+      - id: FEAT-09
+        name: Implement Contextual Notes UI
+        details: >
+          Add input fields for `notes` on state entries and goal progress updates (`goal_progress_notes` table). Display these notes appropriately.
+        status: Not Started
+        files_affected:
+          - app/(tabs)/compass/* (TBD State Entry UI)
+          - app/(tabs)/planner/goal/[id].tsx (TBD Goal Detail)
+        testing_impact: Requires UI tests for note input and display.
+      - id: ROUTE-04
+        name: Implement Missing Screens (Planner/Settings Details)
+        details: >
+          Build out the UI for detail screens identified as missing (e.g., `planner/goal/[id].tsx`,
+          `settings/profile.tsx`). Create placeholder files first (ROUTE-02 from original plan). Connect them to the corresponding (now type-aligned) tRPC routers.
+        status: Not Started # Files still missing
+        files_affected:
+          - app/(tabs)/planner/ (create files)
+          - app/(tabs)/settings/ (create files)
+        testing_impact: Requires writing new UI and integration tests for these screens.
+
+  - phase: 4
+    name: Advanced Features & Polish
+    description: >
+      Implement remaining major features (Compass, Rewards), complete the Tamagui migration,
+      fully integrate offline sync, and address final cleanup tasks.
+    status: Not Started # Advanced features not implemented
+    tasks:
+      - id: FEAT-10
+        name: Implement Compass & Rewards Screens
+        details: >
+          Build out the UI for Compass (analytics using enhanced state/goal data) and Rewards screens using the backend data.
+          Implement charts and reward redemption logic.
+        status: Not Started
+        files_affected:
+          - app/(tabs)/compass/index.tsx
+          - app/(tabs)/rewards/index.tsx
+          - components/charts/* (TBD)
+          - components/rewards/*
+        testing_impact: Requires new UI tests for charts, reward lists, and redemption flow.
+      - id: FEAT-11
+        name: Fully Integrate Offline Mutation Queue
+        details: >
+          Ensure `saveOfflineMutation` is robustly integrated into *all* relevant `useMutation` hooks.
+          Add UI indicators for pending sync items (`useOfflineSync` hook). Test edge cases thoroughly.
+        status: Not Implemented # Integration is pending
+        files_affected:
+          - Hooks/Components using `useMutation`
+          - components/ui/OfflineIndicator.tsx (or similar)
+        testing_impact: Requires comprehensive offline integration testing.
+      - id: REFACTOR-02
+        name: Complete Tamagui Migration & Cleanup
+        details: >
+          Eliminate remaining non-Tamagui primitives (`View`, `Text`, etc.). Ensure consistent token usage. Remove custom
+          `providers/ToastProvider.tsx` in favor of `@tamagui/toast`.
+        status: Partially Implemented # Migration ongoing, ToastProvider exists
+        files_affected:
+          - components/**/*.tsx
+          - app/**/*.tsx
+          - providers/ToastProvider.tsx (delete)
+          - providers/Providers.tsx
+        testing_impact: Update UI tests. Snapshots will change.
+      - id: CLEANUP-02
+        name: Address Remaining TODOs and Lint Warnings
+        details: >
+          Final pass through `AETHER_TODO.md`, `refactor_checklist.md`. Resolve all lint warnings/errors.
+        status: Partially Implemented # TODOs remain
+        files_affected:
+          - Various
+        testing_impact: Minor test adjustments likely.

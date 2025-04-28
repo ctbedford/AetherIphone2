@@ -1,154 +1,153 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
-import { createValueInput, updateValueInput } from '../types/trpc-types';
+import { createPrincipleInput, updatePrincipleInput } from '../types/trpc-types'; // Assuming Principle schema is also imported if needed for parsing
 
-export const valueRouter = router({
-  getValues: protectedProcedure
+export const principleRouter = router({
+  getPrinciples: protectedProcedure
     .query(async ({ ctx }) => {
       try {
-        const { data: values, error } = await ctx.supabaseAdmin
-          .from('values')
-          .select('id, user_id, name, description, color, icon, sort_order, created_at, updated_at')
+        const { data: principles, error } = await ctx.supabaseAdmin
+          .from('principles')
+          .select('id, user_id, name, description, sort_order, created_at, updated_at')
           .eq('user_id', ctx.userId)
           .order('sort_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        // TODO: Parse with Value schema from trpc-types?
-        return values;
+        // TODO: Parse with Principle schema from trpc-types?
+        return principles;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch values',
+          message: error.message || 'Failed to fetch principles',
         });
       }
     }),
 
-  getValueById: protectedProcedure
+  getPrincipleById: protectedProcedure
     .input(z.object({
       id: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
       try {
-        const { data: value, error } = await ctx.supabaseAdmin
-          .from('values')
-          .select('id, user_id, name, description, color, icon, sort_order, created_at, updated_at')
+        const { data: principle, error } = await ctx.supabaseAdmin
+          .from('principles')
+          .select('id, user_id, name, description, sort_order, created_at, updated_at')
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
 
         if (error) throw error;
-        if (!value) {
+        if (!principle) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Value not found',
+            message: 'Principle not found',
           });
         }
-
-        // TODO: Parse with Value schema from trpc-types?
-        return value;
+        // TODO: Parse with Principle schema from trpc-types?
+        return principle;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to fetch value',
+          message: error.message || 'Failed to fetch principle',
         });
       }
     }),
 
-  createValue: protectedProcedure
-    .input(createValueInput)
+  createPrinciple: protectedProcedure
+    .input(createPrincipleInput)
     .mutation(async ({ ctx, input }) => {
       try {
-        const { data: value, error } = await ctx.supabaseAdmin
-          .from('values')
+        const { data: principle, error } = await ctx.supabaseAdmin
+          .from('principles')
           .insert({
-            ...input,
+            ...input, // Includes name, description, sort_order
             user_id: ctx.userId,
           })
-          .select('id, user_id, name, description, color, icon, sort_order, created_at, updated_at')
+          .select('id, user_id, name, description, sort_order, created_at, updated_at')
           .single();
 
         if (error) throw error;
-        // TODO: Parse with Value schema from trpc-types?
-        return value;
+        // TODO: Parse with Principle schema from trpc-types?
+        return principle;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to create value',
+          message: error.message || 'Failed to create principle',
         });
       }
     }),
 
-  updateValue: protectedProcedure
-    .input(updateValueInput)
+  updatePrinciple: protectedProcedure
+    .input(updatePrincipleInput)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input;
 
-        // First check if the value exists and belongs to user
-        const { data: existingValue, error: fetchError } = await ctx.supabaseAdmin
-          .from('values')
+        // Check ownership
+        const { data: existing, error: fetchError } = await ctx.supabaseAdmin
+          .from('principles')
           .select('id')
           .eq('id', id)
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !existingValue) {
+        if (fetchError || !existing) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Value not found or you do not have permission to update it',
+            message: 'Principle not found or you do not have permission to update it',
           });
         }
 
-        // Update the value
-        const { data: updatedValue, error } = await ctx.supabaseAdmin
-          .from('values')
+        // Update
+        const { data: updatedPrinciple, error } = await ctx.supabaseAdmin
+          .from('principles')
           .update(updateData)
           .eq('id', id)
           .eq('user_id', ctx.userId)
-          .select('id, user_id, name, description, color, icon, sort_order, created_at, updated_at')
+          .select('id, user_id, name, description, sort_order, created_at, updated_at')
           .single();
 
         if (error) throw error;
-        // TODO: Parse with Value schema from trpc-types?
-        return updatedValue;
+        // TODO: Parse with Principle schema from trpc-types?
+        return updatedPrinciple;
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to update value',
+          message: error.message || 'Failed to update principle',
         });
       }
     }),
 
-  deleteValue: protectedProcedure
+  deletePrinciple: protectedProcedure
     .input(z.object({
       id: z.string().uuid(),
     }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // Check if the value exists and belongs to user
-        const { data: existingValue, error: fetchError } = await ctx.supabaseAdmin
-          .from('values')
+        // Check ownership
+        const { data: existing, error: fetchError } = await ctx.supabaseAdmin
+          .from('principles')
           .select('id')
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !existingValue) {
+        if (fetchError || !existing) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Value not found or you do not have permission to delete it',
+            message: 'Principle not found or you do not have permission to delete it',
           });
         }
 
-        // Delete the value
+        // Delete
         const { error } = await ctx.supabaseAdmin
-          .from('values')
+          .from('principles')
           .delete()
           .eq('id', input.id)
           .eq('user_id', ctx.userId);
@@ -157,10 +156,10 @@ export const valueRouter = router({
         return { success: true, id: input.id };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to delete value',
+          message: error.message || 'Failed to delete principle',
         });
       }
     }),

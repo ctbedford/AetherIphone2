@@ -22,7 +22,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home" // Just the folder name, not the path with index
+        name="home/index" // Update to match actual file path
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
@@ -31,7 +31,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="planner" // Just the folder name, not the path with index
+        name="planner/index" // Update to match actual file path
         options={{
           title: 'Planner',
           tabBarIcon: ({ color, size }) => (
@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="compass" // Just the folder name, not the path with index
+        name="compass/index" // Update to match actual file path
         options={{
           title: 'Compass',
           tabBarIcon: ({ color, size }) => (
@@ -49,7 +49,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="rewards" // Just the folder name, not the path with index
+        name="rewards/index" // Update to match actual file path
         options={{
           title: 'Rewards',
           tabBarIcon: ({ color, size }) => (
@@ -58,7 +58,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings" // Just the folder name, not the path with index
+        name="settings/index" // Update to match actual file path
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (

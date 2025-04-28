@@ -27,36 +27,49 @@ describe('dashboardRouter', () => {
 
   describe('getDashboardData', () => {
     it('should fetch dashboard data with default limits', async () => {
-      // Mock data for habits
+      // Mock data for habits aligned with updated schema
       const mockHabits = [
         {
           id: 'habit-1',
-          name: 'Morning Run',
+          user_id: 'test-user-id',
+          title: 'Morning Run',
+          cue: 'Wake up',
+          routine: 'Go for a jog',
+          reward: 'Coffee',
           streak: 3,
           best_streak: 5,
-          created_at: '2024-04-20T12:00:00Z'
+          created_at: '2024-04-20T12:00:00Z',
+          updated_at: '2024-04-20T12:00:00Z'
         }
       ];
 
-      // Mock data for goals
+      // Mock data for goals aligned with updated schema
       const mockGoals = [
         {
           id: 'goal-1',
-          name: 'Learn TypeScript',
+          user_id: 'test-user-id',
+          title: 'Learn TypeScript',
+          description: 'Master TypeScript for web development',
           progress: 0.5,
-          created_at: '2024-04-15T10:00:00Z'
+          target_date: '2024-06-01T00:00:00Z',
+          created_at: '2024-04-15T10:00:00Z',
+          updated_at: '2024-04-15T10:00:00Z'
         }
       ];
 
-      // Mock data for tasks
+      // Mock data for tasks aligned with updated schema
       const mockTasks = [
         {
           id: 'task-1',
+          user_id: 'test-user-id',
           title: 'Complete TypeScript course',
+          notes: 'Focus on advanced types',
           status: 'in-progress',
+          priority: 2,
           due: '2024-05-01T00:00:00Z',
           goal_id: 'goal-1',
-          priority: 2
+          created_at: '2024-04-20T12:00:00Z',
+          updated_at: '2024-04-20T12:00:00Z'
         }
       ];
 

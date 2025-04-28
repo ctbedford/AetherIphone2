@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       badge_definitions: {
@@ -29,6 +54,45 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      goal_progress_notes: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          note: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          note: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          note?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_progress_notes_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_progress_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       goal_values: {
         Row: {
@@ -72,30 +136,36 @@ export type Database = {
       }
       goals: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           description: string | null
           id: string
           progress: number | null
+          sort_order: number | null
           target_date: string | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           progress?: number | null
+          sort_order?: number | null
           target_date?: string | null
           title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           progress?: number | null
+          sort_order?: number | null
           target_date?: string | null
           title?: string
           updated_at?: string | null
@@ -118,6 +188,8 @@ export type Database = {
           date: string
           habit_id: string
           id: string
+          notes: string | null
+          quantity_value: number | null
           user_id: string
         }
         Insert: {
@@ -126,6 +198,8 @@ export type Database = {
           date: string
           habit_id: string
           id?: string
+          notes?: string | null
+          quantity_value?: number | null
           user_id: string
         }
         Update: {
@@ -134,6 +208,8 @@ export type Database = {
           date?: string
           habit_id?: string
           id?: string
+          notes?: string | null
+          quantity_value?: number | null
           user_id?: string
         }
         Relationships: [
@@ -195,10 +271,18 @@ export type Database = {
       }
       habits: {
         Row: {
+          archived_at: string | null
           best_streak: number
           created_at: string
           cue: string | null
+          frequency_period: Database["public"]["Enums"]["habit_frequency_period"]
+          goal_frequency: number
+          goal_quantity: number | null
+          goal_unit: string | null
+          habit_type: Database["public"]["Enums"]["habit_type"]
           id: string
+          recurrence_end_date: string | null
+          recurrence_rule: string | null
           reward: string | null
           routine: string | null
           streak: number
@@ -207,10 +291,18 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           best_streak?: number
           created_at?: string
           cue?: string | null
+          frequency_period?: Database["public"]["Enums"]["habit_frequency_period"]
+          goal_frequency?: number
+          goal_quantity?: number | null
+          goal_unit?: string | null
+          habit_type?: Database["public"]["Enums"]["habit_type"]
           id?: string
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
           reward?: string | null
           routine?: string | null
           streak?: number
@@ -219,10 +311,18 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           best_streak?: number
           created_at?: string
           cue?: string | null
+          frequency_period?: Database["public"]["Enums"]["habit_frequency_period"]
+          goal_frequency?: number
+          goal_quantity?: number | null
+          goal_unit?: string | null
+          habit_type?: Database["public"]["Enums"]["habit_type"]
           id?: string
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
           reward?: string | null
           routine?: string | null
           streak?: number
@@ -368,6 +468,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          sort_order: number | null
           title: string
           updated_at: string
           user_id: string
@@ -376,6 +477,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          sort_order?: number | null
           title: string
           updated_at?: string
           user_id: string
@@ -384,6 +486,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          sort_order?: number | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -425,6 +528,47 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          related_entity_id: string
+          related_entity_type: string
+          reminder_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          related_entity_id: string
+          related_entity_type: string
+          reminder_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          related_entity_id?: string
+          related_entity_type?: string
+          reminder_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rewards: {
         Row: {
           can_earn_multiple: boolean
@@ -435,7 +579,7 @@ export type Database = {
           metadata: Json | null
           name: string
           required_points: number
-          type: string
+          type: Database["public"]["Enums"]["reward_type"]
           updated_at: string
         }
         Insert: {
@@ -447,7 +591,7 @@ export type Database = {
           metadata?: Json | null
           name: string
           required_points?: number
-          type: string
+          type: Database["public"]["Enums"]["reward_type"]
           updated_at?: string
         }
         Update: {
@@ -459,7 +603,7 @@ export type Database = {
           metadata?: Json | null
           name?: string
           required_points?: number
-          type?: string
+          type?: Database["public"]["Enums"]["reward_type"]
           updated_at?: string
         }
         Relationships: []
@@ -469,6 +613,7 @@ export type Database = {
           definition_id: string
           entry_timestamp: string
           id: string
+          notes: string | null
           user_id: string
           value_numeric: number | null
           value_text: string | null
@@ -477,6 +622,7 @@ export type Database = {
           definition_id: string
           entry_timestamp?: string
           id?: string
+          notes?: string | null
           user_id: string
           value_numeric?: number | null
           value_text?: string | null
@@ -485,6 +631,7 @@ export type Database = {
           definition_id?: string
           entry_timestamp?: string
           id?: string
+          notes?: string | null
           user_id?: string
           value_numeric?: number | null
           value_text?: string | null
@@ -548,37 +695,55 @@ export type Database = {
       }
       tasks: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           due: string | null
           goal_id: string | null
           id: string
           notes: string | null
+          parent_task_id: string | null
           priority: number | null
-          status: string
+          priority_enum: Database["public"]["Enums"]["task_priority"] | null
+          recurrence_end_date: string | null
+          recurrence_rule: string | null
+          sort_order: number | null
+          status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           due?: string | null
           goal_id?: string | null
           id?: string
           notes?: string | null
+          parent_task_id?: string | null
           priority?: number | null
-          status: string
+          priority_enum?: Database["public"]["Enums"]["task_priority"] | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           due?: string | null
           goal_id?: string | null
           id?: string
           notes?: string | null
+          parent_task_id?: string | null
           priority?: number | null
-          status?: string
+          priority_enum?: Database["public"]["Enums"]["task_priority"] | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -589,6 +754,13 @@ export type Database = {
             columns: ["goal_id"]
             isOneToOne: false
             referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
           {
@@ -609,6 +781,8 @@ export type Database = {
           name: string
           priority: number
           scale: Database["public"]["Enums"]["tracked_state_scale"]
+          target_max_value: number | null
+          target_min_value: number | null
           updated_at: string
           user_id: string
         }
@@ -620,6 +794,8 @@ export type Database = {
           name: string
           priority?: number
           scale: Database["public"]["Enums"]["tracked_state_scale"]
+          target_max_value?: number | null
+          target_min_value?: number | null
           updated_at?: string
           user_id: string
         }
@@ -631,6 +807,8 @@ export type Database = {
           name?: string
           priority?: number
           scale?: Database["public"]["Enums"]["tracked_state_scale"]
+          target_max_value?: number | null
+          target_min_value?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -813,7 +991,8 @@ export type Database = {
           description: string | null
           domain_id: string | null
           id: string
-          name: string
+          sort_order: number | null
+          title: string
           updated_at: string
           user_id: string
         }
@@ -823,7 +1002,8 @@ export type Database = {
           description?: string | null
           domain_id?: string | null
           id?: string
-          name: string
+          sort_order?: number | null
+          title: string
           updated_at?: string
           user_id: string
         }
@@ -833,7 +1013,8 @@ export type Database = {
           description?: string | null
           domain_id?: string | null
           id?: string
-          name?: string
+          sort_order?: number | null
+          title?: string
           updated_at?: string
           user_id?: string
         }
@@ -855,6 +1036,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      habit_frequency_period: "day" | "week" | "month"
+      habit_type: "boolean" | "quantity"
+      reward_type: "badge" | "achievement" | "item" | "discount"
+      task_priority: "low" | "medium" | "high"
+      task_status: "todo" | "doing" | "done" | "blocked" | "pending"
       tracked_state_scale: "1-5" | "low-high" | "custom"
     }
     CompositeTypes: {
@@ -969,8 +1155,16 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      habit_frequency_period: ["day", "week", "month"],
+      habit_type: ["boolean", "quantity"],
+      reward_type: ["badge", "achievement", "item", "discount"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["todo", "doing", "done", "blocked", "pending"],
       tracked_state_scale: ["1-5", "low-high", "custom"],
     },
   },

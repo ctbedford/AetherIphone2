@@ -38,15 +38,26 @@ describe('taskRouter.toggleTask', () => {
     const userId = 'test-user-id';
     const initialTaskData = {
       id: taskId,
+      user_id: userId,
       title: 'Test Task',
+      notes: null,
       status: 'in-progress',
+      priority: 2,
+      due: null,
       goal_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     const updatedTaskData = {
       id: taskId,
+      user_id: userId,
       title: 'Test Task',
+      notes: null,
       status: 'completed', // This is the expected final status
+      priority: 2,
+      due: null,
       goal_id: null,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(), // Include fields returned by select
     };
 
@@ -71,7 +82,6 @@ describe('taskRouter.toggleTask', () => {
     });
 
     // Verify the result
-    expect(result.completed).toBe(true);
     expect(result.status).toBe('completed');
 
     // Verify calls
@@ -122,7 +132,6 @@ describe('taskRouter.toggleTask', () => {
     });
 
     // Verify the result
-    expect(result.completed).toBe(false);
     expect(result.status).toBe('in-progress');
 
     // Verify calls
@@ -262,7 +271,7 @@ describe('taskRouter.toggleTask', () => {
     });
 
     // Verify the result
-    expect(result.completed).toBe(true);
+    expect(result.status).toBe('completed');
 
     // Verify no update was performed
     expect(mockSupabaseAdmin.from('tasks').update).not.toHaveBeenCalled();
