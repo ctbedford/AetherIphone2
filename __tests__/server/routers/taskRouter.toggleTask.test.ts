@@ -78,7 +78,6 @@ describe('taskRouter.toggleTask', () => {
     const caller = createTestCaller(userId);
     const result = await caller.task.toggleTask({
       taskId: taskId,
-      completed: true,
     });
 
     // Verify the result
@@ -128,7 +127,6 @@ describe('taskRouter.toggleTask', () => {
     const caller = createTestCaller(userId);
     const result = await caller.task.toggleTask({
       taskId: taskId,
-      completed: false, // Toggling to incomplete
     });
 
     // Verify the result
@@ -211,7 +209,6 @@ describe('taskRouter.toggleTask', () => {
     const caller = createTestCaller(userId);
     const result = await caller.task.toggleTask({
       taskId: taskId,
-      completed: true,
     });
 
     // Assertions
@@ -267,7 +264,6 @@ describe('taskRouter.toggleTask', () => {
     const caller = createTestCaller(userId);
     const result = await caller.task.toggleTask({
       taskId: taskId,
-      completed: true, // Already completed, so no change needed
     });
 
     // Verify the result
@@ -287,7 +283,7 @@ describe('taskRouter.toggleTask', () => {
     fetchMock.single.mockResolvedValue({ data: null, error: null }); // Simulate task not found
 
     const caller = createTestCaller();
-    await expect(caller.task.toggleTask({ taskId: 'nonexistent-task', completed: true }))
+    await expect(caller.task.toggleTask({ taskId: 'nonexistent-task' }))
       .rejects.toMatchObject({ code: 'NOT_FOUND' });
 
     // Ensure update was not called
@@ -313,7 +309,7 @@ describe('taskRouter.toggleTask', () => {
       .mockResolvedValueOnce({ data: null, error: dbError });       // Update fails
 
     const caller = createTestCaller(userId);
-    await expect(caller.task.toggleTask({ taskId: taskId, completed: true }))
+    await expect(caller.task.toggleTask({ taskId: taskId }))
       .rejects.toMatchObject({ message: 'Update failed', code: 'DB_ERROR' });
 
     // Verify update was attempted

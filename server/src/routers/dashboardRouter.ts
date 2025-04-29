@@ -31,7 +31,7 @@ export const dashboardRouter = router({
           .select(HABIT_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
           .is('archived_at', null) // Filter out archived
-          .order('sort_order', { ascending: true, nullsLast: true }) // Order by sort_order
+          .order('sort_order', { ascending: true, nullsFirst: false }) // Correct: nullsFirst: false for nulls last
           .limit(habitLimit);
         if (habitsError) throw habitsError;
 
@@ -41,7 +41,7 @@ export const dashboardRouter = router({
           .select(GOAL_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
           .is('archived_at', null) // Filter out archived
-          .order('sort_order', { ascending: true, nullsLast: true }) // Order by sort_order
+          .order('sort_order', { ascending: true, nullsFirst: false }) // Correct: nullsFirst: false for nulls last
           .limit(goalLimit);
         if (goalsError) throw goalsError;
 
@@ -71,7 +71,7 @@ export const dashboardRouter = router({
           .select(TRACKED_STATE_DEF_FIELDS) // Use constant
           .eq('user_id', ctx.userId)
           .eq('active', true)
-          .order('sort_order', { ascending: true, nullsLast: true }); // Use sort_order
+          .order('sort_order', { ascending: true, nullsFirst: false }); // Correct: nullsFirst: false for nulls last
         if (statesError) throw statesError;
         
         // --- Fetch Latest State Entries for Active Definitions ---
@@ -225,35 +225,48 @@ export const dashboardRouter = router({
         const daysToInclude = input?.daysToInclude || 7;
         const includeRawData = input?.includeRawData || false;
         
-        const today = new Date();
-        today.setHours(23, 59, 59, 999); // End of today
-        
+        const endDate = new Date();
         const startDate = new Date();
-        startDate.setDate(today.getDate() - (daysToInclude - 1));
-        startDate.setHours(0, 0, 0, 0); // Start of the first day
+        startDate.setDate(endDate.getDate() - (daysToInclude - 1));
         
-        const todayStr = today.toISOString().split('T')[0];
+        const todayStr = endDate.toISOString().split('T')[0];
         const startDateStr = startDate.toISOString().split('T')[0];
         
         // Generate array of all dates in the range for daily aggregation
         const dateRange: string[] = [];
         const tempDate = new Date(startDate);
-        while (tempDate <= today) {
+        while (tempDate <= endDate) {
           dateRange.push(tempDate.toISOString().split('T')[0]);
           tempDate.setDate(tempDate.getDate() + 1);
         }
         
-        // Get all habit entries for the specified date range
+        // Fetch habits relevant to the date range (active during any part of the range)
+        // Need to consider habits created *before* the end date and not archived *before* the start date
+        const HABIT_FIELDS_FOR_PROGRESS = 'id, name, habit_type, frequency_type, frequency_details, created_at, streak, best_streak'; // Add streak fields
+        const { data: relevantHabits, error: habitsError } = await ctx.supabaseAdmin
+          .from('habits')
+          .select(HABIT_FIELDS_FOR_PROGRESS)
+          .eq('user_id', ctx.userId)
+          // Add logic here if needed to filter habits active within the date range
+          // e.g., .lt('created_at', endDate.toISOString())
+          //       .or(`archived_at.gte.${startDate.toISOString()},archived_at.is.null`)
+          ;
+        if (habitsError) throw habitsError;
+
+        const relevantHabitIds = (relevantHabits || []).map(h => h.id);
+
+        // Fetch habit entries within the date range for relevant habits
         const { data: habitEntries, error: entriesError } = await ctx.supabaseAdmin
           .from('habit_entries')
-          .select(HABIT_ENTRY_FIELDS + ', habits:habit_id(' + HABIT_FIELDS + ')')
+          .select('id, habit_id, date, completed, quantity_value, notes')
           .eq('user_id', ctx.userId)
-          .gte('date', startDateStr)
-          .lte('date', todayStr)
-          .in('habit_id', (relevantHabits || []).map(h => h.id)); // Only entries for relevant habits
-
+          .in('habit_id', relevantHabitIds.length > 0 ? relevantHabitIds : ['dummy-uuid']) // Filter by relevant habits
+          .gte('date', startDate.toISOString().split('T')[0])
+          .lte('date', endDate.toISOString().split('T')[0])
+          .order('date', { ascending: true });
+ 
         if (entriesError) throw entriesError;
-        
+
         // Get all tasks completed or due within the date range
         const { data: relevantTasks, error: tasksError } = await ctx.supabaseAdmin
           .from('tasks')
@@ -272,24 +285,13 @@ export const dashboardRouter = router({
           
         if (countError) throw countError;
         
-        // Get all relevant habits (active during the period, could use created_at < endDate)
-        const { data: relevantHabits, error: habitsError } = await ctx.supabaseAdmin
-          .from('habits')
-          .select(HABIT_FIELDS)
-          .eq('user_id', ctx.userId)
-          .is('archived_at', null)
-          .lte('created_at', todayStr); // Habit created before or on end date
-          // Optionally: .or(`archived_at.is.null,archived_at.gt.${startDateStr}`)
-
-        if (habitsError) throw habitsError;
-        
         // Get goal progress snapshots for the period
         const { data: goalSnapshots, error: goalSnapshotsError } = await ctx.supabaseAdmin
           .from('goal_progress_snapshots') // Assuming we have this table
           .select('goal_id, progress, created_at')
           .eq('user_id', ctx.userId)
           .gte('created_at', startDate.toISOString())
-          .lte('created_at', today.toISOString())
+          .lte('created_at', endDate.toISOString())
           .order('created_at', { ascending: true });
           
         if (goalSnapshotsError) throw goalSnapshotsError;
@@ -331,13 +333,25 @@ export const dashboardRouter = router({
         
         // Calculate expected habits per day based on frequency
         const isHabitExpected = (habit: any, date: string): boolean => {
-          if (!habit.frequency_type || habit.frequency_type === 'daily') return true;
-          if (habit.frequency_type === 'specific_days') {
-            const dayOfWeek = new Date(date + 'T00:00:00Z').getDay();
-            return Array.isArray(habit.frequency_details?.days) && habit.frequency_details.days.includes(dayOfWeek);
+          const dateObj = new Date(date + 'T00:00:00Z'); // Ensure UTC
+          const dayOfWeek = dateObj.getUTCDay(); // 0 = Sunday, 6 = Saturday
+          const dayOfMonth = dateObj.getUTCDate();
+          const month = dateObj.getUTCMonth(); // 0 = January, 11 = December
+
+          const habitCreatedDate = new Date(habit.created_at);
+          if (dateObj < habitCreatedDate) {
+            return false; // Cannot be expected before it was created
           }
-          // TODO: Add logic for 'weekly', 'monthly' etc. as needed
-          return false;
+
+          switch (habit.frequency_type) {
+            case 'daily':
+              return true;
+            case 'specific_days':
+              return Array.isArray(habit.frequency_details?.days) && habit.frequency_details.days.includes(dayOfWeek);
+            // TODO: Add logic for 'weekly', 'monthly' etc. as needed
+            default:
+              return false;
+          }
         };
         relevantHabits?.forEach(habit => {
           dateRange.forEach(date => {
@@ -389,7 +403,7 @@ export const dashboardRouter = router({
           : 0;
           
         // Calculate habit streaks (could be moved to a separate helper function)
-        const habitStreaks = (habits || []).map(habit => ({
+        const habitStreaks = (relevantHabits || []).map(habit => ({
           id: habit.id,
           name: habit.name,
           currentStreak: habit.streak || 0,

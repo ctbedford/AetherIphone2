@@ -352,6 +352,16 @@ export const UpdateGoalProgressNoteInput = GoalProgressNote.pick({ id: true })
 export const GetGoalProgressNotesInput = z.object({ goal_id: z.string().uuid() });
 export const DeleteGoalProgressNoteInput = z.object({ id: z.string().uuid() });
 
+// --- Rewards Router Schemas ---
+export const claimLootInput = z.object({
+  rewardId: z.string().uuid(),
+});
+
+export const awardBadgeInput = z.object({
+  badgeId: z.string().uuid(),
+  description: z.string().optional(),
+});
+
 /* ------------------------------------------------------------------
  *  Aggregate Router Types – automatically inferred
  * ----------------------------------------------------------------*/

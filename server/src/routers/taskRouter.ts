@@ -119,11 +119,6 @@ export const taskRouter = router({
               message: 'Invalid or archived parent task ID',
             });
           }
-          // Basic cycle check: cannot be its own parent
-          if (input.parent_task_id === input.id) { // input.id is undefined here, need generated ID first or disallow on create?
-             // Let DB handle FK constraint for now, but ideally prevent self-parenting.
-             // For simplicity, skip this check on create.
-          }
         }
 
         const { data: task, error } = await ctx.supabaseAdmin

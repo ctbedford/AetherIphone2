@@ -94,7 +94,7 @@ export const rewardsRouter = router({
         const { data: reward, error: rewardError } = await ctx.supabaseAdmin
           .from('rewards')
           .select('*')
-          .eq('id', input.lootId)
+          .eq('id', input.rewardId)
           .single();
 
         if (rewardError || !reward) {
@@ -131,7 +131,7 @@ export const rewardsRouter = router({
             .from('user_rewards')
             .select('id')
             .eq('user_id', ctx.userId)
-            .eq('reward_id', input.lootId)
+            .eq('reward_id', input.rewardId)
             .single();
 
           if (existingReward) {
@@ -158,7 +158,7 @@ export const rewardsRouter = router({
           .from('user_rewards')
           .insert({
             user_id: ctx.userId,
-            reward_id: input.lootId,
+            reward_id: input.rewardId,
             earned_at: new Date().toISOString(),
             points_spent: reward.required_points,
           })
