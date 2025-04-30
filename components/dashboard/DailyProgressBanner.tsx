@@ -1,65 +1,47 @@
 import React from 'react';
-import { XStack, YStack, Text, Progress, useTheme } from 'tamagui';
+import { Box, HStack, VStack, Text, Progress } from '@gluestack-ui/themed';
 import { BlurView } from 'expo-blur';
-import { CheckSquare, Target } from '@tamagui/lucide-icons'; // Example icons
 
-type DailyProgressBannerProps = {
-  tasksCompleted: number;
-  totalTasks: number; // Needed for progress calculation
-  habitsChecked: number;
-  totalHabits: number; // Needed for progress calculation
-};
+/**
+ * 1-for-1 Glue rewrite of the Tamagui version in the repo
+ * (components/dashboard/DailyProgressBanner.tsx) :contentReference[oaicite:4]{index=4}&#8203;:contentReference[oaicite:5]{index=5}
+ */
+export interface DailyProgressBannerProps {
+  tasksCompleted:  number;
+  totalTasks:      number;
+  habitsChecked:   number;
+  totalHabits:     number;
+}
 
-export default function DailyProgressBanner({ 
-  tasksCompleted = 3, // Placeholder
-  totalTasks = 5, // Placeholder
-  habitsChecked = 2, // Placeholder
-  totalHabits = 4 // Placeholder
-}: DailyProgressBannerProps) {
-  const theme = useTheme();
-  const taskProgress = totalTasks > 0 ? (tasksCompleted / totalTasks) * 100 : 0;
-  const habitProgress = totalHabits > 0 ? (habitsChecked / totalHabits) * 100 : 0;
+export default function DailyProgressBanner(
+  { tasksCompleted, totalTasks, habitsChecked, totalHabits }: DailyProgressBannerProps,
+) {
+  const taskPct  = totalTasks  ? tasksCompleted / totalTasks  : 0;
+  const habitPct = totalHabits ? habitsChecked  / totalHabits : 0;
 
   return (
-    <BlurView intensity={50} tint="default" style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
-      <XStack 
-        padding="$3"
-        space="$4"
-        alignItems="center" 
-        backgroundColor="$surfaceSubtle" // Use subtle background from theme
-      >
-        {/* Tasks Progress */}
-        <YStack flex={1} space="$1">
-          <XStack space="$2" alignItems="center">
-            <CheckSquare size={16} color={theme.accent?.get()} />
-            <Text fontSize="$3" fontWeight="bold" color="$onSurface">
-              Tasks
+    <BlurView intensity={45} style={{ borderRadius: 16, overflow: 'hidden' }}>
+      <Box px="$4" py="$3">
+        <HStack space="$6" alignItems="center">
+          {/* Tasks */}
+          <VStack flex={1} space="$1">
+            <Text size="sm" fontWeight="$medium">Tasks</Text>
+            <Progress value={taskPct * 100} />
+            <Text size="xs" color="$muted">
+              {tasksCompleted}/{totalTasks} done
             </Text>
-          </XStack>
-          <Progress size="$1" value={taskProgress}>
-            <Progress.Indicator animation="bouncy" backgroundColor="$accent" />
-          </Progress>
-          <Text fontSize="$1" color="$onSurfaceSubtle">
-            {tasksCompleted} / {totalTasks} done
-          </Text>
-        </YStack>
+          </VStack>
 
-        {/* Habits Progress */}
-        <YStack flex={1} space="$1">
-          <XStack space="$2" alignItems="center">
-            <Target size={16} color={theme.accent?.get()} />
-            <Text fontSize="$3" fontWeight="bold" color="$onSurface">
-              Habits
+          {/* Habits */}
+          <VStack flex={1} space="$1">
+            <Text size="sm" fontWeight="$medium">Habits</Text>
+            <Progress value={habitPct * 100} />
+            <Text size="xs" color="$muted">
+              {habitsChecked}/{totalHabits} checked
             </Text>
-          </XStack>
-          <Progress size="$1" value={habitProgress}>
-            <Progress.Indicator animation="bouncy" backgroundColor="$accent" />
-          </Progress>
-          <Text fontSize="$1" color="$onSurfaceSubtle">
-            {habitsChecked} / {totalHabits} checked
-          </Text>
-        </YStack>
-      </XStack>
+          </VStack>
+        </HStack>
+      </Box>
     </BlurView>
   );
 }

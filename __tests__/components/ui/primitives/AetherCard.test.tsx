@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'tamagui';
-import { AetherCard } from '@/components/ui/primitives/AetherCard';
+import { AetherCard } from '@/components/ui/primitives/Card';
 import { render, fireEvent } from '../../../test-utils';
 
 describe('AetherCard Component', () => {

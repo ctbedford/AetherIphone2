@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { AetherListItem } from '@/components/ui/primitives/AetherListItem';
+import { AetherListItem } from '@/components/ui/primitives/ListItem';
 
 describe('AetherListItem Component', () => {
   it('renders with required props', () => {
