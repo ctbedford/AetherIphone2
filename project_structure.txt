@@ -1,0 +1,186 @@
+/Users/tylerbedford/Documents/Coding Projects/AetherIphone
+├── AETHER_TODO.md
+├── Projects/
+│   └── AetherIphone/
+│       ├── __tests__/
+│       │   ├── components/
+│       │   │   ├── lists/
+│       │   │   └── ui/
+│       │   │       └── primitives/
+│       │   └── server/
+│       │       └── routers/
+│       ├── components/
+│       │   ├── lists/
+│       │   └── ui/
+│       │       └── primitives/
+│       └── supabase/
+│           └── migrations/
+├── README.md
+├── REFACTORING_PLAN_V2.yaml
+├── SUPABASE_INTEGRATION.md
+├── __tests__/
+│   ├── components/
+│   │   ├── dashboard/
+│   │   │   └── HabitCheckItem.test.tsx
+│   │   ├── lists/
+│   │   │   ├── GoalList.test.tsx
+│   │   │   ├── HabitList.test.tsx
+│   │   │   └── TaskList.test.tsx
+│   │   ├── ui/
+│   │   │   └── primitives/
+│   │   │       ├── AetherCard.test.tsx
+│   │   │       └── AetherListItem.test.tsx
+│   └── server/
+│       ├── routers/
+│       │   ├── dashboardRouter.getWeeklyProgress.test.ts
+│       │   ├── dashboardRouter.test.ts
+│       │   ├── habitRouter.test.ts
+│       │   └── taskRouter.toggleTask.test.ts
+│       └── test-helpers.ts
+│   └── test-utils.tsx
+├── aether_styling_context.txt
+├── app/
+│   ├── (auth)/
+│   │   ├── _layout.tsx
+│   │   ├── forgot-password.tsx
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── (tabs)/
+│   │   ├── _layout.tsx
+│   │   ├── compass/
+│   │   │   └── index.tsx
+│   │   ├── home/
+│   │   │   └── index.tsx
+│   │   ├── journal/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── entries/
+│   │   │   │   ├── index.tsx
+│   │   │   │   └── [id].tsx
+│   │   │   └── index.tsx
+│   │   ├── profile/
+│   │   │   └── index.tsx
+│   │   └── settings/
+│   │       ├── _layout.tsx
+│   │       ├── account.tsx
+│   │       ├── appearance.tsx
+│   │       ├── data-sync.tsx
+│   │       ├── feedback.tsx
+│   │       └── index.tsx
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   └── modal.tsx
+├── app.config.ts
+├── app.json
+├── assets/
+│   ├── animations/
+│   │   └── sheikah-loader.json
+│   ├── fonts/
+│   │   └── SpaceMono-Regular.ttf
+│   ├── images/
+│   │   ├── adaptive-icon.png
+│   │   ├── favicon.png
+│   │   ├── icon.png
+│   │   └── splash.png
+│   └── refresh-sheikah.json
+├── babel.config.js
+├── components/
+│   ├── AuthForm.tsx
+│   ├── ControlledInput.tsx
+│   ├── ControlledSwitch.tsx
+│   ├── DashboardHeader.tsx
+│   ├── EditScreenInfo.tsx
+│   ├── ExternalLink.tsx
+│   ├── Themed.tsx
+│   ├── calendar/
+│   │   └── DateStrip.tsx
+│   ├── dashboard/
+│   │   ├── DashboardSection.tsx
+│   │   ├── GoalSummaryCard.tsx
+│   │   ├── HabitCheckItem.tsx
+│   │   ├── StateIndicator.tsx
+│   │   ├── TaskItem.tsx
+│   │   └── WeeklyProgressChart.tsx
+│   ├── hooks/
+│   │   └── useRefreshControl.tsx
+│   ├── lists/
+│   │   ├── GoalList.tsx
+│   │   ├── HabitList.tsx
+│   │   └── TaskList.tsx
+│   ├── modal/
+│   │   └── AddItemModal.tsx
+│   └── ui/
+│       ├── EmptyOrSkeleton.tsx
+│       └── primitives/
+│           ├── AetherCard.tsx
+│           ├── AetherIconButton.tsx
+│           ├── AetherListItem.tsx
+│           ├── AetherSegmentedControl.tsx
+│           ├── AetherSheet.tsx
+│           └── AetherSwitch.tsx
+├── constants/
+│   ├── Colors.ts
+│   ├── Motion.ts
+│   └── Styles.ts
+├── debug_context.txt
+├── eas.json
+├── expo-env.d.ts
+├── gather_debug_info.js
+├── index.js
+├── jest.config.server.js
+├── jest.config.ui.js
+├── jest.setup.js
+├── metro.config.js
+├── package.json
+├── postcss.config.js
+├── providers/
+│   └── Providers.tsx
+├── scripts/
+│   ├── generate-all.js
+│   ├── generate-trpc-client.js
+│   └── generate-trpc-types.js
+├── server/
+│   ├── index.ts
+│   ├── src/
+│   │   ├── context.ts
+│   │   ├── db/
+│   │   │   └── schema.ts
+│   │   ├── lib/
+│   │   │   └── dateUtils.ts
+│   │   ├── router.ts
+│   │   ├── routers/
+│   │   │   ├── _app.ts
+│   │   │   ├── auth.ts
+│   │   │   ├── dashboard.ts
+│   │   │   ├── goal.ts
+│   │   │   ├── habit.ts
+│   │   │   ├── journal.ts
+│   │   │   └── task.ts
+│   │   ├── trpc.ts
+│   │   └── types/
+│   │       └── trpc.ts
+│   └── tsconfig.json
+├── stores/
+│   ├── authStore.ts
+│   └── uiStore.ts
+├── supabase/
+│   ├── config.toml
+│   ├── functions/
+│   │   └── _shared/
+│   │       ├── cors.ts
+│   │       └── supabaseAdmin.ts
+│   ├── migrations/
+│   │   └── ... (omitted content)
+│   └── seed.sql
+├── tailwind.config.js
+├── tamagui.config.ts
+├── tsconfig.json
+├── types/
+│   ├── api.ts
+│   ├── components.ts
+│   └── domain.ts
+├── utils/
+│   ├── api.ts
+│   ├── query-client.ts
+│   ├── supabase.ts
+│   └── trpc.ts
+└── yarn.lock

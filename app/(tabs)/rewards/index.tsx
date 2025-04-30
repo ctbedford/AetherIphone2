@@ -220,7 +220,7 @@ export default function RewardsScreen() {
         {/* Content Area */} 
         <EmptyOrSkeleton 
           isLoading={isLoading}
-          isEmpty={!isLoading && (!rewards || rewards.length === 0)}
+          isEmpty={!isLoading && !error && (!rewards || rewards.length === 0)}
           isError={!!error}
           text={error ? error.message : 'No rewards available yet.'} // Use text for error OR empty msg
           onRetry={refetch}
@@ -231,7 +231,17 @@ export default function RewardsScreen() {
             key={viewMode} // Change key based on viewMode to force re-render
             data={rewards}
             renderItem={renderItem}
-            keyExtractor={(item) => `${item.id}-${viewMode}`} // Apply patch #1
+            keyExtractor={(item, index) =>
+              `${item?.id ?? `tmp-${index}`}-${viewMode}`   // fall back to index if ID is missing
+            }
+            
+            // Optional: Log corrupt data in development
+            onLayout={() => {
+              if (__DEV__) {
+                const missing = (rewards ?? []).filter(r => !r?.id);
+                if (missing.length) console.warn('Rewards missing id:', missing);
+              }
+            }}
             numColumns={viewMode === ViewMode.Grid ? 2 : 1}
             contentContainerStyle={{ paddingBottom: 50 }} // Add padding at the bottom
             // Optional Optimizations (Patch #6)

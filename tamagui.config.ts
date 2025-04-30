@@ -1,50 +1,84 @@
 // tamagui.config.ts
 import { createAnimations } from '@tamagui/animations-react-native';
-import { createInterFont } from '@tamagui/font-inter'; 
-import { createFont, createTamagui, createTokens } from 'tamagui'; 
+import { createFont, createTamagui, createTokens } from 'tamagui';
 import { Platform } from 'react-native';
 import * as MotionConstants from '@/constants/motion'; // Import motion constants
 
-// Font definitions
-const headingFont = createInterFont({
-  family: Platform.select({ web: 'Inter', default: 'InterBold' }), // Assuming InterBold is for headings
+// Font definitions - Zelda Theme
+// Assumes 'CalamitySans' and 'HyliaSerif' are loaded via useFonts or similar
+const headingFont = createFont({
+  family: 'HyliaSerif', // Zelda Display Font
   size: {
-    1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, 7: 24, 8: 30, 9: 36, true: 16,
+    // Mapped closer to iOS Dynamic Type: https://developer.apple.com/design/human-interface-guidelines/typography
+    1: 13,  // Caption 2
+    2: 15,  // Subheadline
+    3: 17,  // Body (true default)
+    4: 20,  // Title 3
+    5: 22,  // Title 2
+    6: 28,  // Title 1
+    7: 34,  // Large Title
+    8: 40,  // Extra Large Title (custom)
+    true: 17, // Default size (Body)
   },
   lineHeight: {
-    1: 18, 2: 22, 3: 24, 4: 26, 5: 28, 6: 32, 7: 36, 8: 44, 9: 52, true: 26,
+    // Approximate line heights based on new sizes
+    1: 18, 2: 20, 3: 22, 4: 25, 5: 28, 6: 34, 7: 41, 8: 50, 
+    true: 22,
   },
   weight: {
-    4: '400', // Normal/Regular (use 'System' default)
-    6: '600', // Semibold (use 'System' default)
-    7: '700', // Bold (use 'System' default)
+    // Prompt 2 asks for 400-700
+    4: '400', // Normal
+    6: '600', // Semi-bold/Bold
+    7: '700', // Extra-bold/Black
     true: '400',
   },
   letterSpacing: {
-    1: 0, 2: 0.1, 3: 0.2, true: 0,
+    1: 0, 2: 0, 3: -0.5, 4: -0.5, 5: -1, 6: -1, 7: -1.5, 8: -1.5,
+    true: 0,
   },
+  // Required: Map weights to specific font faces if needed (e.g., 'HyliaSerif-Bold')
+  // face: {
+  //   400: { normal: 'HyliaSerif-Regular' },
+  //   700: { normal: 'HyliaSerif-Bold' },
+  // },
 });
 
-const bodyFont = createInterFont({
-  family: Platform.select({ web: 'Inter', default: 'Inter' }), // Assuming Inter (Medium) is for body
+const bodyFont = createFont({
+  family: 'CalamitySans', // Zelda Body Font
   size: {
-    1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, true: 15,
+    // Mapped closer to iOS Dynamic Type
+    1: 11,  // Footnote
+    2: 12,  // Caption 1
+    3: 13,  // Caption 2
+    4: 15,  // Subheadline
+    5: 17,  // Body (true default)
+    6: 20,  // Title 3 (matching headingFont.$4)
+    true: 17, // Default body size
   },
   lineHeight: {
-    1: 18, 2: 22, 3: 24, 4: 26, 5: 28, 6: 32, true: 24,
+    // Approximate line heights
+    1: 13, 2: 16, 3: 18, 4: 20, 5: 22, 6: 25,
+    true: 22, // Default body line height
   },
   weight: {
-    4: '400',
-    5: '500', // Medium (use 'System' default)
+    4: '400', // Regular
+    5: '500', // Medium (if available)
+    7: '700', // Bold (if needed/available)
     true: '400',
   },
   letterSpacing: {
-    1: 0, 2: 0.1, 3: 0.2, true: 0,
+    1: 0.1, 2: 0.1, 3: 0, 4: 0, 5: -0.1, 6: -0.1,
+    true: 0,
   },
+  // Required: Map weights to specific font faces if needed (e.g., 'CalamitySans-Medium')
+  // face: {
+  //   400: { normal: 'CalamitySans-Regular' },
+  //   500: { normal: 'CalamitySans-Medium' },
+  // },
 });
 
-const monoFont = createFont({ 
-  family: Platform.select({ web: 'monospace', default: 'SpaceMono' }), // Correctly matches useFonts
+const monoFont = createFont({
+  family: Platform.select({ web: 'monospace', default: 'SpaceMono' }), // Keep SpaceMono for code
   size: {
     1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, true: 15,
   },
@@ -98,6 +132,16 @@ const animations = createAnimations({
   },
 });
 
+// Standard Radix Gray scale (light theme)
+const gray = {
+  gray1: '#fcfcfc', gray2: '#f8f8f8', gray3: '#f3f3f3', gray4: '#ededed', gray5: '#e8e8e8', gray6: '#e2e2e2', gray7: '#dbdbdb', gray8: '#c7c7c7', gray9: '#8f8f8f', gray10: '#858585', gray11: '#6f6f6f', gray12: '#171717',
+};
+
+// Standard Radix Gray scale (dark theme)
+const grayDark = {
+  gray1: '#191919', gray2: '#212121', gray3: '#282828', gray4: '#303030', gray5: '#393939', gray6: '#424242', gray7: '#4f4f4f', gray8: '#626262', gray9: '#737373', gray10: '#838383', gray11: '#ababab', gray12: '#ededed',
+};
+
 // Tokens (refined based on your existing config)
 const tokens = createTokens({
   size: {
@@ -107,145 +151,195 @@ const tokens = createTokens({
     0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16, '-1': -4, '-2': -8, '-3': -12, '-4': -16,
   },
   radius: {
-    0: 0, 1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 16, 7: 20, 8: 24, 9: 28, 10: 32, true: 10,
+    0: 0, 1: 3, 2: 5, 3: 8, 4: 10, 5: 14, 6: 16, 7: 20, 8: 24, 9: 28, 10: 32, true: 10, // Updated radius.5 to 14
   },
   zIndex: { 0: 0, 1: 100, 2: 200, 3: 300, 4: 400, 5: 500 },
   color: {
-    // Light Theme Brand Colors
-    brandBlue: '#007AFF',
-    brandGreen: '#34C759',
-    brandYellow: '#FFCC00',
-    brandRed: '#FF3B30',
-    brandPurple: '#5E5CE6',
-    brandOrange: '#FF9500',
-    brandPink: '#FF2D55',
-    brandIndigo: '#5856D6',
+    // Zelda Palette (Prompt 1)
+    ...gray, // Add light greys
+    ...grayDark, // Add dark greys (will be overridden in dark theme definition)
+    parchment: '#FDFFE0',
+    sheikahCyan: '#86A5A9',
+    korokGreen: '#92C582',
+    darkText: '#536F50',
+    guardianOrange: '#FF9F0A',
+    darkTealBg: '#1A2E3A',
+    darkCyanGlow: '#64FFDA',
 
-    // Dark Theme Brand Colors
-    brandBlue_dark: '#0A84FF',
-    brandGreen_dark: '#30D158',
-    brandYellow_dark: '#FFD60A',
-    brandRed_dark: '#FF453A',
-    brandPurple_dark: '#5E5CE6', // Often stays the same or similar
-    brandOrange_dark: '#FF9F0A',
-    brandPink_dark: '#FF375F',
-    brandIndigo_dark: '#5E5CE6',
-
-    // Radix Grays (Example - Adapt as needed)
-    gray1: '#fcfcfc', gray2: '#f8f8f8', gray3: '#f3f3f3', gray4: '#ededed', gray5: '#e8e8e8', gray6: '#e2e2e2', gray7: '#dbdbdb', gray8: '#c7c7c7', gray9: '#8f8f8f', gray10: '#858585', gray11: '#6f6f6f', gray12: '#171717',
-    gray1_dark: '#191919', gray2_dark: '#212121', gray3_dark: '#282828', gray4_dark: '#303030', gray5_dark: '#393939', gray6_dark: '#424242', gray7_dark: '#4f4f4f', gray8_dark: '#626262', gray9_dark: '#737373', gray10_dark: '#838383', gray11_dark: '#ababab', gray12_dark: '#ededed',
-
+    // Shadow Colors (Prompt 5)
+    shadowColorLight: 'rgba(83, 111, 80, 1)', // dark desaturated text color
+    shadowColorDark: 'rgba(0, 0, 0, 1)', // Black base
     white: '#FFFFFF',
     black: '#000000',
   },
 });
 
-// Define themes
+// Define themes using Zelda Palette
 const lightTheme = {
-  background: tokens.color.gray2,
-  backgroundHover: tokens.color.gray3,
-  backgroundPress: tokens.color.gray4,
-  backgroundFocus: tokens.color.gray4,
-  backgroundStrong: tokens.color.white, // e.g., Card background
-  backgroundTransparent: tokens.color.gray1,
+  // Base Colors
+  background: tokens.color.parchment,      // Light bg
+  backgroundStrong: tokens.color.white,     // Keep white for strong contrast areas if needed
+  backgroundTransparent: 'rgba(253, 255, 224, 0)', // Fully transparent parchment
+  color: tokens.color.darkText,             // Dark desaturated text
+  colorSecondary: tokens.color.darkText,      // Use main text color, maybe slightly lighter if needed later
+  colorTertiary: tokens.color.sheikahCyan,    // Use accent for tertiary info?
+  borderColor: tokens.color.sheikahCyan,      // Use accent for borders
+  borderColorHover: tokens.color.korokGreen,  // Korok green on hover?
 
-  color: tokens.color.gray12,
-  colorHover: tokens.color.gray11,
-  colorPress: tokens.color.gray10,
-  colorFocus: tokens.color.gray10,
-  colorSecondary: tokens.color.gray11, // Use Radix gray11 for secondary text
-  colorTertiary: tokens.color.gray9,   // Use Radix gray9 for tertiary text
+  // Theme-specific states (can refine later)
+  backgroundHover: tokens.color.parchment,    // Keep parchment, maybe slightly darker/lighter
+  backgroundPress: tokens.color.parchment,    // Keep parchment
+  backgroundFocus: tokens.color.parchment,    // Keep parchment
+  colorHover: tokens.color.korokGreen,        // Korok green text on hover?
+  colorPress: tokens.color.korokGreen,
+  colorFocus: tokens.color.sheikahCyan,
+  borderColorPress: tokens.color.korokGreen,
+  borderColorFocus: tokens.color.sheikahCyan,
 
-  borderColor: tokens.color.gray6,
-  borderColorHover: tokens.color.gray7,
-  borderColorPress: tokens.color.gray8,
-  borderColorFocus: tokens.color.brandBlue, // Use brand blue for focus
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.parchment,    // Base color, apply opacity in component (e.g., rgba(253,255,224,0.8))
+  destructive: tokens.color.guardianOrange,
 
-  // Semantic colors
-  primary: tokens.color.brandBlue,
-  secondary: tokens.color.brandPurple,
-  success: tokens.color.brandGreen,
-  warning: tokens.color.brandYellow,
-  error: tokens.color.brandRed,
-  info: tokens.color.brandBlue,
+  // Standard Semantic Mapping (can use Zelda colors)
+  primary: tokens.color.sheikahCyan,        // Map primary to accent
+  secondary: tokens.color.korokGreen,       // Map secondary to korok green?
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,     // Use guardian orange for warning
+  error: tokens.color.guardianOrange,       // Use guardian orange for error
+  info: tokens.color.sheikahCyan,
 
-  // Specific component overrides if needed
-  inputBackground: tokens.color.white,
-  cardBackground: tokens.color.white,
-  shadowColor: tokens.color.gray8,
-  shadowColorHover: tokens.color.gray9,
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.parchment, // Maps to background
+  onSurface: tokens.color.darkText,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorLight, // Use darkText color base for shadow
+  shadowColorHover: 'rgba(83, 111, 80, 0.15)',
+  shadowSm: 'rgba(83, 111, 80, 0.10)', // 10% opacity
+  shadowMd: 'rgba(83, 111, 80, 0.15)', // 15% opacity
+  shadowLg: 'rgba(83, 111, 80, 0.20)', // 20% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.parchment,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.parchment,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.parchment,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.parchment,
 };
 
 const darkTheme: typeof lightTheme = {
-  background: tokens.color.gray1_dark,
-  backgroundHover: tokens.color.gray3_dark,
-  backgroundPress: tokens.color.gray4_dark,
-  backgroundFocus: tokens.color.gray4_dark,
-  backgroundStrong: tokens.color.gray2_dark, // e.g., Card background
-  backgroundTransparent: tokens.color.gray1_dark,
+  // Base Colors
+  ...grayDark, // Override light greys with dark greys
+  background: tokens.color.darkTealBg,      // Dark-mode bg
+  backgroundStrong: tokens.color.black,       // Black for contrast?
+  backgroundTransparent: 'rgba(26, 46, 58, 0)', // Fully transparent dark teal
+  color: tokens.color.parchment,          // Use light parchment for text
+  colorSecondary: tokens.color.sheikahCyan,   // Sheikah cyan for secondary text
+  colorTertiary: tokens.color.korokGreen,     // Korok green for tertiary
+  borderColor: tokens.color.sheikahCyan,      // Sheikah cyan borders
+  borderColorHover: tokens.color.darkCyanGlow, // Glow cyan on hover?
 
-  color: tokens.color.gray12_dark,
-  colorHover: tokens.color.gray11_dark,
-  colorPress: tokens.color.gray10_dark,
-  colorFocus: tokens.color.gray10_dark,
-  colorSecondary: tokens.color.gray11_dark,
-  colorTertiary: tokens.color.gray9_dark,
+  // Theme-specific states
+  backgroundHover: tokens.color.darkTealBg,   // Keep bg, maybe slightly lighter
+  backgroundPress: tokens.color.darkTealBg,
+  backgroundFocus: tokens.color.darkTealBg,
+  colorHover: tokens.color.darkCyanGlow,
+  colorPress: tokens.color.darkCyanGlow,
+  colorFocus: tokens.color.darkCyanGlow,
+  borderColorPress: tokens.color.darkCyanGlow,
+  borderColorFocus: tokens.color.darkCyanGlow,
 
-  borderColor: tokens.color.gray5_dark, // Slightly lighter border for dark mode
-  borderColorHover: tokens.color.gray6_dark,
-  borderColorPress: tokens.color.gray7_dark,
-  borderColorFocus: tokens.color.brandBlue_dark,
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.darkTealBg, // Use dark bg, apply opacity in component
+  destructive: tokens.color.guardianOrange,
 
-  // Semantic colors (using dark variants)
-  primary: tokens.color.brandBlue_dark,
-  secondary: tokens.color.brandPurple_dark,
-  success: tokens.color.brandGreen_dark,
-  warning: tokens.color.brandYellow_dark,
-  error: tokens.color.brandRed_dark,
-  info: tokens.color.brandBlue_dark,
+  // Standard Semantic Mapping
+  primary: tokens.color.darkCyanGlow,       // Use glow cyan for primary actions
+  secondary: tokens.color.korokGreen,
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,
+  error: tokens.color.guardianOrange,
+  info: tokens.color.sheikahCyan,
 
-  // Specific component overrides
-  inputBackground: tokens.color.gray3_dark,
-  cardBackground: tokens.color.gray2_dark,
-  shadowColor: tokens.color.black, // Use black for shadow in dark mode
-  shadowColorHover: tokens.color.black,
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.darkTealBg,   // Maps to background
+  onSurface: tokens.color.parchment,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorDark, // Darker shadow for dark mode
+  shadowColorHover: 'rgba(0, 0, 0, 0.30)',
+  shadowSm: 'rgba(0, 0, 0, 0.20)', // 20% opacity
+  shadowMd: 'rgba(0, 0, 0, 0.30)', // 30% opacity
+  shadowLg: 'rgba(0, 0, 0, 0.40)', // 40% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.darkTealBg,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.darkTealBg,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.darkTealBg,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.darkTealBg,
 };
 
 // Create the Tamagui config
 const config = createTamagui({
   animations,
-  shouldAddPrefersColorThemes: false, // We control theme via Zustand
-  themeClassNameOnRoot: false, // Recommended for native
+  shouldAddPrefersColorThemes: true,
+  themeClassNameOnRoot: true,
   shorthands: {
     // Keep your existing shorthands
     m: 'margin', mt: 'marginTop', mr: 'marginRight', mb: 'marginBottom', ml: 'marginLeft', mx: 'marginHorizontal', my: 'marginVertical',
     p: 'padding', pt: 'paddingTop', pr: 'paddingRight', pb: 'paddingBottom', pl: 'paddingLeft', px: 'paddingHorizontal', py: 'paddingVertical',
     bg: 'backgroundColor', br: 'borderRadius', bw: 'borderWidth', bc: 'borderColor',
     f: 'flex', fd: 'flexDirection', ai: 'alignItems', jc: 'justifyContent', w: 'width', h: 'height',
+    ac: 'alignContent',
+    als: 'alignSelf',
+    btc: 'borderTopColor',
+    bbc: 'borderBottomColor',
+    blc: 'borderLeftColor',
+    brc: 'borderRightColor',
+    boc: 'borderColor',
+    bs: 'borderStyle',
+    dsp: 'display',
+    fb: 'flexBasis',
+    fg: 'flexGrow',
+    fs: 'flexShrink',
+    fw: 'flexWrap',
+    mah: 'maxHeight',
+    maw: 'maxWidth',
+    mih: 'minHeight',
+    miw: 'minWidth',
+    op: 'opacity',
+    ov: 'overflow',
+    r: 'right',
+    shac: 'shadowColor',
+    shar: 'shadowRadius',
+    shof: 'shadowOffset',
+    shop: 'shadowOpacity',
+    t: 'top',
+    ta: 'textAlign',
+    tt: 'textTransform',
+    va: 'verticalAlign',
+    zi: 'zIndex',
   },
   fonts: {
+    // Use Zelda fonts
     heading: headingFont,
     body: bodyFont,
-    mono: monoFont,
+    mono: monoFont, // Keep mono
   },
   themes: {
     light: lightTheme,
     dark: darkTheme,
-    // Add component specific themes if needed, e.g., for buttons
-    light_Button: {
-      background: tokens.color.brandBlue,
-      backgroundHover: tokens.color.brandBlue, // Use a slightly darker shade if defined, else fallback
-      backgroundPress: tokens.color.brandBlue, // Use a darker shade if defined, else fallback
-      color: tokens.color.white,
-      borderColor: tokens.color.brandBlue, // Ensure border matches for outline variant
-    },
-    dark_Button: {
-      background: tokens.color.brandBlue_dark,
-      backgroundHover: tokens.color.brandBlue_dark, // Use a slightly lighter shade if defined, else fallback
-      backgroundPress: tokens.color.brandBlue_dark, // Use a lighter shade if defined, else fallback
-      color: tokens.color.gray1_dark, // Ensure contrast
-      borderColor: tokens.color.brandBlue_dark,
-    },
   },
   tokens,
   media: { // Keep standard media queries
@@ -258,9 +352,6 @@ const config = createTamagui({
       allowedStyleValues: 'somewhat-strict',
       autocompleteSpecificTokens: 'except-special',
   },
-  // SSR settings usually not needed for Expo
-  // disableSSR: true,
-  // disableRootThemeClass: true, // Recommended for native
 });
 
 type AppConfig = typeof config;

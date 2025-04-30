@@ -3,6 +3,7 @@ import { Text, YStack, XStack, Button, Anchor, H4 } from 'tamagui';
 import { router } from 'expo-router';
 import { SkeletonRow } from '@/components/ui/Skeleton';
 import { SectionError } from '@/components/ui/ErrorBanner';
+import { BlurView } from 'expo-blur'; // Import BlurView
 
 interface DashboardSectionProps<T> {
   title: string;
@@ -33,7 +34,7 @@ export default function DashboardSection<T>({
 }: DashboardSectionProps<T>) {
   return (
     <YStack space="$2">
-      <XStack justifyContent="space-between" alignItems="center" marginBottom="$2">
+      <XStack justifyContent="space-between" alignItems="center" marginBottom="$2" paddingHorizontal="$2">
         <H4>{title}</H4>
         {((data && data.length > 0 && seeAllRoute) || onSeeAll) && (
           <Button 
@@ -54,20 +55,29 @@ export default function DashboardSection<T>({
         )}
       </XStack>
       
-      {/* If children are provided, render them */}
-      {children ? (
-        children
-      ) : isLoading ? (
-        <SkeletonRow lines={skeletonCount} />
-      ) : error ? (
-        <SectionError message={error ? String(error) : 'An error occurred'} onRetry={onRetry} />
-      ) : data && data.length === 0 ? (
-        <YStack alignItems="center" padding="$4">
-          <Text color="$gray10">{emptyMessage ?? 'No items found'}</Text>
+      {/* Wrap content in BlurView */}
+      <BlurView 
+        intensity={50} 
+        tint="default" 
+        style={{ borderRadius: 12, overflow: 'hidden' }} 
+      >
+        <YStack padding="$3">
+          {/* If children are provided, render them */}
+          {children ? (
+            children
+          ) : isLoading ? (
+            <SkeletonRow lines={skeletonCount} />
+          ) : error ? (
+            <SectionError message={error ? String(error) : 'An error occurred'} onRetry={onRetry} />
+          ) : data && data.length === 0 ? (
+            <YStack alignItems="center" padding="$4">
+              <Text color="$gray10">{emptyMessage ?? 'No items found'}</Text>
+            </YStack>
+          ) : (
+            data && renderItem && data.map(renderItem)
+          )}
         </YStack>
-      ) : (
-        data && renderItem && data.map(renderItem)
-      )}
+      </BlurView>
     </YStack>
   );
 } 

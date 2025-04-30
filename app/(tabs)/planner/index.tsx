@@ -1,6 +1,6 @@
 // File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/planner/index.tsx
 import React, { useState, Suspense } from 'react';
-import { YStack, XStack, Text, Tabs, Button, Spinner, Card } from 'tamagui';
+import { YStack, XStack, Text, Tabs, Button, Spinner, Card, ScrollView } from 'tamagui';
 import { SafeAreaView, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';

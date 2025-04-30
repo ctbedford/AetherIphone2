@@ -1,0 +1,234 @@
+# AetherIphone Tamagui Styling Report
+
+This document outlines the styling approach used in the AetherIphone application, leveraging the Tamagui UI library.
+
+## 1. Core Theme Setup (`Providers.tsx`)
+
+The application's root is wrapped by `TamaguiProvider` within `Providers.tsx`. This provider injects the theme configuration and dynamically sets the theme based on the user's system preferences (light/dark mode).
+
+```typescript
+// Simplified snippet from providers/Providers.tsx
+import { TamaguiProvider } from 'tamagui';
+import config from '../tamagui.config';
+import { useColorScheme } from 'react-native';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const colorScheme = useColorScheme() ?? 'light';
+
+  return (
+    <TamaguiProvider config={config} defaultTheme={colorScheme}>
+      {/* ... other providers ... */}
+      {children}
+    </TamaguiProvider>
+  );
+}
+```
+
+## 2. Theme Configuration (`tamagui.config.ts`)
+
+This file is the central definition for the application's design system.
+
+### 2.1. Tokens
+
+Tokens define the fundamental building blocks (colors, spacing, fonts, etc.).
+
+```typescript
+// Snippet from tamagui.config.ts (Tokens)
+const tokens = createTokens({
+  size: { 0: 0, 1: 4, ..., 16: 64, true: 16 },
+  space: { 0: 0, 1: 4, ..., 16: 64, true: 16, '-1': -4, ... },
+  radius: { 0: 0, 1: 3, ..., 10: 32, true: 10 },
+  zIndex: { 0: 0, 1: 100, ..., 5: 500 },
+  color: {
+    // Light Theme Brand Colors
+    brandBlue: '#007AFF',
+    brandGreen: '#34C759',
+    // ... other brand colors ...
+
+    // Dark Theme Brand Colors
+    brandBlue_dark: '#0A84FF',
+    brandGreen_dark: '#30D158',
+    // ... other dark brand colors ...
+
+    // Radix Grays (Light & Dark)
+    gray1: '#fcfcfc', ..., gray12: '#171717',
+    gray1_dark: '#191919', ..., gray12_dark: '#ededed',
+
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+});
+```
+
+### 2.2. Themes
+
+Themes map semantic roles (like background, text color, primary action color) to specific tokens for both light and dark modes.
+
+```typescript
+// Snippet from tamagui.config.ts (Themes)
+const lightTheme = {
+  background: tokens.color.gray2,
+  backgroundHover: tokens.color.gray3,
+  backgroundPress: tokens.color.gray4,
+  backgroundStrong: tokens.color.white, // e.g., Card background
+  color: tokens.color.gray12,
+  colorSecondary: tokens.color.gray11,
+  borderColor: tokens.color.gray6,
+  borderColorFocus: tokens.color.brandBlue,
+  primary: tokens.color.brandBlue,
+  success: tokens.color.brandGreen,
+  error: tokens.color.brandRed,
+  inputBackground: tokens.color.white,
+  cardBackground: tokens.color.white,
+  shadowColor: tokens.color.gray8,
+  // ... other light theme definitions
+};
+
+const darkTheme: typeof lightTheme = {
+  background: tokens.color.gray1_dark,
+  backgroundHover: tokens.color.gray3_dark,
+  // ... maps roles to dark tokens ...
+  color: tokens.color.gray12_dark,
+  borderColor: tokens.color.gray5_dark,
+  borderColorFocus: tokens.color.brandBlue_dark,
+  primary: tokens.color.brandBlue_dark,
+  cardBackground: tokens.color.gray2_dark,
+  shadowColor: tokens.color.black, // Example: Darker shadow
+  // ... other dark theme definitions
+};
+
+// Config creation
+const config = createTamagui({
+  // ... fonts, animations ...
+  tokens,
+  themes: {
+    light: lightTheme,
+    dark: darkTheme,
+  },
+});
+```
+
+## 3. Theme Usage Examples
+
+Components leverage the theme configuration for consistent styling.
+
+### 3.1. Screen Example (`app/(tabs)/planner/index.tsx`)
+
+Screens use layout components and apply theme tokens for spacing, sizing, and colors.
+
+```typescript
+// Snippet from app/(tabs)/planner/index.tsx
+import { YStack, XStack, Text, Tabs, Button, ScrollView } from 'tamagui';
+
+// ...
+<YStack flex={1} padding="$4"> // Use space token for padding
+  <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+    <Text fontSize={24} fontWeight="bold">Planner</Text>
+    <Button
+      size="$3" // Use size token
+      // ...
+    />
+  </XStack>
+
+  <Tabs.List
+    backgroundColor="$backgroundStrong" // Use semantic color token
+    borderRadius="$4" // Use radius token
+    marginBottom="$4"
+  >
+    {TABS.map((tab) => (
+      <Tabs.Tab
+        key={tab.key}
+        flex={1}
+        value={tab.key}
+        padding="$3"
+        borderRadius="$2"
+        backgroundColor={activeTab === tab.key ? '$backgroundFocus' : 'transparent'} // Conditional semantic color
+      >
+        {/* ... */}
+      </Tabs.Tab>
+    ))}
+  </Tabs.List>
+
+  {/* Example Goal Item using Button */}
+  <Button
+    key={goal.id}
+    height="$12" // Use size token
+    // ...
+  >
+    <YStack>
+      <Text fontWeight="bold">{goal.title}</Text>
+      <Text fontSize="$2" color="$gray10"> {/* Use direct color token */} 
+        {/* ... */}
+      </Text>
+    </YStack>
+  </Button>
+
+</YStack>
+```
+
+### 3.2. Primitive Component Example (`components/ui/primitives/AetherCard.tsx`)
+
+Custom components are built using Tamagui's `styled` API and theme tokens, often with variants for different appearances.
+
+```typescript
+// Snippet from components/ui/primitives/AetherCard.tsx
+import { Card, CardProps, styled } from 'tamagui';
+
+const StyledCard = styled(Card, {
+  name: 'AetherCard',
+  backgroundColor: '$cardBackground', // Use semantic color
+  borderRadius: '$4', // Use radius token
+  padding: '$4', // Use space token
+  elevate: true,
+
+  variants: {
+    variant: {
+      default: {
+        shadowColor: '$shadowColor',
+        // ... default styles using tokens
+      },
+      elevated: {
+        shadowColor: '$shadowColor',
+        // ... elevated styles using tokens
+      },
+      outlined: {
+        backgroundColor: 'transparent',
+        borderColor: '$borderColor', // Use semantic color
+        // ... outlined styles using tokens
+      },
+    },
+    isInteractive: {
+      true: {
+        pressStyle: {
+          backgroundColor: '$cardBackgroundPress', // Use semantic color for interaction
+          opacity: 0.9,
+        },
+        hoverStyle: {
+          backgroundColor: '$cardBackgroundHover', // Use semantic color for interaction
+        },
+      },
+    },
+  } as const,
+
+  defaultVariants: {
+    variant: 'default',
+    isInteractive: false,
+  },
+});
+
+export function AetherCard({ children, variant, isInteractive, ...props }: AetherCardProps) {
+  return (
+    <StyledCard variant={variant} isInteractive={isInteractive} {...props}>
+      {children}
+    </StyledCard>
+  );
+}
+```
+
+## 4. Summary & Best Practices
+
+- **Consistency:** Using theme tokens (`$size`, `$color`, `$space`) ensures visual consistency.
+- **Semantic Colors:** Leveraging semantic theme roles (`$background`, `$primary`, `$cardBackground`) allows components to adapt automatically to light/dark modes.
+- **Custom Components:** Building reusable, themed components (like `AetherCard`) encapsulates styling logic.
+- **Avoid Hardcoding:** Minimize hardcoded style values (like hex codes or pixel values) directly in components; prefer theme tokens.
+- **Platform Adaptation:** The configuration handles font differences between web and native automatically.

@@ -1,0 +1,1047 @@
+========================================
+ AETHERIPHONE DEBUG CONTEXT DUMP     
+========================================
+
+Date: 2025-04-30T04:41:00.809Z
+
+========================================
+FILE: tamagui.config.ts
+----------------------------------------
+
+// tamagui.config.ts
+import { createAnimations } from '@tamagui/animations-react-native';
+import { createFont, createTamagui, createTokens } from 'tamagui';
+import { Platform } from 'react-native';
+import * as MotionConstants from '@/constants/motion'; // Import motion constants
+
+// Font definitions - Zelda Theme
+// Assumes 'CalamitySans' and 'HyliaSerif' are loaded via useFonts or similar
+const headingFont = createFont({
+  family: 'HyliaSerif', // Zelda Display Font
+  size: {
+    // Mapped closer to iOS Dynamic Type: https://developer.apple.com/design/human-interface-guidelines/typography
+    1: 13,  // Caption 2
+    2: 15,  // Subheadline
+    3: 17,  // Body (true default)
+    4: 20,  // Title 3
+    5: 22,  // Title 2
+    6: 28,  // Title 1
+    7: 34,  // Large Title
+    8: 40,  // Extra Large Title (custom)
+    true: 17, // Default size (Body)
+  },
+  lineHeight: {
+    // Approximate line heights based on new sizes
+    1: 18, 2: 20, 3: 22, 4: 25, 5: 28, 6: 34, 7: 41, 8: 50, 
+    true: 22,
+  },
+  weight: {
+    // Prompt 2 asks for 400-700
+    4: '400', // Normal
+    6: '600', // Semi-bold/Bold
+    7: '700', // Extra-bold/Black
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0, 2: 0, 3: -0.5, 4: -0.5, 5: -1, 6: -1, 7: -1.5, 8: -1.5,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'HyliaSerif-Bold')
+  // face: {
+  //   400: { normal: 'HyliaSerif-Regular' },
+  //   700: { normal: 'HyliaSerif-Bold' },
+  // },
+});
+
+const bodyFont = createFont({
+  family: 'CalamitySans', // Zelda Body Font
+  size: {
+    // Mapped closer to iOS Dynamic Type
+    1: 11,  // Footnote
+    2: 12,  // Caption 1
+    3: 13,  // Caption 2
+    4: 15,  // Subheadline
+    5: 17,  // Body (true default)
+    6: 20,  // Title 3 (matching headingFont.$4)
+    true: 17, // Default body size
+  },
+  lineHeight: {
+    // Approximate line heights
+    1: 13, 2: 16, 3: 18, 4: 20, 5: 22, 6: 25,
+    true: 22, // Default body line height
+  },
+  weight: {
+    4: '400', // Regular
+    5: '500', // Medium (if available)
+    7: '700', // Bold (if needed/available)
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0.1, 2: 0.1, 3: 0, 4: 0, 5: -0.1, 6: -0.1,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'CalamitySans-Medium')
+  // face: {
+  //   400: { normal: 'CalamitySans-Regular' },
+  //   500: { normal: 'CalamitySans-Medium' },
+  // },
+});
+
+const monoFont = createFont({
+  family: Platform.select({ web: 'monospace', default: 'SpaceMono' }), // Keep SpaceMono for code
+  size: {
+    1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, true: 15,
+  },
+  lineHeight: {
+    1: 18, 2: 22, 3: 24, 4: 26, 5: 28, 6: 32, true: 24,
+  },
+  weight: {
+    4: '400', // Normal weight
+    true: '400',
+  },
+  letterSpacing: {
+    4: 0,
+    true: 0,
+  },
+  face: {
+    400: { normal: 'SpaceMono' }, // Map weight 400 to the loaded SpaceMono font
+  },
+});
+
+// Animation driver using reanimated
+const animations = createAnimations({
+  fast: {
+    type: 'timing',
+    duration: MotionConstants.durations.standard,
+    // easing: MotionConstants.easings.standard, // Removed as createAnimations defaults work well
+  },
+  medium: {
+    type: 'timing',
+    duration: MotionConstants.durations.modal,
+  },
+  slow: {
+    type: 'timing',
+    duration: MotionConstants.durations.long,
+  },
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    mass: 0.9,
+    stiffness: 150,
+  },
+  lazy: {
+    type: 'spring',
+    damping: 18,
+    stiffness: 50,
+  },
+  quick: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+});
+
+// Standard Radix Gray scale (light theme)
+const gray = {
+  gray1: '#fcfcfc', gray2: '#f8f8f8', gray3: '#f3f3f3', gray4: '#ededed', gray5: '#e8e8e8', gray6: '#e2e2e2', gray7: '#dbdbdb', gray8: '#c7c7c7', gray9: '#8f8f8f', gray10: '#858585', gray11: '#6f6f6f', gray12: '#171717',
+};
+
+// Standard Radix Gray scale (dark theme)
+const grayDark = {
+  gray1: '#191919', gray2: '#212121', gray3: '#282828', gray4: '#303030', gray5: '#393939', gray6: '#424242', gray7: '#4f4f4f', gray8: '#626262', gray9: '#737373', gray10: '#838383', gray11: '#ababab', gray12: '#ededed',
+};
+
+// Tokens (refined based on your existing config)
+const tokens = createTokens({
+  size: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16,
+  },
+  space: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16, '-1': -4, '-2': -8, '-3': -12, '-4': -16,
+  },
+  radius: {
+    0: 0, 1: 3, 2: 5, 3: 8, 4: 10, 5: 14, 6: 16, 7: 20, 8: 24, 9: 28, 10: 32, true: 10, // Updated radius.5 to 14
+  },
+  zIndex: { 0: 0, 1: 100, 2: 200, 3: 300, 4: 400, 5: 500 },
+  color: {
+    // Zelda Palette (Prompt 1)
+    ...gray, // Add light greys
+    ...grayDark, // Add dark greys (will be overridden in dark theme definition)
+    parchment: '#FDFFE0',
+    sheikahCyan: '#86A5A9',
+    korokGreen: '#92C582',
+    darkText: '#536F50',
+    guardianOrange: '#FF9F0A',
+    darkTealBg: '#1A2E3A',
+    darkCyanGlow: '#64FFDA',
+
+    // Shadow Colors (Prompt 5)
+    shadowColorLight: 'rgba(83, 111, 80, 1)', // dark desaturated text color
+    shadowColorDark: 'rgba(0, 0, 0, 1)', // Black base
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+});
+
+// Define themes using Zelda Palette
+const lightTheme = {
+  // Base Colors
+  background: tokens.color.parchment,      // Light bg
+  backgroundStrong: tokens.color.white,     // Keep white for strong contrast areas if needed
+  backgroundTransparent: 'rgba(253, 255, 224, 0)', // Fully transparent parchment
+  color: tokens.color.darkText,             // Dark desaturated text
+  colorSecondary: tokens.color.darkText,      // Use main text color, maybe slightly lighter if needed later
+  colorTertiary: tokens.color.sheikahCyan,    // Use accent for tertiary info?
+  borderColor: tokens.color.sheikahCyan,      // Use accent for borders
+  borderColorHover: tokens.color.korokGreen,  // Korok green on hover?
+
+  // Theme-specific states (can refine later)
+  backgroundHover: tokens.color.parchment,    // Keep parchment, maybe slightly darker/lighter
+  backgroundPress: tokens.color.parchment,    // Keep parchment
+  backgroundFocus: tokens.color.parchment,    // Keep parchment
+  colorHover: tokens.color.korokGreen,        // Korok green text on hover?
+  colorPress: tokens.color.korokGreen,
+  colorFocus: tokens.color.sheikahCyan,
+  borderColorPress: tokens.color.korokGreen,
+  borderColorFocus: tokens.color.sheikahCyan,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.parchment,    // Base color, apply opacity in component (e.g., rgba(253,255,224,0.8))
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping (can use Zelda colors)
+  primary: tokens.color.sheikahCyan,        // Map primary to accent
+  secondary: tokens.color.korokGreen,       // Map secondary to korok green?
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,     // Use guardian orange for warning
+  error: tokens.color.guardianOrange,       // Use guardian orange for error
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.parchment, // Maps to background
+  onSurface: tokens.color.darkText,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorLight, // Use darkText color base for shadow
+  shadowColorHover: 'rgba(83, 111, 80, 0.15)',
+  shadowSm: 'rgba(83, 111, 80, 0.10)', // 10% opacity
+  shadowMd: 'rgba(83, 111, 80, 0.15)', // 15% opacity
+  shadowLg: 'rgba(83, 111, 80, 0.20)', // 20% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.parchment,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.parchment,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.parchment,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.parchment,
+};
+
+const darkTheme: typeof lightTheme = {
+  // Base Colors
+  ...grayDark, // Override light greys with dark greys
+  background: tokens.color.darkTealBg,      // Dark-mode bg
+  backgroundStrong: tokens.color.black,       // Black for contrast?
+  backgroundTransparent: 'rgba(26, 46, 58, 0)', // Fully transparent dark teal
+  color: tokens.color.parchment,          // Use light parchment for text
+  colorSecondary: tokens.color.sheikahCyan,   // Sheikah cyan for secondary text
+  colorTertiary: tokens.color.korokGreen,     // Korok green for tertiary
+  borderColor: tokens.color.sheikahCyan,      // Sheikah cyan borders
+  borderColorHover: tokens.color.darkCyanGlow, // Glow cyan on hover?
+
+  // Theme-specific states
+  backgroundHover: tokens.color.darkTealBg,   // Keep bg, maybe slightly lighter
+  backgroundPress: tokens.color.darkTealBg,
+  backgroundFocus: tokens.color.darkTealBg,
+  colorHover: tokens.color.darkCyanGlow,
+  colorPress: tokens.color.darkCyanGlow,
+  colorFocus: tokens.color.darkCyanGlow,
+  borderColorPress: tokens.color.darkCyanGlow,
+  borderColorFocus: tokens.color.darkCyanGlow,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.darkTealBg, // Use dark bg, apply opacity in component
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping
+  primary: tokens.color.darkCyanGlow,       // Use glow cyan for primary actions
+  secondary: tokens.color.korokGreen,
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,
+  error: tokens.color.guardianOrange,
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.darkTealBg,   // Maps to background
+  onSurface: tokens.color.parchment,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorDark, // Darker shadow for dark mode
+  shadowColorHover: 'rgba(0, 0, 0, 0.30)',
+  shadowSm: 'rgba(0, 0, 0, 0.20)', // 20% opacity
+  shadowMd: 'rgba(0, 0, 0, 0.30)', // 30% opacity
+  shadowLg: 'rgba(0, 0, 0, 0.40)', // 40% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.darkTealBg,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.darkTealBg,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.darkTealBg,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.darkTealBg,
+};
+
+// Create the Tamagui config
+const config = createTamagui({
+  animations,
+  shouldAddPrefersColorThemes: true,
+  themeClassNameOnRoot: true,
+  shorthands: {
+    // Keep your existing shorthands
+    m: 'margin', mt: 'marginTop', mr: 'marginRight', mb: 'marginBottom', ml: 'marginLeft', mx: 'marginHorizontal', my: 'marginVertical',
+    p: 'padding', pt: 'paddingTop', pr: 'paddingRight', pb: 'paddingBottom', pl: 'paddingLeft', px: 'paddingHorizontal', py: 'paddingVertical',
+    bg: 'backgroundColor', br: 'borderRadius', bw: 'borderWidth', bc: 'borderColor',
+    f: 'flex', fd: 'flexDirection', ai: 'alignItems', jc: 'justifyContent', w: 'width', h: 'height',
+    ac: 'alignContent',
+    als: 'alignSelf',
+    btc: 'borderTopColor',
+    bbc: 'borderBottomColor',
+    blc: 'borderLeftColor',
+    brc: 'borderRightColor',
+    boc: 'borderColor',
+    bs: 'borderStyle',
+    dsp: 'display',
+    fb: 'flexBasis',
+    fg: 'flexGrow',
+    fs: 'flexShrink',
+    fw: 'flexWrap',
+    mah: 'maxHeight',
+    maw: 'maxWidth',
+    mih: 'minHeight',
+    miw: 'minWidth',
+    op: 'opacity',
+    ov: 'overflow',
+    r: 'right',
+    shac: 'shadowColor',
+    shar: 'shadowRadius',
+    shof: 'shadowOffset',
+    shop: 'shadowOpacity',
+    t: 'top',
+    ta: 'textAlign',
+    tt: 'textTransform',
+    va: 'verticalAlign',
+    zi: 'zIndex',
+  },
+  fonts: {
+    // Use Zelda fonts
+    heading: headingFont,
+    body: bodyFont,
+    mono: monoFont, // Keep mono
+  },
+  themes: {
+    light: lightTheme,
+    dark: darkTheme,
+  },
+  tokens,
+  media: { // Keep standard media queries
+    xs: { maxWidth: 660 }, sm: { maxWidth: 800 }, md: { maxWidth: 1020 }, lg: { maxWidth: 1280 }, xl: { maxWidth: 1420 }, xxl: { maxWidth: 1600 },
+    gtXs: { minWidth: 661 }, gtSm: { minWidth: 801 }, gtMd: { minWidth: 1021 }, gtLg: { minWidth: 1281 },
+    short: { maxHeight: 820 }, tall: { minHeight: 820 },
+    hoverNone: { hover: 'none' }, pointerCoarse: { pointer: 'coarse' },
+  },
+  settings: {
+      allowedStyleValues: 'somewhat-strict',
+      autocompleteSpecificTokens: 'except-special',
+  },
+});
+
+type AppConfig = typeof config;
+
+// Augment Tamagui interface - this is crucial!
+declare module '@tamagui/core' {
+  // If AppConfig is defined and exported:
+  interface TamaguiCustomConfig extends AppConfig {}
+}
+
+export default config;
+
+[EOF: tamagui.config.ts]
+
+========================================
+FILE: babel.config.js
+----------------------------------------
+
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      // Inline env variables for Tamagui
+      [
+        'transform-inline-environment-variables',
+        {
+          include: ['TAMAGUI_TARGET'],
+        },
+      ],
+      
+      // Tamagui plugin for optimized compilation
+      [
+        '@tamagui/babel-plugin',
+        {
+          components: ['tamagui'],
+          config: './tamagui.config.ts',
+          logTimings: true,
+          disableExtraction: process.env.NODE_ENV === 'development',
+        },
+      ],
+      
+      // Reanimated plugin must be last
+      'react-native-reanimated/plugin',
+    ],
+  };
+}; 
+
+[EOF: babel.config.js]
+
+========================================
+FILE: providers/Providers.tsx
+----------------------------------------
+
+// providers/Providers.tsx
+import { QueryClientProvider } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui';
+import { ToastProvider, ToastViewport } from '@tamagui/toast'; // Import from Tamagui Toast
+import React, { useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native'; // Import Platform
+
+import config from '../tamagui.config'; // Import your config
+import { trpc } from '../utils/trpc'; // Your tRPC hook setup
+import { queryClient, persister, initializeNetworkMonitoring, resumeMutationsAndInvalidate } from '@/utils/query-client';
+import { useUiStore } from '@/stores/uiStore';
+import { supabase } from '@/utils/supabase'; // Needed for auth link
+import { createTRPCClient, httpBatchLink, TRPCLink, TRPCClientError } from '@trpc/client'; // Import TRPC Client utils
+import { observable } from '@trpc/server/observable';
+import type { AppRouter } from '../server/src/router'; // Adjust path if needed
+import type { Session } from '@supabase/supabase-js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Setup query client persistence
+persistQueryClient({
+  queryClient,
+  persister,
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  dehydrateOptions: {
+    shouldDehydrateMutation: () => false, // Usually don't dehydrate mutations
+  },
+});
+
+// New component for the viewport using safe area
+const CurrentToastViewport = () => {
+  const { top, bottom, left, right } = useSafeAreaInsets();
+  return (
+    <>
+      {/* Adjust positioning based on your desired toast location */}
+      <ToastViewport
+        name="global_top"
+        flexDirection="column" // Stack new toasts below older ones
+        top={top + 10} // Add padding below status bar
+        left={left + 10} // Add padding from sides
+        right={right + 10}
+      />
+      <ToastViewport
+        name="global_bottom"
+        flexDirection="column-reverse"
+        bottom={bottom + 10}
+        left={left + 10}
+        right={right + 10}
+      />
+    </>
+  );
+};
+
+// Extract tRPC links setup
+function getTRPCLinks(getSession: () => Promise<Session | null>): TRPCLink<AppRouter>[] {
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/trpc'; // Default to localhost
+  console.log('Using tRPC API URL:', apiBaseUrl);
+
+  return [
+    // Link to handle auth token injection and refresh
+    (runtime) => {
+      return ({ op, next }) => {
+        return observable((observer) => {
+          getSession().then(session => {
+            const headers = (op.context?.headers || {}) as Record<string, string>;
+            if (session?.access_token) {
+              headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+
+            // Proceed with the request, ensuring context is passed correctly
+            next({ ...op, context: { ...op.context, headers } })
+              .subscribe({
+                next: (value) => observer.next(value),
+                error: async (err) => {
+                  if (err instanceof TRPCClientError && err.data?.httpStatus === 401) {
+                    console.log('tRPC: Token expired or invalid, attempting refresh...');
+                    try {
+                      // Supabase handles refresh internally if needed when getSession is called
+                      const { data, error: refreshError } = await supabase.auth.refreshSession();
+                      if (refreshError) throw refreshError;
+
+                      if (data.session) {
+                        console.log('tRPC: Session refreshed successfully, retrying request.');
+                        const refreshedHeaders = { ...headers, Authorization: `Bearer ${data.session.access_token}` };
+                        // Retry with new headers in context
+                        next({ ...op, context: { ...op.context, headers: refreshedHeaders } }).subscribe(observer);
+                      } else {
+                        console.error('tRPC: Session refresh failed, no session returned.');
+                        observer.error(err); // Propagate original error if no new session
+                        // Optionally trigger logout here
+                        supabase.auth.signOut();
+                      }
+                    } catch (refreshCatchError) {
+                      console.error('tRPC: Session refresh catch error:', refreshCatchError);
+                      observer.error(err); // Propagate original error
+                      supabase.auth.signOut();
+                    }
+                  } else {
+                    observer.error(err); // Propagate non-auth errors
+                  }
+                },
+                complete: () => observer.complete(),
+              });
+          }).catch(err => {
+             console.error('tRPC: Error getting session for headers:', err);
+             observer.error(new TRPCClientError('Failed to get session')); // Use TRPCClientError
+          });
+
+          // Return cleanup function if needed
+          return () => {};
+        });
+      };
+    },
+    // The terminating HTTP link
+    httpBatchLink({
+      url: apiBaseUrl,
+       headers() {
+         // Headers are injected by the middleware link above
+         return {};
+       },
+      // Add superjson transformer here if you use one
+      // transformer: superjson,
+    }),
+  ];
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  // Get theme state from Zustand
+  const { isDarkMode } = useUiStore();
+  const currentTheme = isDarkMode ? 'dark' : 'light';
+
+  // Initialize network monitoring and query client persistence
+  useEffect(() => {
+    const unsubscribeNetworkMonitoring = initializeNetworkMonitoring();
+    resumeMutationsAndInvalidate(); // Try resuming mutations on app load
+    return () => {
+      unsubscribeNetworkMonitoring();
+    };
+  }, []);
+
+  // Memoize tRPC client creation
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: getTRPCLinks(async () => { // Pass session getter to links setup
+        const { data } = await supabase.auth.getSession();
+        return data.session;
+      }),
+    })
+  );
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <TamaguiProvider
+            config={config}
+            defaultTheme={currentTheme}
+            // disableInjectCSS // May not be needed depending on setup
+        >
+          {/* Use Tamagui's ToastProvider */}
+          <ToastProvider
+            // burntOptions={{ from: 'top' }} // Disabled until native module 'Burnt' is installed
+            swipeDirection="horizontal"
+            duration={4000}
+            native={[]}
+          >
+            {children}
+            {/* Add the safe-area aware ToastViewport */}
+            <CurrentToastViewport />
+          </ToastProvider>
+        </TamaguiProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+
+[EOF: providers/Providers.tsx]
+
+========================================
+FILE: app/_layout.tsx
+----------------------------------------
+
+// app/_layout.tsx
+import React, { useCallback, useEffect, useState, ReactNode, createContext, useContext } from 'react';
+import { Slot, SplashScreen, useRouter, useSegments } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { useColorScheme } from 'react-native';
+import { TamaguiProvider, Theme } from 'tamagui'; // Consolidate Tamagui imports
+import tamaguiConfig from '../tamagui.config'; // Use default import
+import type { ThemeName } from '@tamagui/core'; // Ensure ThemeName is imported from @tamagui/core
+import * as SecureStore from 'expo-secure-store'; // Import SecureStore
+
+import { supabase } from '@/utils/supabase';
+
+import type { Session } from '@supabase/supabase-js';
+
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
+/* ------------------------------------------------------------------ */
+/*  1. Simple Auth-aware context                                       */
+/* ------------------------------------------------------------------ */
+interface AuthCtx {
+  session: Session | null;
+  isLoading: boolean;
+}
+export const AuthContext = React.createContext<AuthCtx>({
+  session: null,
+  isLoading: true,
+});
+export const useAuth = () => React.useContext(AuthContext);
+
+/* ------------------------------------------------------------------ */
+/*  2. The actual Provider                                             */
+/* ------------------------------------------------------------------ */
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initial session check
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session ?? null);
+      setIsLoading(false);
+      console.log('Initial session check:', data.session ? 'Session found' : 'No session');
+    }).catch(error => {
+        console.error("Error getting initial session:", error);
+        setIsLoading(false);
+    });
+
+    // Subscribe to auth changes (login / logout / token refresh)
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        console.log('Auth state changed:', _event, newSession ? 'New session' : 'No session');
+        setSession(newSession ?? null);
+        // If the event is SIGNED_IN or TOKEN_REFRESHED, loading might briefly be true again
+        // depending on how you handle redirects, but usually setting session is enough.
+        // If SIGNED_OUT, ensure loading is false.
+        if (_event === 'SIGNED_OUT') {
+          setIsLoading(false);
+        }
+      },
+    );
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ session, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  3. Enforce splash-screen logic & route guarding                    */
+/* ------------------------------------------------------------------ */
+function Root() {
+  const { session, isLoading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments(); // e.g., ["(tabs)", "home"] or ["(auth)", "login"]
+
+  /* Load Fonts ----------------------------------------------------- */
+  const [fontsLoaded, fontError] = useFonts({
+    // Ensure font names match those used in tamagui.config.ts
+    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  /* Handle Font Loading & Errors ----------------------------------- */
+  useEffect(() => {
+    if (fontError) {
+      console.error("Font loading error:", fontError);
+      // Decide how to handle font errors - maybe show an error message?
+      // For now, we still need to hide splash eventually.
+      SplashScreen.hideAsync();
+    }
+  }, [fontError]);
+
+  /* Redirect Logic ------------------------------------------------- */
+  useEffect(() => {
+    // Wait until auth state is confirmed AND fonts are potentially loaded
+    if (isLoading || !fontsLoaded && !fontError) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    console.log(`Auth State: isLoading=${isLoading}, session=${!!session}, inAuthGroup=${inAuthGroup}, segments=${segments.join('/')}`);
+
+    if (!session && !inAuthGroup) {
+      console.log('Redirecting to login...');
+      router.replace('/(auth)/login');
+    } else if (session && inAuthGroup) {
+      console.log('Redirecting to home...');
+      router.replace('/(tabs)/home');
+    } else {
+        console.log('No redirect needed.');
+    }
+  }, [isLoading, session, segments, router, fontsLoaded, fontError]);
+
+  /* Hide splash only when fonts loaded/error AND auth check done ---- */
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && !isLoading) {
+        console.log('Hiding SplashScreen...');
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError, isLoading]);
+
+  /* Show loading indicator until ready ----------------------------- */
+  if (!fontsLoaded && !fontError || isLoading) {
+    // Optionally, return the Splash Screen component itself or a custom loading view
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1C1C1E' /* Approx dark bg */ }}>
+        <ActivityIndicator size="large" color="#FFFFFF" />
+      </View>
+    );
+  }
+
+  // Once loaded and auth checked, render the content based on route
+  return (
+    <>
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <Slot />
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  4. Wrap everything with SafeArea, Providers, etc.                  */
+/* ------------------------------------------------------------------ */
+import { ToastProvider, Toast, useToastState, ToastViewport } from '@tamagui/toast';
+import { CheckCircle, AlertCircle, AlertTriangle, Info } from '@tamagui/lucide-icons';
+import { YStack, XStack } from 'tamagui';
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+
+const ACCENT_COLOR_KEY = 'userAccentColor';
+const DEFAULT_ACCENT = 'blue'; // Set your default accent color theme name here
+
+// Context to provide accent update function down the tree
+const AccentContext = createContext({
+  setAccent: (color: string) => {},
+});
+export const useAccent = () => useContext(AccentContext);
+
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
+  const themeMode = colorScheme === 'dark' ? 'dark' : 'light';
+
+  return (
+    <ToastProvider swipeDirection="horizontal" duration={6000}>
+      <Slot />
+      <CurrentToast />
+      <ToastViewport name="DefaultViewport" top={40} left={0} right={0} /> 
+    </ToastProvider>
+  );
+}
+
+function CurrentToast() {
+  const currentToast = useToastState();
+
+  if (!currentToast || currentToast.isHandledNatively) {
+    return null;
+  }
+
+  const toastType = currentToast.customData?.type || 'info'; // Default to 'info'
+  let themeName = 'toast_info'; // Default theme
+  let IconComponent = Info;
+
+  switch (toastType) {
+    case 'success':
+      themeName = 'toast_success';
+      IconComponent = CheckCircle;
+      break;
+    case 'error':
+      themeName = 'toast_error';
+      IconComponent = AlertCircle;
+      break;
+    case 'warning':
+      themeName = 'toast_warning';
+      IconComponent = AlertTriangle;
+      break;
+  }
+
+  return (
+    <Theme name={themeName as ThemeName}> {/* Cast themeName to ThemeName */}
+      <Toast
+        key={currentToast.id}
+        duration={currentToast.duration}
+        enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+        exitStyle={{ opacity: 0, scale: 0.95, y: -10 }} // Adjusted exit style slightly
+        y={0}
+        opacity={1}
+        scale={1}
+        animation="bouncy" // Apply bouncy animation
+        viewportName={currentToast.viewportName ?? 'DefaultViewport'}
+        backgroundColor="$background" // Use background from the wrapped theme
+        padding="$3"
+        borderRadius="$4"
+        marginHorizontal="$4"
+        elevate
+        shadowColor="$shadowColor"
+      >
+        <YStack space="$1">
+          <XStack space="$2" alignItems="center">
+            <IconComponent size={18} color="$color" /> {/* Use color from the wrapped theme */}
+            <Toast.Title color="$color">{currentToast.title}</Toast.Title> {/* Use color from the wrapped theme */}
+          </XStack>
+          {!!currentToast.message && (
+            <Toast.Description color="$color"> {/* Use color from the wrapped theme */}
+              {currentToast.message}
+            </Toast.Description>
+          )}
+        </YStack>
+      </Toast>
+    </Theme>
+  );
+}
+
+function Providers({ children }: { children: React.ReactNode }) {
+  const colorScheme = useColorScheme();
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT);
+
+  // Load accent color on mount
+  useEffect(() => {
+    const loadAccent = async () => {
+      try {
+        const savedAccent = await SecureStore.getItemAsync(ACCENT_COLOR_KEY);
+        if (savedAccent) {
+          setAccentColor(savedAccent);
+        }
+      } catch (error) {
+        console.error('Failed to load accent color:', error);
+      }
+    };
+    loadAccent();
+  }, []);
+
+  // Function to update and save accent color
+  const handleSetAccent = useCallback(async (newColor: string) => {
+    try {
+      await SecureStore.setItemAsync(ACCENT_COLOR_KEY, newColor);
+      setAccentColor(newColor);
+    } catch (error) {
+      console.error('Failed to save accent color:', error);
+    }
+  }, []);
+
+  return (
+    <AccentContext.Provider value={{ setAccent: handleSetAccent }}>
+      <Theme name={accentColor as ThemeName}> {/* Cast accentColor to ThemeName */}
+        {children}
+      </Theme>
+    </AccentContext.Provider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        {/* Core Providers (Tamagui, QueryClient, tRPC) */}
+        <Providers>
+          {/* Auth Provider manages session state */}
+          <AuthProvider>
+            {/* Root handles splash, font loading, and redirects */}
+            <RootLayoutNav />
+          </AuthProvider>
+        </Providers>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+
+[EOF: app/_layout.tsx]
+
+========================================
+FILE: package.json
+----------------------------------------
+
+{
+  "name": "aetheriphone",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "reset-project": "node ./scripts/reset-project.js",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "yarn test:ui && yarn test:server",
+    "test:ui": "./node_modules/.bin/jest --config jest.config.ui.js",
+    "test:server": "jest --config jest.config.server.js",
+    "test:ui:watch": "./node_modules/.bin/jest --config jest.config.ui.js --watchAll",
+    "test:server:watch": "jest --config jest.config.server.js --watchAll",
+    "test:ci": "yarn test:ui --ci --silent && yarn test:server --ci --silent",
+    "test:coverage": "jest --config jest.config.ui.js --coverage",
+    "test:update": "jest --config jest.config.ui.js --updateSnapshot",
+    "lint": "expo lint",
+    "generate-types": "node ./scripts/generate-trpc-types.js",
+    "generate-hooks": "node ./scripts/generate-trpc-client.js",
+    "generate": "node ./scripts/generate-all.js",
+    "dev": "npm run generate && expo start"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.2",
+    "@hookform/resolvers": "^5.0.1",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-community/netinfo": "^11.4.1",
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/native": "^7.0.14",
+    "@shopify/flash-list": "^1.8.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tamagui/animations-react-native": "1.126.1", 
+    "@tamagui/config": "1.126.1", 
+    "@tamagui/core": "1.126.1", 
+    "@tamagui/font-inter": "1.126.1", 
+    "@tamagui/lucide-icons": "1.126.1", 
+    "@tamagui/react-native-media-driver": "1.126.1", 
+    "@tamagui/shorthands": "1.126.1",
+    "@tamagui/stacks": "1.126.1",
+    "@tamagui/themes": "1.126.1",
+    "@tamagui/toast": "1.126.1",
+    "@tanstack/query-async-storage-persister": "^5.74.4",
+    "@tanstack/react-query": "^5.74.4",
+    "@tanstack/react-query-persist-client": "^5.74.4",
+    "@testing-library/react-native": "^13.2.0",
+    "@trpc/client": "^11.1.0",
+    "@trpc/react-query": "^11.1.0",
+    "@trpc/server": "^11.1.0",
+    "burnt": "^0.13.0",
+    "date-fns": "^4.1.0",
+    "expo": "~52.0.46",
+    "expo-blur": "~14.0.3",
+    "expo-constants": "~17.0.8",
+    "expo-dev-client": "~5.0.20",
+    "expo-font": "~13.0.4",
+    "expo-haptics": "~14.0.1",
+    "expo-linking": "~7.0.5",
+    "expo-router": "~4.0.20",
+    "expo-secure-store": "^14.0.1",
+    "expo-splash-screen": "~0.29.24",
+    "expo-status-bar": "~2.0.1",
+    "expo-symbols": "~0.2.2",
+    "expo-system-ui": "~4.0.9",
+    "expo-web-browser": "~14.0.2",
+    "lottie-react-native": "7.1.0",
+    "nativewind": "^4.1.19",
+    "nats.ws": "^1.30.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "^7.56.1",
+    "react-native": "0.76.9",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-reanimated": "^3.17.4",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-svg": "15.8.0",
+    "react-native-url-polyfill": "^2.0.0",
+    "react-native-web": "~0.19.13",
+    "react-native-webview": "13.12.5",
+    "tamagui": "1.126.1",
+    "text-encoding": "^0.7.0",
+    "zod": "^3.24.3",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@tamagui/babel-plugin": "1.126.1", 
+    "@testing-library/jest-native": "^5.4.3",
+    "@types/jest": "^29.5.12",
+    "@types/react": "~18.3.12",
+    "@types/react-test-renderer": "^18.3.0",
+    "autoprefixer": "^10.4.21",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.4",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~8.0.1",
+    "jest": "^29.2.1",
+    "jest-expo": "~52.0.6",
+    "jest-mock-extended": "^4.0.0-beta1",
+    "msw": "^2.1.5",
+    "postcss": "^8.5.3",
+    "react-test-renderer": "18.3.1",
+    "supabase": "^2.22.4",
+    "tailwindcss": "^3.4.17",
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}
+
+[EOF: package.json]
+
+========================================
+FILE: tsconfig.json
+----------------------------------------
+
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "jsx": "react-native",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "server/*": [
+        "./server/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "server/**/*.ts"
+  ]
+}
+
+
+[EOF: tsconfig.json]
+

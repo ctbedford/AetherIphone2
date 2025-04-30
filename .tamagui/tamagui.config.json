@@ -27293,25 +27293,28 @@
   "tamaguiConfig": {
     "fonts": {
       "heading": {
-        "family": "Inter",
+        "family": "HyliaSerif",
+        "size": {
+          "1": 13,
+          "2": 15,
+          "3": 17,
+          "4": 20,
+          "5": 22,
+          "6": 28,
+          "7": 34,
+          "8": 40,
+          "true": 17
+        },
         "lineHeight": {
           "1": 18,
-          "2": 22,
-          "3": 24,
-          "4": 26,
+          "2": 20,
+          "3": 22,
+          "4": 25,
           "5": 28,
-          "6": 32,
-          "7": 36,
-          "8": 44,
-          "9": 52,
-          "10": 52,
-          "11": 52,
-          "12": 52,
-          "13": 52,
-          "14": 52,
-          "15": 52,
-          "16": 52,
-          "true": 26
+          "6": 34,
+          "7": 41,
+          "8": 50,
+          "true": 22
         },
         "weight": {
           "1": "400",
@@ -27322,75 +27325,39 @@
           "6": "600",
           "7": "700",
           "8": "700",
-          "9": "700",
-          "10": "700",
-          "11": "700",
-          "12": "700",
-          "13": "700",
-          "14": "700",
-          "15": "700",
-          "16": "700",
           "true": "400"
         },
         "letterSpacing": {
           "1": 0,
-          "2": 0.1,
-          "3": 0.2,
-          "4": 0.2,
-          "5": 0.2,
-          "6": 0.2,
-          "7": 0.2,
-          "8": 0.2,
-          "9": 0.2,
-          "10": 0.2,
-          "11": 0.2,
-          "12": 0.2,
-          "13": 0.2,
-          "14": 0.2,
-          "15": 0.2,
-          "16": 0.2,
+          "2": 0,
+          "3": -0.5,
+          "4": -0.5,
+          "5": -1,
+          "6": -1,
+          "7": -1.5,
+          "8": -1.5,
           "true": 0
-        },
-        "size": {
-          "1": 12,
-          "2": 14,
-          "3": 15,
-          "4": 16,
-          "5": 18,
-          "6": 20,
-          "7": 24,
-          "8": 30,
-          "9": 36,
-          "10": 46,
-          "11": 55,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 134,
-          "true": 16
         }
       },
       "body": {
-        "family": "Inter",
+        "family": "CalamitySans",
+        "size": {
+          "1": 11,
+          "2": 12,
+          "3": 13,
+          "4": 15,
+          "5": 17,
+          "6": 20,
+          "true": 17
+        },
         "lineHeight": {
-          "1": 18,
-          "2": 22,
-          "3": 24,
-          "4": 26,
-          "5": 28,
-          "6": 32,
-          "7": 32,
-          "8": 32,
-          "9": 32,
-          "10": 32,
-          "11": 32,
-          "12": 32,
-          "13": 32,
-          "14": 32,
-          "15": 32,
-          "16": 32,
-          "true": 24
+          "1": 13,
+          "2": 16,
+          "3": 18,
+          "4": 20,
+          "5": 22,
+          "6": 25,
+          "true": 22
         },
         "weight": {
           "1": "400",
@@ -27399,55 +27366,17 @@
           "4": "400",
           "5": "500",
           "6": "500",
-          "7": "500",
-          "8": "500",
-          "9": "500",
-          "10": "500",
-          "11": "500",
-          "12": "500",
-          "13": "500",
-          "14": "500",
-          "15": "500",
-          "16": "500",
+          "7": "700",
           "true": "400"
         },
         "letterSpacing": {
-          "1": 0,
+          "1": 0.1,
           "2": 0.1,
-          "3": 0.2,
-          "4": 0.2,
-          "5": 0.2,
-          "6": 0.2,
-          "7": 0.2,
-          "8": 0.2,
-          "9": 0.2,
-          "10": 0.2,
-          "11": 0.2,
-          "12": 0.2,
-          "13": 0.2,
-          "14": 0.2,
-          "15": 0.2,
-          "16": 0.2,
+          "3": 0,
+          "4": 0,
+          "5": -0.1,
+          "6": -0.1,
           "true": 0
-        },
-        "size": {
-          "1": 12,
-          "2": 14,
-          "3": 15,
-          "4": 16,
-          "5": 18,
-          "6": 20,
-          "7": 20,
-          "8": 23,
-          "9": 30,
-          "10": 46,
-          "11": 55,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 134,
-          "true": 15
         }
       },
       "mono": {
@@ -27607,8 +27536,8 @@
         "pointer": "coarse"
       }
     },
-    "shouldAddPrefersColorThemes": false,
-    "themeClassNameOnRoot": false,
+    "shouldAddPrefersColorThemes": true,
+    "themeClassNameOnRoot": true,
     "shorthands": {
       "m": "margin",
       "mt": "marginTop",
@@ -27633,124 +27562,137 @@
       "ai": "alignItems",
       "jc": "justifyContent",
       "w": "width",
-      "h": "height"
+      "h": "height",
+      "ac": "alignContent",
+      "als": "alignSelf",
+      "btc": "borderTopColor",
+      "bbc": "borderBottomColor",
+      "blc": "borderLeftColor",
+      "brc": "borderRightColor",
+      "boc": "borderColor",
+      "bs": "borderStyle",
+      "dsp": "display",
+      "fb": "flexBasis",
+      "fg": "flexGrow",
+      "fs": "flexShrink",
+      "fw": "flexWrap",
+      "mah": "maxHeight",
+      "maw": "maxWidth",
+      "mih": "minHeight",
+      "miw": "minWidth",
+      "op": "opacity",
+      "ov": "overflow",
+      "r": "right",
+      "shac": "shadowColor",
+      "shar": "shadowRadius",
+      "shof": "shadowOffset",
+      "shop": "shadowOpacity",
+      "t": "top",
+      "ta": "textAlign",
+      "tt": "textTransform",
+      "va": "verticalAlign",
+      "zi": "zIndex"
     },
     "themes": {
       "light": {
-        "background": "#f8f8f8",
-        "backgroundHover": "#f3f3f3",
-        "backgroundPress": "#ededed",
-        "backgroundFocus": "#ededed",
+        "background": "#FDFFE0",
         "backgroundStrong": "#FFFFFF",
-        "backgroundTransparent": "#fcfcfc",
-        "color": "#171717",
-        "colorHover": "#6f6f6f",
-        "colorPress": "#858585",
-        "colorFocus": "#858585",
-        "colorSecondary": "#6f6f6f",
-        "colorTertiary": "#8f8f8f",
-        "borderColor": "#e2e2e2",
-        "borderColorHover": "#dbdbdb",
-        "borderColorPress": "#c7c7c7",
-        "borderColorFocus": "#007AFF",
-        "primary": "#007AFF",
-        "secondary": "#5E5CE6",
-        "success": "#34C759",
-        "warning": "#FFCC00",
-        "error": "#FF3B30",
-        "info": "#007AFF",
-        "inputBackground": "#FFFFFF",
-        "cardBackground": "#FFFFFF",
-        "shadowColor": "#c7c7c7",
-        "shadowColorHover": "#8f8f8f",
+        "backgroundTransparent": "rgba(253, 255, 224, 0)",
+        "color": "#536F50",
+        "colorSecondary": "#536F50",
+        "colorTertiary": "#86A5A9",
+        "borderColor": "#86A5A9",
+        "borderColorHover": "#92C582",
+        "backgroundHover": "#FDFFE0",
+        "backgroundPress": "#FDFFE0",
+        "backgroundFocus": "#FDFFE0",
+        "colorHover": "#92C582",
+        "colorPress": "#92C582",
+        "colorFocus": "#86A5A9",
+        "borderColorPress": "#92C582",
+        "borderColorFocus": "#86A5A9",
+        "accent": "#86A5A9",
+        "surfaceSubtle": "#FDFFE0",
+        "destructive": "#FF9F0A",
+        "primary": "#86A5A9",
+        "secondary": "#92C582",
+        "success": "#92C582",
+        "warning": "#FF9F0A",
+        "error": "#FF9F0A",
+        "info": "#86A5A9",
+        "surface": "#FDFFE0",
+        "onSurface": "#536F50",
+        "outline": "#86A5A9",
+        "shadowColor": "rgba(83, 111, 80, 1)",
+        "shadowColorHover": "rgba(83, 111, 80, 0.15)",
+        "shadowSm": "rgba(83, 111, 80, 0.10)",
+        "shadowMd": "rgba(83, 111, 80, 0.15)",
+        "shadowLg": "rgba(83, 111, 80, 0.20)",
+        "toast_success_background": "#92C582",
+        "toast_success_color": "#FDFFE0",
+        "toast_error_background": "#FF9F0A",
+        "toast_error_color": "#FDFFE0",
+        "toast_warning_background": "#FF9F0A",
+        "toast_warning_color": "#FDFFE0",
+        "toast_info_background": "#86A5A9",
+        "toast_info_color": "#FDFFE0",
         "id": "light"
       },
       "dark": {
-        "background": "#191919",
-        "backgroundHover": "#282828",
-        "backgroundPress": "#303030",
-        "backgroundFocus": "#303030",
-        "backgroundStrong": "#212121",
-        "backgroundTransparent": "#191919",
-        "color": "#ededed",
-        "colorHover": "#ababab",
-        "colorPress": "#838383",
-        "colorFocus": "#838383",
-        "colorSecondary": "#ababab",
-        "colorTertiary": "#737373",
-        "borderColor": "#393939",
-        "borderColorHover": "#424242",
-        "borderColorPress": "#4f4f4f",
-        "borderColorFocus": "#0A84FF",
-        "primary": "#0A84FF",
-        "secondary": "#5E5CE6",
-        "success": "#30D158",
-        "warning": "#FFD60A",
-        "error": "#FF453A",
-        "info": "#0A84FF",
-        "inputBackground": "#282828",
-        "cardBackground": "#212121",
-        "shadowColor": "#000000",
-        "shadowColorHover": "#000000",
+        "gray1": "#191919",
+        "gray2": "#212121",
+        "gray3": "#282828",
+        "gray4": "#303030",
+        "gray5": "#393939",
+        "gray6": "#424242",
+        "gray7": "#4f4f4f",
+        "gray8": "#626262",
+        "gray9": "#737373",
+        "gray10": "#838383",
+        "gray11": "#ababab",
+        "gray12": "#ededed",
+        "background": "#1A2E3A",
+        "backgroundStrong": "#000000",
+        "backgroundTransparent": "rgba(26, 46, 58, 0)",
+        "color": "#FDFFE0",
+        "colorSecondary": "#86A5A9",
+        "colorTertiary": "#92C582",
+        "borderColor": "#86A5A9",
+        "borderColorHover": "#64FFDA",
+        "backgroundHover": "#1A2E3A",
+        "backgroundPress": "#1A2E3A",
+        "backgroundFocus": "#1A2E3A",
+        "colorHover": "#64FFDA",
+        "colorPress": "#64FFDA",
+        "colorFocus": "#64FFDA",
+        "borderColorPress": "#64FFDA",
+        "borderColorFocus": "#64FFDA",
+        "accent": "#86A5A9",
+        "surfaceSubtle": "#1A2E3A",
+        "destructive": "#FF9F0A",
+        "primary": "#64FFDA",
+        "secondary": "#92C582",
+        "success": "#92C582",
+        "warning": "#FF9F0A",
+        "error": "#FF9F0A",
+        "info": "#86A5A9",
+        "surface": "#1A2E3A",
+        "onSurface": "#FDFFE0",
+        "outline": "#86A5A9",
+        "shadowColor": "rgba(0, 0, 0, 1)",
+        "shadowColorHover": "rgba(0, 0, 0, 0.30)",
+        "shadowSm": "rgba(0, 0, 0, 0.20)",
+        "shadowMd": "rgba(0, 0, 0, 0.30)",
+        "shadowLg": "rgba(0, 0, 0, 0.40)",
+        "toast_success_background": "#92C582",
+        "toast_success_color": "#1A2E3A",
+        "toast_error_background": "#FF9F0A",
+        "toast_error_color": "#1A2E3A",
+        "toast_warning_background": "#FF9F0A",
+        "toast_warning_color": "#1A2E3A",
+        "toast_info_background": "#86A5A9",
+        "toast_info_color": "#1A2E3A",
         "id": "dark"
-      },
-      "light_Button": {
-        "background": "#007AFF",
-        "backgroundHover": "#007AFF",
-        "backgroundPress": "#007AFF",
-        "backgroundFocus": "#ededed",
-        "backgroundStrong": "#FFFFFF",
-        "backgroundTransparent": "#fcfcfc",
-        "color": "#FFFFFF",
-        "colorHover": "#6f6f6f",
-        "colorPress": "#858585",
-        "colorFocus": "#858585",
-        "colorSecondary": "#6f6f6f",
-        "colorTertiary": "#8f8f8f",
-        "borderColor": "#007AFF",
-        "borderColorHover": "#dbdbdb",
-        "borderColorPress": "#c7c7c7",
-        "borderColorFocus": "#007AFF",
-        "primary": "#007AFF",
-        "secondary": "#5E5CE6",
-        "success": "#34C759",
-        "warning": "#FFCC00",
-        "error": "#FF3B30",
-        "info": "#007AFF",
-        "inputBackground": "#FFFFFF",
-        "cardBackground": "#FFFFFF",
-        "shadowColor": "#c7c7c7",
-        "shadowColorHover": "#8f8f8f",
-        "id": "light_Button"
-      },
-      "dark_Button": {
-        "background": "#0A84FF",
-        "backgroundHover": "#0A84FF",
-        "backgroundPress": "#0A84FF",
-        "backgroundFocus": "#303030",
-        "backgroundStrong": "#212121",
-        "backgroundTransparent": "#191919",
-        "color": "#191919",
-        "colorHover": "#ababab",
-        "colorPress": "#838383",
-        "colorFocus": "#838383",
-        "colorSecondary": "#ababab",
-        "colorTertiary": "#737373",
-        "borderColor": "#0A84FF",
-        "borderColorHover": "#424242",
-        "borderColorPress": "#4f4f4f",
-        "borderColorFocus": "#0A84FF",
-        "primary": "#0A84FF",
-        "secondary": "#5E5CE6",
-        "success": "#30D158",
-        "warning": "#FFD60A",
-        "error": "#FF453A",
-        "info": "#0A84FF",
-        "inputBackground": "#282828",
-        "cardBackground": "#212121",
-        "shadowColor": "#000000",
-        "shadowColorHover": "#000000",
-        "id": "dark_Button"
       }
     },
     "tokens": {
@@ -28078,7 +28020,7 @@
           "isVar": true,
           "key": "$5",
           "name": "t-radius-5",
-          "val": 12,
+          "val": 14,
           "variable": ""
         },
         "6": {
@@ -28169,284 +28111,151 @@
         }
       },
       "color": {
-        "brandBlue": {
-          "isVar": true,
-          "key": "$brandBlue",
-          "name": "c-brandBlue",
-          "val": "#007AFF",
-          "variable": ""
-        },
-        "brandGreen": {
-          "isVar": true,
-          "key": "$brandGreen",
-          "name": "c-brandGreen",
-          "val": "#34C759",
-          "variable": ""
-        },
-        "brandYellow": {
-          "isVar": true,
-          "key": "$brandYellow",
-          "name": "c-brandYellow",
-          "val": "#FFCC00",
-          "variable": ""
-        },
-        "brandRed": {
-          "isVar": true,
-          "key": "$brandRed",
-          "name": "c-brandRed",
-          "val": "#FF3B30",
-          "variable": ""
-        },
-        "brandPurple": {
-          "isVar": true,
-          "key": "$brandPurple",
-          "name": "c-brandPurple",
-          "val": "#5E5CE6",
-          "variable": ""
-        },
-        "brandOrange": {
-          "isVar": true,
-          "key": "$brandOrange",
-          "name": "c-brandOrange",
-          "val": "#FF9500",
-          "variable": ""
-        },
-        "brandPink": {
-          "isVar": true,
-          "key": "$brandPink",
-          "name": "c-brandPink",
-          "val": "#FF2D55",
-          "variable": ""
-        },
-        "brandIndigo": {
-          "isVar": true,
-          "key": "$brandIndigo",
-          "name": "c-brandIndigo",
-          "val": "#5856D6",
-          "variable": ""
-        },
-        "brandBlue_dark": {
-          "isVar": true,
-          "key": "$brandBlue_dark",
-          "name": "c-brandBlue_dark",
-          "val": "#0A84FF",
-          "variable": ""
-        },
-        "brandGreen_dark": {
-          "isVar": true,
-          "key": "$brandGreen_dark",
-          "name": "c-brandGreen_dark",
-          "val": "#30D158",
-          "variable": ""
-        },
-        "brandYellow_dark": {
-          "isVar": true,
-          "key": "$brandYellow_dark",
-          "name": "c-brandYellow_dark",
-          "val": "#FFD60A",
-          "variable": ""
-        },
-        "brandRed_dark": {
-          "isVar": true,
-          "key": "$brandRed_dark",
-          "name": "c-brandRed_dark",
-          "val": "#FF453A",
-          "variable": ""
-        },
-        "brandPurple_dark": {
-          "isVar": true,
-          "key": "$brandPurple_dark",
-          "name": "c-brandPurple_dark",
-          "val": "#5E5CE6",
-          "variable": ""
-        },
-        "brandOrange_dark": {
-          "isVar": true,
-          "key": "$brandOrange_dark",
-          "name": "c-brandOrange_dark",
-          "val": "#FF9F0A",
-          "variable": ""
-        },
-        "brandPink_dark": {
-          "isVar": true,
-          "key": "$brandPink_dark",
-          "name": "c-brandPink_dark",
-          "val": "#FF375F",
-          "variable": ""
-        },
-        "brandIndigo_dark": {
-          "isVar": true,
-          "key": "$brandIndigo_dark",
-          "name": "c-brandIndigo_dark",
-          "val": "#5E5CE6",
-          "variable": ""
-        },
         "gray1": {
           "isVar": true,
           "key": "$gray1",
           "name": "c-gray1",
-          "val": "#fcfcfc",
+          "val": "#191919",
           "variable": ""
         },
         "gray2": {
           "isVar": true,
           "key": "$gray2",
           "name": "c-gray2",
-          "val": "#f8f8f8",
+          "val": "#212121",
           "variable": ""
         },
         "gray3": {
           "isVar": true,
           "key": "$gray3",
           "name": "c-gray3",
-          "val": "#f3f3f3",
+          "val": "#282828",
           "variable": ""
         },
         "gray4": {
           "isVar": true,
           "key": "$gray4",
           "name": "c-gray4",
-          "val": "#ededed",
+          "val": "#303030",
           "variable": ""
         },
         "gray5": {
           "isVar": true,
           "key": "$gray5",
           "name": "c-gray5",
-          "val": "#e8e8e8",
+          "val": "#393939",
           "variable": ""
         },
         "gray6": {
           "isVar": true,
           "key": "$gray6",
           "name": "c-gray6",
-          "val": "#e2e2e2",
+          "val": "#424242",
           "variable": ""
         },
         "gray7": {
           "isVar": true,
           "key": "$gray7",
           "name": "c-gray7",
-          "val": "#dbdbdb",
+          "val": "#4f4f4f",
           "variable": ""
         },
         "gray8": {
           "isVar": true,
           "key": "$gray8",
           "name": "c-gray8",
-          "val": "#c7c7c7",
+          "val": "#626262",
           "variable": ""
         },
         "gray9": {
           "isVar": true,
           "key": "$gray9",
           "name": "c-gray9",
-          "val": "#8f8f8f",
+          "val": "#737373",
           "variable": ""
         },
         "gray10": {
           "isVar": true,
           "key": "$gray10",
           "name": "c-gray10",
-          "val": "#858585",
+          "val": "#838383",
           "variable": ""
         },
         "gray11": {
           "isVar": true,
           "key": "$gray11",
           "name": "c-gray11",
-          "val": "#6f6f6f",
+          "val": "#ababab",
           "variable": ""
         },
         "gray12": {
           "isVar": true,
           "key": "$gray12",
           "name": "c-gray12",
-          "val": "#171717",
-          "variable": ""
-        },
-        "gray1_dark": {
-          "isVar": true,
-          "key": "$gray1_dark",
-          "name": "c-gray1_dark",
-          "val": "#191919",
-          "variable": ""
-        },
-        "gray2_dark": {
-          "isVar": true,
-          "key": "$gray2_dark",
-          "name": "c-gray2_dark",
-          "val": "#212121",
-          "variable": ""
-        },
-        "gray3_dark": {
-          "isVar": true,
-          "key": "$gray3_dark",
-          "name": "c-gray3_dark",
-          "val": "#282828",
-          "variable": ""
-        },
-        "gray4_dark": {
-          "isVar": true,
-          "key": "$gray4_dark",
-          "name": "c-gray4_dark",
-          "val": "#303030",
-          "variable": ""
-        },
-        "gray5_dark": {
-          "isVar": true,
-          "key": "$gray5_dark",
-          "name": "c-gray5_dark",
-          "val": "#393939",
-          "variable": ""
-        },
-        "gray6_dark": {
-          "isVar": true,
-          "key": "$gray6_dark",
-          "name": "c-gray6_dark",
-          "val": "#424242",
-          "variable": ""
-        },
-        "gray7_dark": {
-          "isVar": true,
-          "key": "$gray7_dark",
-          "name": "c-gray7_dark",
-          "val": "#4f4f4f",
-          "variable": ""
-        },
-        "gray8_dark": {
-          "isVar": true,
-          "key": "$gray8_dark",
-          "name": "c-gray8_dark",
-          "val": "#626262",
-          "variable": ""
-        },
-        "gray9_dark": {
-          "isVar": true,
-          "key": "$gray9_dark",
-          "name": "c-gray9_dark",
-          "val": "#737373",
-          "variable": ""
-        },
-        "gray10_dark": {
-          "isVar": true,
-          "key": "$gray10_dark",
-          "name": "c-gray10_dark",
-          "val": "#838383",
-          "variable": ""
-        },
-        "gray11_dark": {
-          "isVar": true,
-          "key": "$gray11_dark",
-          "name": "c-gray11_dark",
-          "val": "#ababab",
-          "variable": ""
-        },
-        "gray12_dark": {
-          "isVar": true,
-          "key": "$gray12_dark",
-          "name": "c-gray12_dark",
           "val": "#ededed",
+          "variable": ""
+        },
+        "parchment": {
+          "isVar": true,
+          "key": "$parchment",
+          "name": "c-parchment",
+          "val": "#FDFFE0",
+          "variable": ""
+        },
+        "sheikahCyan": {
+          "isVar": true,
+          "key": "$sheikahCyan",
+          "name": "c-sheikahCyan",
+          "val": "#86A5A9",
+          "variable": ""
+        },
+        "korokGreen": {
+          "isVar": true,
+          "key": "$korokGreen",
+          "name": "c-korokGreen",
+          "val": "#92C582",
+          "variable": ""
+        },
+        "darkText": {
+          "isVar": true,
+          "key": "$darkText",
+          "name": "c-darkText",
+          "val": "#536F50",
+          "variable": ""
+        },
+        "guardianOrange": {
+          "isVar": true,
+          "key": "$guardianOrange",
+          "name": "c-guardianOrange",
+          "val": "#FF9F0A",
+          "variable": ""
+        },
+        "darkTealBg": {
+          "isVar": true,
+          "key": "$darkTealBg",
+          "name": "c-darkTealBg",
+          "val": "#1A2E3A",
+          "variable": ""
+        },
+        "darkCyanGlow": {
+          "isVar": true,
+          "key": "$darkCyanGlow",
+          "name": "c-darkCyanGlow",
+          "val": "#64FFDA",
+          "variable": ""
+        },
+        "shadowColorLight": {
+          "isVar": true,
+          "key": "$shadowColorLight",
+          "name": "c-shadowColorLight",
+          "val": "rgba(83, 111, 80, 1)",
+          "variable": ""
+        },
+        "shadowColorDark": {
+          "isVar": true,
+          "key": "$shadowColorDark",
+          "name": "c-shadowColorDark",
+          "val": "rgba(0, 0, 0, 1)",
           "variable": ""
         },
         "white": {
@@ -28466,7 +28275,7 @@
       }
     },
     "settings": {
-      "themeClassNameOnRoot": false,
+      "themeClassNameOnRoot": true,
       "webContainerType": "inline-size",
       "allowedStyleValues": "somewhat-strict",
       "autocompleteSpecificTokens": "except-special"
@@ -28490,13 +28299,41 @@
       "backgroundColor": "bg",
       "borderRadius": "br",
       "borderWidth": "bw",
-      "borderColor": "bc",
+      "borderColor": "boc",
       "flex": "f",
       "flexDirection": "fd",
       "alignItems": "ai",
       "justifyContent": "jc",
       "width": "w",
-      "height": "h"
+      "height": "h",
+      "alignContent": "ac",
+      "alignSelf": "als",
+      "borderTopColor": "btc",
+      "borderBottomColor": "bbc",
+      "borderLeftColor": "blc",
+      "borderRightColor": "brc",
+      "borderStyle": "bs",
+      "display": "dsp",
+      "flexBasis": "fb",
+      "flexGrow": "fg",
+      "flexShrink": "fs",
+      "flexWrap": "fw",
+      "maxHeight": "mah",
+      "maxWidth": "maw",
+      "minHeight": "mih",
+      "minWidth": "miw",
+      "opacity": "op",
+      "overflow": "ov",
+      "right": "r",
+      "shadowColor": "shac",
+      "shadowRadius": "shar",
+      "shadowOffset": "shof",
+      "shadowOpacity": "shop",
+      "top": "t",
+      "textAlign": "ta",
+      "textTransform": "tt",
+      "verticalAlign": "va",
+      "zIndex": "zi"
     },
     "parsed": true,
     "getNewCSS": "Function",
@@ -28821,7 +28658,7 @@
         "isVar": true,
         "key": "$5",
         "name": "t-radius-5",
-        "val": 12,
+        "val": 14,
         "variable": ""
       },
       "$radius.6": {
@@ -28908,284 +28745,151 @@
         "val": 500,
         "variable": ""
       },
-      "$color.brandBlue": {
-        "isVar": true,
-        "key": "$brandBlue",
-        "name": "c-brandBlue",
-        "val": "#007AFF",
-        "variable": ""
-      },
-      "$color.brandGreen": {
-        "isVar": true,
-        "key": "$brandGreen",
-        "name": "c-brandGreen",
-        "val": "#34C759",
-        "variable": ""
-      },
-      "$color.brandYellow": {
-        "isVar": true,
-        "key": "$brandYellow",
-        "name": "c-brandYellow",
-        "val": "#FFCC00",
-        "variable": ""
-      },
-      "$color.brandRed": {
-        "isVar": true,
-        "key": "$brandRed",
-        "name": "c-brandRed",
-        "val": "#FF3B30",
-        "variable": ""
-      },
-      "$color.brandPurple": {
-        "isVar": true,
-        "key": "$brandPurple",
-        "name": "c-brandPurple",
-        "val": "#5E5CE6",
-        "variable": ""
-      },
-      "$color.brandOrange": {
-        "isVar": true,
-        "key": "$brandOrange",
-        "name": "c-brandOrange",
-        "val": "#FF9500",
-        "variable": ""
-      },
-      "$color.brandPink": {
-        "isVar": true,
-        "key": "$brandPink",
-        "name": "c-brandPink",
-        "val": "#FF2D55",
-        "variable": ""
-      },
-      "$color.brandIndigo": {
-        "isVar": true,
-        "key": "$brandIndigo",
-        "name": "c-brandIndigo",
-        "val": "#5856D6",
-        "variable": ""
-      },
-      "$color.brandBlue_dark": {
-        "isVar": true,
-        "key": "$brandBlue_dark",
-        "name": "c-brandBlue_dark",
-        "val": "#0A84FF",
-        "variable": ""
-      },
-      "$color.brandGreen_dark": {
-        "isVar": true,
-        "key": "$brandGreen_dark",
-        "name": "c-brandGreen_dark",
-        "val": "#30D158",
-        "variable": ""
-      },
-      "$color.brandYellow_dark": {
-        "isVar": true,
-        "key": "$brandYellow_dark",
-        "name": "c-brandYellow_dark",
-        "val": "#FFD60A",
-        "variable": ""
-      },
-      "$color.brandRed_dark": {
-        "isVar": true,
-        "key": "$brandRed_dark",
-        "name": "c-brandRed_dark",
-        "val": "#FF453A",
-        "variable": ""
-      },
-      "$color.brandPurple_dark": {
-        "isVar": true,
-        "key": "$brandPurple_dark",
-        "name": "c-brandPurple_dark",
-        "val": "#5E5CE6",
-        "variable": ""
-      },
-      "$color.brandOrange_dark": {
-        "isVar": true,
-        "key": "$brandOrange_dark",
-        "name": "c-brandOrange_dark",
-        "val": "#FF9F0A",
-        "variable": ""
-      },
-      "$color.brandPink_dark": {
-        "isVar": true,
-        "key": "$brandPink_dark",
-        "name": "c-brandPink_dark",
-        "val": "#FF375F",
-        "variable": ""
-      },
-      "$color.brandIndigo_dark": {
-        "isVar": true,
-        "key": "$brandIndigo_dark",
-        "name": "c-brandIndigo_dark",
-        "val": "#5E5CE6",
-        "variable": ""
-      },
       "$color.gray1": {
         "isVar": true,
         "key": "$gray1",
         "name": "c-gray1",
-        "val": "#fcfcfc",
+        "val": "#191919",
         "variable": ""
       },
       "$color.gray2": {
         "isVar": true,
         "key": "$gray2",
         "name": "c-gray2",
-        "val": "#f8f8f8",
+        "val": "#212121",
         "variable": ""
       },
       "$color.gray3": {
         "isVar": true,
         "key": "$gray3",
         "name": "c-gray3",
-        "val": "#f3f3f3",
+        "val": "#282828",
         "variable": ""
       },
       "$color.gray4": {
         "isVar": true,
         "key": "$gray4",
         "name": "c-gray4",
-        "val": "#ededed",
+        "val": "#303030",
         "variable": ""
       },
       "$color.gray5": {
         "isVar": true,
         "key": "$gray5",
         "name": "c-gray5",
-        "val": "#e8e8e8",
+        "val": "#393939",
         "variable": ""
       },
       "$color.gray6": {
         "isVar": true,
         "key": "$gray6",
         "name": "c-gray6",
-        "val": "#e2e2e2",
+        "val": "#424242",
         "variable": ""
       },
       "$color.gray7": {
         "isVar": true,
         "key": "$gray7",
         "name": "c-gray7",
-        "val": "#dbdbdb",
+        "val": "#4f4f4f",
         "variable": ""
       },
       "$color.gray8": {
         "isVar": true,
         "key": "$gray8",
         "name": "c-gray8",
-        "val": "#c7c7c7",
+        "val": "#626262",
         "variable": ""
       },
       "$color.gray9": {
         "isVar": true,
         "key": "$gray9",
         "name": "c-gray9",
-        "val": "#8f8f8f",
+        "val": "#737373",
         "variable": ""
       },
       "$color.gray10": {
         "isVar": true,
         "key": "$gray10",
         "name": "c-gray10",
-        "val": "#858585",
+        "val": "#838383",
         "variable": ""
       },
       "$color.gray11": {
         "isVar": true,
         "key": "$gray11",
         "name": "c-gray11",
-        "val": "#6f6f6f",
+        "val": "#ababab",
         "variable": ""
       },
       "$color.gray12": {
         "isVar": true,
         "key": "$gray12",
         "name": "c-gray12",
-        "val": "#171717",
-        "variable": ""
-      },
-      "$color.gray1_dark": {
-        "isVar": true,
-        "key": "$gray1_dark",
-        "name": "c-gray1_dark",
-        "val": "#191919",
-        "variable": ""
-      },
-      "$color.gray2_dark": {
-        "isVar": true,
-        "key": "$gray2_dark",
-        "name": "c-gray2_dark",
-        "val": "#212121",
-        "variable": ""
-      },
-      "$color.gray3_dark": {
-        "isVar": true,
-        "key": "$gray3_dark",
-        "name": "c-gray3_dark",
-        "val": "#282828",
-        "variable": ""
-      },
-      "$color.gray4_dark": {
-        "isVar": true,
-        "key": "$gray4_dark",
-        "name": "c-gray4_dark",
-        "val": "#303030",
-        "variable": ""
-      },
-      "$color.gray5_dark": {
-        "isVar": true,
-        "key": "$gray5_dark",
-        "name": "c-gray5_dark",
-        "val": "#393939",
-        "variable": ""
-      },
-      "$color.gray6_dark": {
-        "isVar": true,
-        "key": "$gray6_dark",
-        "name": "c-gray6_dark",
-        "val": "#424242",
-        "variable": ""
-      },
-      "$color.gray7_dark": {
-        "isVar": true,
-        "key": "$gray7_dark",
-        "name": "c-gray7_dark",
-        "val": "#4f4f4f",
-        "variable": ""
-      },
-      "$color.gray8_dark": {
-        "isVar": true,
-        "key": "$gray8_dark",
-        "name": "c-gray8_dark",
-        "val": "#626262",
-        "variable": ""
-      },
-      "$color.gray9_dark": {
-        "isVar": true,
-        "key": "$gray9_dark",
-        "name": "c-gray9_dark",
-        "val": "#737373",
-        "variable": ""
-      },
-      "$color.gray10_dark": {
-        "isVar": true,
-        "key": "$gray10_dark",
-        "name": "c-gray10_dark",
-        "val": "#838383",
-        "variable": ""
-      },
-      "$color.gray11_dark": {
-        "isVar": true,
-        "key": "$gray11_dark",
-        "name": "c-gray11_dark",
-        "val": "#ababab",
-        "variable": ""
-      },
-      "$color.gray12_dark": {
-        "isVar": true,
-        "key": "$gray12_dark",
-        "name": "c-gray12_dark",
         "val": "#ededed",
+        "variable": ""
+      },
+      "$color.parchment": {
+        "isVar": true,
+        "key": "$parchment",
+        "name": "c-parchment",
+        "val": "#FDFFE0",
+        "variable": ""
+      },
+      "$color.sheikahCyan": {
+        "isVar": true,
+        "key": "$sheikahCyan",
+        "name": "c-sheikahCyan",
+        "val": "#86A5A9",
+        "variable": ""
+      },
+      "$color.korokGreen": {
+        "isVar": true,
+        "key": "$korokGreen",
+        "name": "c-korokGreen",
+        "val": "#92C582",
+        "variable": ""
+      },
+      "$color.darkText": {
+        "isVar": true,
+        "key": "$darkText",
+        "name": "c-darkText",
+        "val": "#536F50",
+        "variable": ""
+      },
+      "$color.guardianOrange": {
+        "isVar": true,
+        "key": "$guardianOrange",
+        "name": "c-guardianOrange",
+        "val": "#FF9F0A",
+        "variable": ""
+      },
+      "$color.darkTealBg": {
+        "isVar": true,
+        "key": "$darkTealBg",
+        "name": "c-darkTealBg",
+        "val": "#1A2E3A",
+        "variable": ""
+      },
+      "$color.darkCyanGlow": {
+        "isVar": true,
+        "key": "$darkCyanGlow",
+        "name": "c-darkCyanGlow",
+        "val": "#64FFDA",
+        "variable": ""
+      },
+      "$color.shadowColorLight": {
+        "isVar": true,
+        "key": "$shadowColorLight",
+        "name": "c-shadowColorLight",
+        "val": "rgba(83, 111, 80, 1)",
+        "variable": ""
+      },
+      "$color.shadowColorDark": {
+        "isVar": true,
+        "key": "$shadowColorDark",
+        "name": "c-shadowColorDark",
+        "val": "rgba(0, 0, 0, 1)",
         "variable": ""
       },
       "$color.white": {

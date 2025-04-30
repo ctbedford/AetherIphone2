@@ -7,7 +7,8 @@ import { trpc, type RouterOutputs } from '@/utils/trpc';
 import { useColorScheme } from '@/hooks/useColorScheme'; 
 import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
 import { router, type Href } from 'expo-router'; 
-import { PrincipleCard } from '@/components/compass/PrincipleCard'; 
+import { PrincipleCard } from '@/components/compass/PrincipleCard';
+import PrinciplesTab from '@/components/compass/PrinciplesTab';
 import { StateDefinitionCard } from '@/components/compass/StateDefinitionCard'; 
 
 interface TabData {
@@ -104,51 +105,10 @@ export default function CompassScreen() {
 }
 
 // Define the specific types from RouterOutputs
-type Principle = RouterOutputs['value']['getValues'][number];
+// Types are now defined in the PrinciplesTab component
 type StateDefinition = RouterOutputs['state']['getDefinitions'][number]; 
 
-// Principles Tab Component (manages data fetching and list rendering)
-function PrinciplesTab() {
-  const { data: principles, isLoading, error, refetch } = trpc.value.getValues.useQuery();
-
-  if (isLoading) {
-    return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
-  }
-
-  if (error) {
-    return (
-      <EmptyOrSkeleton
-        isEmpty={false}
-        isError={true}
-        onRetry={refetch}
-        text="Failed to load principles"
-      />
-    );
-  }
-
-  if (!principles || principles.length === 0) {
-    return (
-      <EmptyOrSkeleton
-        isEmpty={true}
-        text="No principles defined yet"
-        actionText="Add Your First Principle"
-        onAction={() => router.push('/compose?type=value' as Href)}
-      />
-    );
-  }
-
-  return (
-    <YStack space="$3"> 
-      {principles.map((principle: Principle) => (
-        <PrincipleCard
-          key={principle.id}
-          principle={principle}
-          onPress={() => router.push(`/values/${principle.id}` as Href)}
-        />
-      ))}
-    </YStack>
-  );
-}
+// Principles Tab Component is now imported from '@/components/compass/PrinciplesTab'
 
 // States Tab Component (manages data fetching and list rendering)
 function StatesTab() {

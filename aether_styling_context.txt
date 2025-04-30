@@ -1,0 +1,2246 @@
+========================================
+ AETHERIPHONE STYLING CONTEXT DUMP 
+========================================
+
+Date: 2025-04-30T04:20:08.847Z
+Purpose: Provide full file context for styling analysis and enhancement suggestions.
+
+========================================
+FILE: tamagui.config.ts
+----------------------------------------
+
+// tamagui.config.ts
+import { createAnimations } from '@tamagui/animations-react-native';
+import { createFont, createTamagui, createTokens } from 'tamagui';
+import { Platform } from 'react-native';
+import * as MotionConstants from '@/constants/motion'; // Import motion constants
+
+// Font definitions - Zelda Theme
+// Assumes 'CalamitySans' and 'HyliaSerif' are loaded via useFonts or similar
+const headingFont = createFont({
+  family: 'HyliaSerif', // Zelda Display Font
+  size: {
+    // Mapped closer to iOS Dynamic Type: https://developer.apple.com/design/human-interface-guidelines/typography
+    1: 13,  // Caption 2
+    2: 15,  // Subheadline
+    3: 17,  // Body (true default)
+    4: 20,  // Title 3
+    5: 22,  // Title 2
+    6: 28,  // Title 1
+    7: 34,  // Large Title
+    8: 40,  // Extra Large Title (custom)
+    true: 17, // Default size (Body)
+  },
+  lineHeight: {
+    // Approximate line heights based on new sizes
+    1: 18, 2: 20, 3: 22, 4: 25, 5: 28, 6: 34, 7: 41, 8: 50, 
+    true: 22,
+  },
+  weight: {
+    // Prompt 2 asks for 400-700
+    4: '400', // Normal
+    6: '600', // Semi-bold/Bold
+    7: '700', // Extra-bold/Black
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0, 2: 0, 3: -0.5, 4: -0.5, 5: -1, 6: -1, 7: -1.5, 8: -1.5,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'HyliaSerif-Bold')
+  // face: {
+  //   400: { normal: 'HyliaSerif-Regular' },
+  //   700: { normal: 'HyliaSerif-Bold' },
+  // },
+});
+
+const bodyFont = createFont({
+  family: 'CalamitySans', // Zelda Body Font
+  size: {
+    // Mapped closer to iOS Dynamic Type
+    1: 11,  // Footnote
+    2: 12,  // Caption 1
+    3: 13,  // Caption 2
+    4: 15,  // Subheadline
+    5: 17,  // Body (true default)
+    6: 20,  // Title 3 (matching headingFont.$4)
+    true: 17, // Default body size
+  },
+  lineHeight: {
+    // Approximate line heights
+    1: 13, 2: 16, 3: 18, 4: 20, 5: 22, 6: 25,
+    true: 22, // Default body line height
+  },
+  weight: {
+    4: '400', // Regular
+    5: '500', // Medium (if available)
+    7: '700', // Bold (if needed/available)
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0.1, 2: 0.1, 3: 0, 4: 0, 5: -0.1, 6: -0.1,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'CalamitySans-Medium')
+  // face: {
+  //   400: { normal: 'CalamitySans-Regular' },
+  //   500: { normal: 'CalamitySans-Medium' },
+  // },
+});
+
+const monoFont = createFont({
+  family: Platform.select({ web: 'monospace', default: 'SpaceMono' }), // Keep SpaceMono for code
+  size: {
+    1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, true: 15,
+  },
+  lineHeight: {
+    1: 18, 2: 22, 3: 24, 4: 26, 5: 28, 6: 32, true: 24,
+  },
+  weight: {
+    4: '400', // Normal weight
+    true: '400',
+  },
+  letterSpacing: {
+    4: 0,
+    true: 0,
+  },
+  face: {
+    400: { normal: 'SpaceMono' }, // Map weight 400 to the loaded SpaceMono font
+  },
+});
+
+// Animation driver using reanimated
+const animations = createAnimations({
+  fast: {
+    type: 'timing',
+    duration: MotionConstants.durations.standard,
+    // easing: MotionConstants.easings.standard, // Removed as createAnimations defaults work well
+  },
+  medium: {
+    type: 'timing',
+    duration: MotionConstants.durations.modal,
+  },
+  slow: {
+    type: 'timing',
+    duration: MotionConstants.durations.long,
+  },
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    mass: 0.9,
+    stiffness: 150,
+  },
+  lazy: {
+    type: 'spring',
+    damping: 18,
+    stiffness: 50,
+  },
+  quick: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+});
+
+// Standard Radix Gray scale (light theme)
+const gray = {
+  gray1: '#fcfcfc', gray2: '#f8f8f8', gray3: '#f3f3f3', gray4: '#ededed', gray5: '#e8e8e8', gray6: '#e2e2e2', gray7: '#dbdbdb', gray8: '#c7c7c7', gray9: '#8f8f8f', gray10: '#858585', gray11: '#6f6f6f', gray12: '#171717',
+};
+
+// Standard Radix Gray scale (dark theme)
+const grayDark = {
+  gray1: '#191919', gray2: '#212121', gray3: '#282828', gray4: '#303030', gray5: '#393939', gray6: '#424242', gray7: '#4f4f4f', gray8: '#626262', gray9: '#737373', gray10: '#838383', gray11: '#ababab', gray12: '#ededed',
+};
+
+// Tokens (refined based on your existing config)
+const tokens = createTokens({
+  size: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16,
+  },
+  space: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16, '-1': -4, '-2': -8, '-3': -12, '-4': -16,
+  },
+  radius: {
+    0: 0, 1: 3, 2: 5, 3: 8, 4: 10, 5: 14, 6: 16, 7: 20, 8: 24, 9: 28, 10: 32, true: 10, // Updated radius.5 to 14
+  },
+  zIndex: { 0: 0, 1: 100, 2: 200, 3: 300, 4: 400, 5: 500 },
+  color: {
+    // Zelda Palette (Prompt 1)
+    ...gray, // Add light greys
+    ...grayDark, // Add dark greys (will be overridden in dark theme definition)
+    parchment: '#FDFFE0',
+    sheikahCyan: '#86A5A9',
+    korokGreen: '#92C582',
+    darkText: '#536F50',
+    guardianOrange: '#FF9F0A',
+    darkTealBg: '#1A2E3A',
+    darkCyanGlow: '#64FFDA',
+
+    // Shadow Colors (Prompt 5)
+    shadowColorLight: 'rgba(83, 111, 80, 1)', // dark desaturated text color
+    shadowColorDark: 'rgba(0, 0, 0, 1)', // Black base
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+});
+
+// Define themes using Zelda Palette
+const lightTheme = {
+  // Base Colors
+  background: tokens.color.parchment,      // Light bg
+  backgroundStrong: tokens.color.white,     // Keep white for strong contrast areas if needed
+  backgroundTransparent: 'rgba(253, 255, 224, 0)', // Fully transparent parchment
+  color: tokens.color.darkText,             // Dark desaturated text
+  colorSecondary: tokens.color.darkText,      // Use main text color, maybe slightly lighter if needed later
+  colorTertiary: tokens.color.sheikahCyan,    // Use accent for tertiary info?
+  borderColor: tokens.color.sheikahCyan,      // Use accent for borders
+  borderColorHover: tokens.color.korokGreen,  // Korok green on hover?
+
+  // Theme-specific states (can refine later)
+  backgroundHover: tokens.color.parchment,    // Keep parchment, maybe slightly darker/lighter
+  backgroundPress: tokens.color.parchment,    // Keep parchment
+  backgroundFocus: tokens.color.parchment,    // Keep parchment
+  colorHover: tokens.color.korokGreen,        // Korok green text on hover?
+  colorPress: tokens.color.korokGreen,
+  colorFocus: tokens.color.sheikahCyan,
+  borderColorPress: tokens.color.korokGreen,
+  borderColorFocus: tokens.color.sheikahCyan,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.parchment,    // Base color, apply opacity in component (e.g., rgba(253,255,224,0.8))
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping (can use Zelda colors)
+  primary: tokens.color.sheikahCyan,        // Map primary to accent
+  secondary: tokens.color.korokGreen,       // Map secondary to korok green?
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,     // Use guardian orange for warning
+  error: tokens.color.guardianOrange,       // Use guardian orange for error
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.parchment, // Maps to background
+  onSurface: tokens.color.darkText,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorLight, // Use darkText color base for shadow
+  shadowColorHover: 'rgba(83, 111, 80, 0.15)',
+  shadowSm: 'rgba(83, 111, 80, 0.10)', // 10% opacity
+  shadowMd: 'rgba(83, 111, 80, 0.15)', // 15% opacity
+  shadowLg: 'rgba(83, 111, 80, 0.20)', // 20% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.parchment,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.parchment,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.parchment,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.parchment,
+};
+
+const darkTheme: typeof lightTheme = {
+  // Base Colors
+  ...grayDark, // Override light greys with dark greys
+  background: tokens.color.darkTealBg,      // Dark-mode bg
+  backgroundStrong: tokens.color.black,       // Black for contrast?
+  backgroundTransparent: 'rgba(26, 46, 58, 0)', // Fully transparent dark teal
+  color: tokens.color.parchment,          // Use light parchment for text
+  colorSecondary: tokens.color.sheikahCyan,   // Sheikah cyan for secondary text
+  colorTertiary: tokens.color.korokGreen,     // Korok green for tertiary
+  borderColor: tokens.color.sheikahCyan,      // Sheikah cyan borders
+  borderColorHover: tokens.color.darkCyanGlow, // Glow cyan on hover?
+
+  // Theme-specific states
+  backgroundHover: tokens.color.darkTealBg,   // Keep bg, maybe slightly lighter
+  backgroundPress: tokens.color.darkTealBg,
+  backgroundFocus: tokens.color.darkTealBg,
+  colorHover: tokens.color.darkCyanGlow,
+  colorPress: tokens.color.darkCyanGlow,
+  colorFocus: tokens.color.darkCyanGlow,
+  borderColorPress: tokens.color.darkCyanGlow,
+  borderColorFocus: tokens.color.darkCyanGlow,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.darkTealBg, // Use dark bg, apply opacity in component
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping
+  primary: tokens.color.darkCyanGlow,       // Use glow cyan for primary actions
+  secondary: tokens.color.korokGreen,
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,
+  error: tokens.color.guardianOrange,
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.darkTealBg,   // Maps to background
+  onSurface: tokens.color.parchment,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorDark, // Darker shadow for dark mode
+  shadowColorHover: 'rgba(0, 0, 0, 0.30)',
+  shadowSm: 'rgba(0, 0, 0, 0.20)', // 20% opacity
+  shadowMd: 'rgba(0, 0, 0, 0.30)', // 30% opacity
+  shadowLg: 'rgba(0, 0, 0, 0.40)', // 40% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.darkTealBg,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.darkTealBg,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.darkTealBg,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.darkTealBg,
+};
+
+// Create the Tamagui config
+const config = createTamagui({
+  animations,
+  shouldAddPrefersColorThemes: true,
+  themeClassNameOnRoot: true,
+  shorthands: {
+    // Keep your existing shorthands
+    m: 'margin', mt: 'marginTop', mr: 'marginRight', mb: 'marginBottom', ml: 'marginLeft', mx: 'marginHorizontal', my: 'marginVertical',
+    p: 'padding', pt: 'paddingTop', pr: 'paddingRight', pb: 'paddingBottom', pl: 'paddingLeft', px: 'paddingHorizontal', py: 'paddingVertical',
+    bg: 'backgroundColor', br: 'borderRadius', bw: 'borderWidth', bc: 'borderColor',
+    f: 'flex', fd: 'flexDirection', ai: 'alignItems', jc: 'justifyContent', w: 'width', h: 'height',
+    ac: 'alignContent',
+    als: 'alignSelf',
+    btc: 'borderTopColor',
+    bbc: 'borderBottomColor',
+    blc: 'borderLeftColor',
+    brc: 'borderRightColor',
+    boc: 'borderColor',
+    bs: 'borderStyle',
+    dsp: 'display',
+    fb: 'flexBasis',
+    fg: 'flexGrow',
+    fs: 'flexShrink',
+    fw: 'flexWrap',
+    mah: 'maxHeight',
+    maw: 'maxWidth',
+    mih: 'minHeight',
+    miw: 'minWidth',
+    op: 'opacity',
+    ov: 'overflow',
+    r: 'right',
+    shac: 'shadowColor',
+    shar: 'shadowRadius',
+    shof: 'shadowOffset',
+    shop: 'shadowOpacity',
+    t: 'top',
+    ta: 'textAlign',
+    tt: 'textTransform',
+    va: 'verticalAlign',
+    zi: 'zIndex',
+  },
+  fonts: {
+    // Use Zelda fonts
+    heading: headingFont,
+    body: bodyFont,
+    mono: monoFont, // Keep mono
+  },
+  themes: {
+    light: lightTheme,
+    dark: darkTheme,
+  },
+  tokens,
+  media: { // Keep standard media queries
+    xs: { maxWidth: 660 }, sm: { maxWidth: 800 }, md: { maxWidth: 1020 }, lg: { maxWidth: 1280 }, xl: { maxWidth: 1420 }, xxl: { maxWidth: 1600 },
+    gtXs: { minWidth: 661 }, gtSm: { minWidth: 801 }, gtMd: { minWidth: 1021 }, gtLg: { minWidth: 1281 },
+    short: { maxHeight: 820 }, tall: { minHeight: 820 },
+    hoverNone: { hover: 'none' }, pointerCoarse: { pointer: 'coarse' },
+  },
+  settings: {
+      allowedStyleValues: 'somewhat-strict',
+      autocompleteSpecificTokens: 'except-special',
+  },
+});
+
+type AppConfig = typeof config;
+
+// Augment Tamagui interface - this is crucial!
+declare module '@tamagui/core' {
+  // If AppConfig is defined and exported:
+  interface TamaguiCustomConfig extends AppConfig {}
+}
+
+export default config;
+
+[EOF: tamagui.config.ts]
+
+========================================
+FILE: providers/Providers.tsx
+----------------------------------------
+
+// providers/Providers.tsx
+import { QueryClientProvider } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui';
+import { ToastProvider, ToastViewport } from '@tamagui/toast'; // Import from Tamagui Toast
+import React, { useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native'; // Import Platform
+
+import config from '../tamagui.config'; // Import your config
+import { trpc } from '../utils/trpc'; // Your tRPC hook setup
+import { queryClient, persister, initializeNetworkMonitoring, resumeMutationsAndInvalidate } from '@/utils/query-client';
+import { useUiStore } from '@/stores/uiStore';
+import { supabase } from '@/utils/supabase'; // Needed for auth link
+import { createTRPCClient, httpBatchLink, TRPCLink, TRPCClientError } from '@trpc/client'; // Import TRPC Client utils
+import { observable } from '@trpc/server/observable';
+import type { AppRouter } from '../server/src/router'; // Adjust path if needed
+import type { Session } from '@supabase/supabase-js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Setup query client persistence
+persistQueryClient({
+  queryClient,
+  persister,
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  dehydrateOptions: {
+    shouldDehydrateMutation: () => false, // Usually don't dehydrate mutations
+  },
+});
+
+// New component for the viewport using safe area
+const CurrentToastViewport = () => {
+  const { top, bottom, left, right } = useSafeAreaInsets();
+  return (
+    <>
+      {/* Adjust positioning based on your desired toast location */}
+      <ToastViewport
+        name="global_top"
+        flexDirection="column" // Stack new toasts below older ones
+        top={top + 10} // Add padding below status bar
+        left={left + 10} // Add padding from sides
+        right={right + 10}
+      />
+      <ToastViewport
+        name="global_bottom"
+        flexDirection="column-reverse"
+        bottom={bottom + 10}
+        left={left + 10}
+        right={right + 10}
+      />
+    </>
+  );
+};
+
+// Extract tRPC links setup
+function getTRPCLinks(getSession: () => Promise<Session | null>): TRPCLink<AppRouter>[] {
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/trpc'; // Default to localhost
+  console.log('Using tRPC API URL:', apiBaseUrl);
+
+  return [
+    // Link to handle auth token injection and refresh
+    (runtime) => {
+      return ({ op, next }) => {
+        return observable((observer) => {
+          getSession().then(session => {
+            const headers = (op.context?.headers || {}) as Record<string, string>;
+            if (session?.access_token) {
+              headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+
+            // Proceed with the request, ensuring context is passed correctly
+            next({ ...op, context: { ...op.context, headers } })
+              .subscribe({
+                next: (value) => observer.next(value),
+                error: async (err) => {
+                  if (err instanceof TRPCClientError && err.data?.httpStatus === 401) {
+                    console.log('tRPC: Token expired or invalid, attempting refresh...');
+                    try {
+                      // Supabase handles refresh internally if needed when getSession is called
+                      const { data, error: refreshError } = await supabase.auth.refreshSession();
+                      if (refreshError) throw refreshError;
+
+                      if (data.session) {
+                        console.log('tRPC: Session refreshed successfully, retrying request.');
+                        const refreshedHeaders = { ...headers, Authorization: `Bearer ${data.session.access_token}` };
+                        // Retry with new headers in context
+                        next({ ...op, context: { ...op.context, headers: refreshedHeaders } }).subscribe(observer);
+                      } else {
+                        console.error('tRPC: Session refresh failed, no session returned.');
+                        observer.error(err); // Propagate original error if no new session
+                        // Optionally trigger logout here
+                        supabase.auth.signOut();
+                      }
+                    } catch (refreshCatchError) {
+                      console.error('tRPC: Session refresh catch error:', refreshCatchError);
+                      observer.error(err); // Propagate original error
+                      supabase.auth.signOut();
+                    }
+                  } else {
+                    observer.error(err); // Propagate non-auth errors
+                  }
+                },
+                complete: () => observer.complete(),
+              });
+          }).catch(err => {
+             console.error('tRPC: Error getting session for headers:', err);
+             observer.error(new TRPCClientError('Failed to get session')); // Use TRPCClientError
+          });
+
+          // Return cleanup function if needed
+          return () => {};
+        });
+      };
+    },
+    // The terminating HTTP link
+    httpBatchLink({
+      url: apiBaseUrl,
+       headers() {
+         // Headers are injected by the middleware link above
+         return {};
+       },
+      // Add superjson transformer here if you use one
+      // transformer: superjson,
+    }),
+  ];
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  // Get theme state from Zustand
+  const { isDarkMode } = useUiStore();
+  const currentTheme = isDarkMode ? 'dark' : 'light';
+
+  // Initialize network monitoring and query client persistence
+  useEffect(() => {
+    const unsubscribeNetworkMonitoring = initializeNetworkMonitoring();
+    resumeMutationsAndInvalidate(); // Try resuming mutations on app load
+    return () => {
+      unsubscribeNetworkMonitoring();
+    };
+  }, []);
+
+  // Memoize tRPC client creation
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: getTRPCLinks(async () => { // Pass session getter to links setup
+        const { data } = await supabase.auth.getSession();
+        return data.session;
+      }),
+    })
+  );
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <TamaguiProvider
+            config={config}
+            defaultTheme={currentTheme}
+            // disableInjectCSS // May not be needed depending on setup
+        >
+          {/* Use Tamagui's ToastProvider */}
+          <ToastProvider
+            // burntOptions={{ from: 'top' }} // Disabled until native module 'Burnt' is installed
+            swipeDirection="horizontal"
+            duration={4000}
+            native={[]}
+          >
+            {children}
+            {/* Add the safe-area aware ToastViewport */}
+            <CurrentToastViewport />
+          </ToastProvider>
+        </TamaguiProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+
+[EOF: providers/Providers.tsx]
+
+========================================
+FILE: stores/uiStore.ts
+----------------------------------------
+
+import { create } from 'zustand';
+
+interface UiState {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+}
+
+// Simple Zustand store for UI state (e.g., theme)
+export const useUiStore = create<UiState>((set) => ({
+  isDarkMode: false, // Default to light mode
+  toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+})); 
+
+[EOF: stores/uiStore.ts]
+
+========================================
+FILE: constants/motion.ts
+----------------------------------------
+
+import { Easing } from 'react-native-reanimated';
+
+/**
+ * Standard animation durations (in milliseconds)
+ */
+export const durations = {
+  /** Ultra-fast for micro-interactions */
+  micro: 80,
+  /** Tap/press feedback */
+  tap: 120,
+  /** Default animation speed for most UI transitions */
+  standard: 200,
+  /** For more noticeable animations */
+  medium: 250,
+  /** Modal entrances/exits, complex transitions */
+  modal: 300,
+  /** Full screen transitions */
+  screen: 350,
+  /** Extended animations for emphasis */
+  long: 450,
+};
+
+/**
+ * Standard easing curves
+ */
+export const easings = {
+  /** Quick acceleration, gradual deceleration - for elements entering the screen */
+  enter: Easing.bezier(0.25, 0.1, 0.25, 1.0),
+  /** Gradual acceleration, quick deceleration - for elements exiting the screen */
+  exit: Easing.bezier(0.25, 0.0, 0.2, 1.0),
+  /** For transitions between UI states */
+  standard: Easing.bezier(0.4, 0.0, 0.2, 1.0),
+  /** Quick in, quick out - for emphasis */
+  energetic: Easing.bezier(0.55, 0.0, 0.1, 1.0),
+  /** Linear - consistent motion with no acceleration/deceleration */
+  linear: Easing.linear,
+  /** Slow start, fast finish */
+  accelerate: Easing.in(Easing.quad),
+  /** Fast start, slow finish */
+  decelerate: Easing.out(Easing.quad),
+  /** Fast start and end, slower in the middle */
+  emphasize: Easing.inOut(Easing.quad),
+};
+
+/**
+ * Animation presets for common UI patterns
+ */
+export const presets = {
+  fadeIn: {
+    duration: durations.standard,
+    easing: easings.enter,
+  },
+  fadeOut: {
+    duration: durations.standard,
+    easing: easings.exit,
+  },
+  slideIn: {
+    duration: durations.modal,
+    easing: easings.enter,
+  },
+  slideOut: {
+    duration: durations.modal,
+    easing: easings.exit,
+  },
+  scaleIn: {
+    duration: durations.standard,
+    easing: easings.emphasize,
+  },
+  scaleOut: {
+    duration: durations.standard,
+    easing: easings.emphasize,
+  },
+  tapFeedback: {
+    duration: durations.tap,
+    easing: easings.emphasize,
+  },
+  skeleton: {
+    duration: durations.long * 2,
+    easing: easings.linear,
+  },
+};
+
+/**
+ * Animation values for specific components
+ */
+export const componentAnimations = {
+  toast: {
+    show: {
+      duration: durations.modal,
+      easing: easings.enter,
+    },
+    hide: {
+      duration: durations.standard,
+      easing: easings.exit,
+    },
+  },
+  modal: {
+    overlay: {
+      show: {
+        duration: durations.modal,
+        easing: easings.standard,
+      },
+      hide: {
+        duration: durations.modal,
+        easing: easings.standard,
+      },
+    },
+    content: {
+      show: {
+        duration: durations.modal,
+        easing: easings.enter,
+      },
+      hide: {
+        duration: durations.standard,
+        easing: easings.exit,
+      },
+    },
+  },
+  button: {
+    press: {
+      duration: durations.tap,
+      easing: easings.emphasize,
+    },
+    release: {
+      duration: durations.tap,
+      easing: easings.emphasize,
+    },
+  },
+  navigation: {
+    screen: {
+      duration: durations.screen,
+      easing: easings.standard,
+    },
+    tab: {
+      duration: durations.standard,
+      easing: easings.standard,
+    },
+  },
+}; 
+
+[EOF: constants/motion.ts]
+
+========================================
+FILE: app/(tabs)/_layout.tsx
+----------------------------------------
+
+// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/_layout.tsx
+import React from 'react';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Example icon library
+import { useThemeColor } from '@/hooks/useThemeColor'; // Assuming path alias is set
+
+export default function TabLayout() {
+  const tabBarActiveTintColor = useThemeColor({}, 'tabIconSelected');
+  const tabBarInactiveTintColor = useThemeColor({}, 'tabIconDefault');
+  const backgroundColor = useThemeColor({}, 'background'); // Use standard background color
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: tabBarActiveTintColor,
+        tabBarInactiveTintColor: tabBarInactiveTintColor,
+        tabBarStyle: {
+          backgroundColor: backgroundColor,
+          // Add other styles like borderTopColor if needed
+        },
+        headerShown: false, // We might handle headers inside each screen or using Stack
+      }}
+    >
+      <Tabs.Screen
+        name="home/index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planner/index"
+        options={{
+          title: 'Planner',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="compass/index"
+        options={{
+          title: 'Compass',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="compass-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="rewards/index"
+        options={{
+          title: 'Rewards',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="gift-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings/index"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+}
+
+
+[EOF: app/(tabs)/_layout.tsx]
+
+========================================
+FILE: app/(tabs)/home/index.tsx
+----------------------------------------
+
+// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/home/index.tsx
+import React, { useCallback, useMemo } from 'react';
+import { YStack, H1, Text, XStack, Button, ScrollView, Spinner } from 'tamagui';
+import { SafeAreaView, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { trpc, RouterOutputs } from '@/utils/trpc';
+import DashboardSection from '@/components/dashboard/DashboardSection';
+import GoalSummaryCard from '@/components/dashboard/GoalSummaryCard';
+import HabitCheckItem from '@/components/dashboard/HabitCheckItem';
+import TaskItem from '@/components/dashboard/TaskItem';
+import StateIndicator from '@/components/dashboard/StateIndicator';
+import DailyProgressBanner from '@/components/dashboard/DailyProgressBanner'; // Import Banner
+import EmptyOrSkeleton from '@/components/ui/EmptyOrSkeleton';
+import { SkeletonCard, SkeletonRow } from '@/components/ui/Skeleton';
+import { useSkeleton } from '@/hooks/useSkeleton';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { useToastController } from '@tamagui/toast';
+import { BlurView } from 'expo-blur';
+import { Plus } from '@tamagui/lucide-icons';
+import LottieView from 'lottie-react-native';
+import SwipeableRow from '@/components/ui/SwipeableRow'; // Import SwipeableRow
+
+// Types inferred from tRPC Router
+type RouterOutput = RouterOutputs['dashboard']['getDashboardData'];
+// --- Define types for the STRUCTURE AFTER mapping in useMemo ---
+export type DashboardGoal = {
+  id: string;
+  title: string;
+  progress: number;
+  tasks: { completed: number; total: number };
+  // Include other relevant fields if needed by GoalSummaryCard
+  status?: string | null; 
+  priority?: number | null;
+};
+export type DashboardHabit = {
+  id: string;
+  name: string;
+  description?: string | null;
+  completed: boolean; // Mapped from completedToday
+  streak: number;
+  last_entry_id?: string; // Mapped from habit.last_entry_id (null -> undefined)
+  habit_type?: string | null;
+};
+export type DashboardTask = {
+  id: string;
+  name: string;
+  status: string | null; // Allow null
+  due_date?: Date | string | null;
+  // Include other relevant fields if needed by TaskItem
+};
+export type DashboardState = {
+  id: string;
+  name: string | null;
+  unit: string | null;
+  currentValue: number | string | null;
+  lastUpdated: string | null;
+  lastEntry: { value: number | null; created_at: Date | string } | null; // Explicitly include lastEntry
+};
+// --- End mapped type definitions ---
+
+export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const toast = useToastController();
+  const utils = trpc.useUtils(); // Get tRPC utils for mutations
+  
+  // Define types using RouterOutputs for clarity and safety
+  // type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
+  // type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
+  // type DashboardTask = RouterOutputs['dashboard']['getDashboardData']['tasks'][number];
+
+  // Use tRPC hooks to fetch data - Types are inferred but can be explicitly used
+  const { 
+    data: dashboardData, 
+    isLoading, 
+    error, 
+    refetch,
+    isRefetching 
+  } = trpc.dashboard.getDashboardData.useQuery();
+
+  // Define the habit entry mutation hook
+  const createHabitEntryMutation = trpc.habit.createHabitEntry.useMutation({
+    onSuccess: () => {
+      refetch(); // Refresh data after successful mutation
+      // Optional: Add success toast
+      // toast.show('Habit updated!', { type: 'success' });
+    },
+    onError: (error) => {
+      // Handle tRPC client error
+      toast.show(error.message || 'Failed to update habit', { type: 'error' });
+    }
+  });
+
+  // Handle errors
+  React.useEffect(() => {
+    if (error) {
+      toast.show(error.message || 'Failed to load dashboard data', { type: 'error' });
+    }
+  }, [error, toast]);
+
+  // Set up pull-to-refresh
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Custom skeleton states from your hooks
+  const { isLoading: skeletonsLoading, count: skeletonCount = 3 } = {
+    isLoading,
+    count: 3 // Number of skeleton items to show
+  };
+  
+  // Generate skeleton UI based on loading state
+  const renderSkeletons = () => {
+    return Array.from({ length: skeletonCount }).map((_, index) => (
+      <SkeletonCard key={`skeleton-${index}`} />
+    ));
+  };
+
+  // Get current date and greeting
+  const greeting = getGreeting();
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  const dashboardDataMemo = useMemo(() => {
+    // Fix: Add check to ensure dashboardData exists before accessing properties
+    if (!dashboardData) {
+      return null; // Or return default structure: { goals: [], habits: [], tasks: [], trackedStates: [] }
+    }
+
+    // Map and filter data, ensuring structure matches exported types
+    return {
+      // Filter goals to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      goals: (dashboardData.goals ?? [])
+        .filter((goal): goal is typeof goal & { id: string } => !!goal?.id)
+        .map((goal) => ({
+        // Map to DashboardGoal structure
+        id: goal.id, 
+        title: goal.title ?? 'Untitled Goal', // Provide default for title
+        progress: goal.progress ?? 0, 
+        tasks: goal.tasks ?? { completed: 0, total: 0 }, 
+        status: goal.status,
+        priority: goal.priority,
+      })),
+      // Filter habits to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      habits: (dashboardData.habits ?? [])
+        .filter((habit): habit is typeof habit & { id: string } => !!habit?.id)
+        .map((habit) => ({
+        // Map to DashboardHabit structure
+        id: habit.id, 
+        name: habit.name ?? 'Unnamed Habit', // Provide default for name
+        description: habit.description,
+        completed: habit.completedToday ?? false, // Map completedToday to completed
+        streak: habit.streak ?? 0, 
+        last_entry_id: habit.last_entry_id ?? undefined, // Map null to undefined
+        habit_type: habit.habit_type,
+      })),
+      // Filter tasks to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      tasks: (dashboardData.tasks ?? [])
+        .filter((task): task is typeof task & { id: string } => !!task?.id)
+        .map((task) => ({
+        // Map to DashboardTask structure
+        id: task.id,
+        name: task.name ?? 'Untitled Task', // Provide default name
+        status: task.status,
+        due_date: task.due_date,
+      })),
+      // Map trackedStates, ensuring lastEntry is preserved
+      // Fix: Use nullish coalescing and optional chaining
+      trackedStates: (dashboardData.trackedStates ?? [])
+        .filter((state): state is typeof state & { id: string } => !!state?.id)
+        .map((trackedState) => ({
+        // Map to DashboardState structure
+        id: trackedState.id,
+        name: trackedState.name,
+        unit: trackedState.unit,
+        currentValue: trackedState.currentValue,
+        lastUpdated: trackedState.lastUpdated,
+        // Ensure lastEntry structure matches definition or is null
+        lastEntry: trackedState.lastEntry ?? null, 
+      })),
+    };
+  }, [dashboardData]);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor="transparent" // Hide default spinner
+            colors={['transparent']} // Hide default spinner (Android)
+            progressBackgroundColor="transparent" // Hide default bg (Android)
+            refreshingComponent={
+              <LottieView
+                source={require('@/assets/refresh-sheikah.json')} // ASSUMES this file exists
+                autoPlay
+                loop
+                style={{ width: 48, height: 48, alignSelf: 'center' }} // Center the animation
+              />
+            }
+          />
+        }
+      >
+        <YStack space="$4" paddingHorizontal="$4">
+          {/* Header */}
+          <YStack space="$1">
+            <H1>{greeting}</H1>
+            <Text color="$gray10">{currentDate}</Text>
+          </YStack>
+
+          {/* Daily Progress Banner */}
+          <DailyProgressBanner 
+            // tasksCompleted={...} 
+            // totalTasks={...} 
+            // habitsChecked={...} 
+            // totalHabits={...} 
+          />
+
+          {/* Goals Section */}
+          <DashboardSection 
+            title="Goals"
+            onSeeAll={() => router.push('/planner')}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load goals"
+              />
+            ) : !dashboardDataMemo?.goals || dashboardDataMemo.goals.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No goals yet"
+                actionText="Create a goal"
+                onAction={() => router.push('/planner/add-goal')}
+              />
+            ) : (
+              <YStack space="$3">
+                {dashboardDataMemo.goals.slice(0, 3).map((goal) => (
+                  <SwipeableRow
+                    key={goal.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.goal.delete.mutate({ id: goal.id })
+                      console.log('Attempting to delete goal:', goal.id); // Placeholder
+                      // utils.goal.delete.mutate({ id: goal.id });
+                    }}
+                  >
+                    <GoalSummaryCard
+                      goal={goal}
+                      onPress={() => router.push(`/planner/goal/${goal.id}`)}
+                    />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+
+          {/* Today's Habits */}
+          <DashboardSection 
+            title="Today's Habits"
+            onSeeAll={() => router.push('/planner?tab=habits')}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load habits"
+              />
+            ) : !dashboardDataMemo?.habits || dashboardDataMemo.habits.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No habits for today"
+                actionText="Create a habit"
+                onAction={() => router.push('/planner/add-habit')}
+              />
+            ) : (
+              <YStack space="$2">
+                {dashboardDataMemo.habits.slice(0, 4).map((habit) => (
+                  <SwipeableRow
+                    key={habit.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.habit.delete.mutate({ id: habit.id })
+                      console.log('Attempting to delete habit:', habit.id); // Placeholder
+                      // utils.habit.delete.mutate({ id: habit.id });
+                    }}
+                  >
+                    <HabitCheckItem habit={habit} />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+
+          {/* Today's State */}
+          <DashboardSection
+            title="Today's State"
+            // TODO: Add navigation to a dedicated state tracking screen
+            onSeeAll={() => console.log('Navigate to State Tracking screen')}
+          >
+            {isLoading ? (
+              renderSkeletons() // Use generic skeletons or specific state skeletons
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load state"
+              />
+            ) : !dashboardDataMemo?.trackedStates || dashboardDataMemo.trackedStates.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No states being tracked"
+                actionText="Track a state"
+                // TODO: Navigate to state definition creation screen
+                onAction={() => console.log('Navigate to Add State screen')}
+              />
+            ) : (
+              <XStack space="$3" flexWrap="wrap"> 
+                {dashboardDataMemo.trackedStates.map((stateData) => (
+                  <StateIndicator
+                    key={stateData.id}
+                    state={stateData} // Pass the whole state object which includes lastEntry
+                    lastEntry={stateData.lastEntry} // Pass lastEntry explicitly
+                    // TODO: Handle interaction - e.g., navigate to state detail/entry screen
+                    onPress={() => console.log('State pressed:', stateData.id)}
+                  />
+                ))}
+              </XStack>
+            )}
+          </DashboardSection>
+
+          {/* Upcoming Tasks */}
+          <DashboardSection 
+            title="Upcoming Tasks"
+            onSeeAll={() => {/* Navigate to tasks list */}}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load tasks"
+              />
+            ) : !dashboardDataMemo?.tasks || dashboardDataMemo.tasks.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No upcoming tasks"
+                actionText="Create a task"
+                onAction={() => {/* Navigate to create task */}}
+              />
+            ) : (
+              <YStack space="$2">
+                {dashboardDataMemo.tasks.slice(0, 5).map((task) => (
+                  <SwipeableRow
+                    key={task.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.task.delete.mutate({ id: task.id })
+                      console.log('Attempting to delete task:', task.id); // Placeholder
+                      // utils.task.delete.mutate({ id: task.id });
+                    }}
+                  >
+                    <TaskItem
+                      task={{
+                        // Explicitly pass props matching DashboardTask type
+                        id: task.id, // Ensure id is passed
+                        name: task.name, // Already defaulted in map
+                        status: task.status, // Pass status
+                        due_date: task.due_date, // Pass due_date
+                      }}
+                      isLast={false} // Adjust if needed for styling
+                      onPress={() => console.log('Task Item Pressed:', task.id)}
+                    />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+        </YStack>
+      </ScrollView>
+      <QuickAddFAB />
+    </SafeAreaView>
+  );
+}
+
+// Helper function for greeting
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good evening';
+}
+
+// Quick Add FAB Component
+function QuickAddFAB() {
+  return (
+    <BlurView intensity={40} tint="default" style={{ position:'absolute', bottom:24, right:24, borderRadius:32, overflow: 'hidden' }}>
+      <Button
+        circular
+        size="$5"
+        backgroundColor="$accent"
+        icon={Plus}
+        elevate
+        shadowColor="$shadowColor"
+        shadowRadius={5}
+        shadowOffset={{ width: 0, height: 2 }}
+        pressStyle={{ scale: 0.95, opacity: 0.9 }}
+        onPress={() => {
+          router.push('/planner/add-task');
+        }}
+      />
+    </BlurView>
+  );
+}
+
+
+[EOF: app/(tabs)/home/index.tsx]
+
+========================================
+FILE: utils/trpc.ts
+----------------------------------------
+
+import { createTRPCReact } from '@trpc/react-query';
+import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
+
+// Import the real AppRouter type from our server
+import { type AppRouter } from '../server/src/router';
+
+// Import types using the updated path
+import { RouterInputs as TypedRouterInputs, RouterOutputs as TypedRouterOutputs } from '../server/src/types/trpc-types';
+
+/**
+ * tRPC React client
+ * The client for consuming your tRPC API from React components
+ */
+export const trpc = createTRPCReact<AppRouter>();
+
+/**
+ * Inference helpers for input/output types
+ * Use the pre-defined types from trpc-types.ts
+ */
+export type RouterInputs = TypedRouterInputs;
+export type RouterOutputs = TypedRouterOutputs; 
+
+[EOF: utils/trpc.ts]
+
+========================================
+FILE: utils/query-client.ts
+----------------------------------------
+
+import { QueryClient } from '@tanstack/react-query';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+import { onlineManager } from '@tanstack/react-query';
+
+// Create a client
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Default stale time of 5 minutes
+      staleTime: 1000 * 60 * 5,
+      // When offline, keep data fresh for 24 hours (cacheTime was renamed to gcTime)
+      gcTime: 1000 * 60 * 60 * 24,
+      // Retry failed queries 3 times
+      retry: 3,
+      // Retry with exponential backoff
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      // Don't refetch on window focus for mobile
+      refetchOnWindowFocus: false,
+      // Show stale data while fetching new data (renamed from keepPreviousData)
+      placeholderData: 'keepPrevious',
+    },
+    mutations: {
+      // Retry failed mutations 3 times
+      retry: 3,
+      // Enable offline mutations
+      networkMode: 'offlineFirst',
+    },
+  },
+});
+
+// Create a persister
+export const persister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'aether-query-cache-v1',
+  // Only persist queries with a longer cacheTime
+  throttleTime: 1000,
+  // SerDe for serializing/deserializing the data
+  serialize: data => JSON.stringify(data),
+  deserialize: data => JSON.parse(data),
+});
+
+/**
+ * Initialize network monitoring for the query client
+ * Call this on app startup to enable online/offline detection
+ */
+export function initializeNetworkMonitoring(): () => void {
+  // Subscribe to network status changes
+  const unsubscribe = NetInfo.addEventListener(state => {
+    onlineManager.setOnline(
+      state.isConnected != null && 
+      state.isConnected && 
+      Boolean(state.isInternetReachable)
+    );
+  });
+
+  // Initialize once at startup - check if online
+  NetInfo.fetch().then(state => {
+    onlineManager.setOnline(
+      state.isConnected != null && 
+      state.isConnected && 
+      Boolean(state.isInternetReachable)
+    );
+  });
+
+  return unsubscribe;
+}
+
+/**
+ * Resume any paused mutations when the app comes back online
+ * 
+ * @returns A promise that resolves when mutations are resumed
+ */
+export async function resumeMutationsAndInvalidate(): Promise<void> {
+  try {
+    await queryClient.resumePausedMutations();
+    queryClient.invalidateQueries();
+  } catch (error) {
+    console.error('Error resuming mutations:', error);
+  }
+} 
+
+[EOF: utils/query-client.ts]
+
+========================================
+FILE: components/dashboard/DashboardSection.tsx
+----------------------------------------
+
+import React, { ReactNode } from 'react';
+import { Text, YStack, XStack, Button, Anchor, H4 } from 'tamagui';
+import { router } from 'expo-router';
+import { SkeletonRow } from '@/components/ui/Skeleton';
+import { SectionError } from '@/components/ui/ErrorBanner';
+import { BlurView } from 'expo-blur'; // Import BlurView
+
+interface DashboardSectionProps<T> {
+  title: string;
+  data?: T[];
+  isLoading?: boolean;
+  emptyMessage?: string;
+  seeAllRoute?: string;
+  renderItem?: (item: T) => ReactNode;
+  skeletonCount?: number;
+  error?: string;
+  onRetry?(): void;
+  children?: ReactNode;
+  onSeeAll?(): void;
+}
+
+export default function DashboardSection<T>({ 
+  title, 
+  data, 
+  isLoading, 
+  emptyMessage,
+  seeAllRoute,
+  renderItem,
+  skeletonCount = 2,
+  error,
+  onRetry,
+  children,
+  onSeeAll
+}: DashboardSectionProps<T>) {
+  return (
+    <YStack space="$2">
+      <XStack justifyContent="space-between" alignItems="center" marginBottom="$2" paddingHorizontal="$2">
+        <H4>{title}</H4>
+        {((data && data.length > 0 && seeAllRoute) || onSeeAll) && (
+          <Button 
+            chromeless 
+            size="$2" 
+            onPress={() => {
+              if (onSeeAll) {
+                onSeeAll();
+              } else if (seeAllRoute) {
+                // Navigate to route using type assertions
+                // Safe because the route will be a tab/screen name within the app
+                router.push(seeAllRoute as any);
+              }
+            }}
+          >
+            See All
+          </Button>
+        )}
+      </XStack>
+      
+      {/* Wrap content in BlurView */}
+      <BlurView 
+        intensity={50} 
+        tint="default" 
+        style={{ borderRadius: 12, overflow: 'hidden' }} 
+      >
+        <YStack padding="$3">
+          {/* If children are provided, render them */}
+          {children ? (
+            children
+          ) : isLoading ? (
+            <SkeletonRow lines={skeletonCount} />
+          ) : error ? (
+            <SectionError message={error ? String(error) : 'An error occurred'} onRetry={onRetry} />
+          ) : data && data.length === 0 ? (
+            <YStack alignItems="center" padding="$4">
+              <Text color="$gray10">{emptyMessage ?? 'No items found'}</Text>
+            </YStack>
+          ) : (
+            data && renderItem && data.map(renderItem)
+          )}
+        </YStack>
+      </BlurView>
+    </YStack>
+  );
+} 
+
+[EOF: components/dashboard/DashboardSection.tsx]
+
+========================================
+FILE: components/dashboard/GoalSummaryCard.tsx
+----------------------------------------
+
+import React from 'react';
+import { Text, XStack, Button } from 'tamagui';
+import ProgressRing from '@/components/aether/ProgressRing';
+import { RouterOutputs } from '@/utils/trpc';
+import { BlurView } from 'expo-blur'; // Import BlurView
+
+// Define a custom type that includes everything we need
+type DashboardGoal = {
+  id: string;
+  title: string;
+  status?: string;
+  priority?: number;
+  progress: number;
+  tasks?: {
+    total: number;
+    completed: number;
+  };
+};
+
+interface GoalSummaryCardProps {
+  goal: DashboardGoal;
+  onPress: () => void;
+}
+
+export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps) {
+  return (
+    <BlurView 
+      intensity={50} 
+      tint="default" 
+      style={{ borderRadius: 12, overflow: 'hidden' }}
+    >
+      <Button 
+        chromeless // Remove default button styling
+        padding="$3" 
+        onPress={onPress}
+        width="100%" // Ensure it fills the BlurView
+      >
+        <XStack alignItems="center" space="$3" flex={1}> 
+          <ProgressRing
+            progress={goal.progress}
+            size={40}
+            primaryColor="$primary"
+          />
+          <XStack flex={1} flexDirection="column">
+            <Text fontSize="$4" fontWeight="500" color="$color">
+              {goal.title}
+            </Text>
+            {goal.tasks && (
+              <Text color="$gray9" fontSize="$2">
+                {goal.tasks.completed}/{goal.tasks.total} tasks completed
+              </Text>
+            )}
+          </XStack>
+        </XStack>
+      </Button>
+    </BlurView>
+  );
+}
+
+[EOF: components/dashboard/GoalSummaryCard.tsx]
+
+========================================
+FILE: components/dashboard/HabitCheckItem.tsx
+----------------------------------------
+
+import React, { useState, useEffect } from 'react';
+import { Text, XStack, Button, YStack, useTheme } from 'tamagui';
+import * as Haptics from 'expo-haptics';
+import { trpc, RouterOutputs } from '@/utils/trpc';
+
+// Custom types that match the backend expectations
+type DashboardHabit = {
+  id: string;
+  name: string;  // Backend returns 'name'
+  description?: string;
+  habit_type?: string;
+  streak?: number;
+  completed: boolean; // Backend returns 'completed'
+  duration_minutes?: number;
+  last_entry_id?: string; // Add last_entry_id property
+};
+
+// Types for habit entry mutations
+type CreateHabitEntryInput = {
+  habit_id: string;
+  date: string;
+  completed?: boolean;
+  quantity_value?: number | null;
+  notes?: string | null;
+};
+
+type DeleteHabitEntryInput = {
+  id: string; // Update property name
+};
+
+interface HabitCheckItemProps {
+  habit: DashboardHabit;
+  onToggle?: (habitId: string, completedToday: boolean) => void; 
+}
+
+export default function HabitCheckItem({ habit, onToggle }: HabitCheckItemProps) {
+  const [checked, setChecked] = useState(habit.completed);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const theme = useTheme(); 
+  const utils = trpc.useUtils(); 
+
+  // Define specific theme colors with safe access and fallbacks to theme variables
+  const green10 = theme?.green10?.val ?? '$green10'; 
+  const gray10 = theme?.gray10?.val ?? '$gray10'; 
+  const orange10 = theme?.orange10?.val ?? '$orange10'; 
+
+
+  const createEntryMutation = trpc.habit.createHabitEntry.useMutation({
+    onSuccess: (updatedHabit) => {
+      setIsUpdating(false);
+      utils.habit.getHabits.invalidate();
+      utils.dashboard.getDashboardData.invalidate();
+    },
+    onError: (error) => {
+      setChecked(!checked);
+      setIsUpdating(false);
+      console.error('Error creating habit entry:', error);
+    }
+  });
+
+  const deleteEntryMutation = trpc.habit.deleteHabitEntry.useMutation({
+    onSuccess: () => {
+      setIsUpdating(false);
+      utils.habit.getHabits.invalidate();
+      utils.dashboard.getDashboardData.invalidate();
+    },
+    onError: (error) => {
+      setChecked(!checked);
+      setIsUpdating(false);
+      console.error('Error deleting habit entry:', error);
+    }
+  });
+
+  useEffect(() => {
+    setChecked(habit.completed);
+  }, [habit.completed]);
+
+  const handleToggle = () => {
+    const newValue = !checked;
+    setChecked(newValue); 
+    setIsUpdating(true);
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const todayDateString = new Date().toISOString().split('T')[0];
+
+    if (newValue) {
+      const createInput: CreateHabitEntryInput = {
+        habit_id: habit.id,
+        date: todayDateString,
+        completed: true, 
+        quantity_value: null, 
+        notes: null, 
+      };
+      createEntryMutation.mutate(createInput);
+    } else {
+      if (habit.last_entry_id) { 
+        const deleteInput: DeleteHabitEntryInput = {
+          id: habit.last_entry_id, 
+        };
+        deleteEntryMutation.mutate(deleteInput);
+      } else {
+        console.warn("Attempted to delete habit entry, but last_entry_id is missing.");
+      }
+    }
+
+    if (onToggle) {
+      onToggle(habit.id, newValue);
+    }
+  };
+
+  const streakColor = checked ? green10 : gray10; // Use safe theme value
+  const habitTypeColor = orange10; // Use safe theme value
+
+  return (
+    <XStack 
+      backgroundColor="$backgroundStrong" // Use theme variable
+      padding="$3"
+      borderRadius="$4"
+      alignItems="center"
+      justifyContent="space-between"
+      space="$3"
+    >
+      <YStack flex={1} gap="$1">
+        <Text fontSize="$4" fontWeight="500" color="$color"> // Use theme variable
+          {habit.name}
+        </Text>
+        
+        {habit.streak != null && habit.streak > 0 && ( // Add null check
+          <Text fontSize="$2" color={streakColor}> 
+            Streak: {habit.streak ?? 0}
+          </Text>
+        )}
+        {habit.habit_type && (
+          <Text fontSize="$2" color={habitTypeColor}> // Use safe theme value
+            ({habit.habit_type})
+          </Text>
+        )}
+      </YStack>
+      
+      <Button
+        size="$3"
+        variant={checked ? undefined : 'outlined'} // Let variant handle appearance
+        // Remove explicit colors - rely on theme/variant
+        theme={checked ? 'green' : undefined} // Apply green theme when checked
+        onPress={handleToggle}
+        disabled={isUpdating} 
+        iconAfter={checked ? <Text>✓</Text> : undefined}
+      >
+        {checked ? "Done" : "Check-in"}
+      </Button>
+    </XStack>
+  );
+}
+
+[EOF: components/dashboard/HabitCheckItem.tsx]
+
+========================================
+FILE: components/dashboard/StateIndicator.tsx
+----------------------------------------
+
+import React from 'react';
+// Use Tamagui components
+import { Text, XStack, YStack, Card } from 'tamagui'; 
+// Import RouterOutputs for inferred types
+import { RouterOutputs } from '@/utils/trpc';
+
+// Define prop type using inferred type from router
+type DashboardTrackedState = RouterOutputs['dashboard']['getDashboardData']['trackedStates'][number];
+
+interface StateIndicatorProps {
+  state: DashboardTrackedState; // Use the inferred type
+  onPress: () => void;
+  lastEntry: any;
+}
+
+export default function StateIndicator({ state, onPress, lastEntry }: StateIndicatorProps) {
+  // Format the last updated time
+  const formattedTime = state.lastUpdated 
+    ? new Date(state.lastUpdated).toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    : 'N/A';
+  
+  // Use Tamagui Card component
+  return (
+    <Card 
+      onPress={onPress} 
+      pressStyle={{ opacity: 0.8 }}
+      padding="$3"
+      // No explicit background, will use default Card background from theme
+    >
+      <YStack space="$1"> {/* Main container for text */}
+        <XStack flex={1} alignItems="center">
+          <Text fontSize="$4" fontWeight="500">{state.name}</Text>
+          {lastEntry && (
+            <Text fontSize="$2" color="$gray10" marginLeft="$2">
+              ({formattedTime})
+            </Text>
+          )}
+        </XStack>
+        <XStack alignItems="baseline" space="$2"> {/* Align text by baseline, add space */}
+          <Text fontSize="$5" fontWeight="600" color="$color"> {/* Use tokens */}
+            {state.currentValue}
+          </Text>
+        </XStack>
+        {!lastEntry && (
+          <Text fontSize="$2" color="$gray10" marginTop="$1">
+            No data recorded yet.
+          </Text>
+        )}
+      </YStack>
+    </Card>
+  );
+} 
+
+[EOF: components/dashboard/StateIndicator.tsx]
+
+========================================
+FILE: components/dashboard/TaskItem.tsx
+----------------------------------------
+
+import React from 'react';
+// Use Tamagui components
+import { Text, XStack, YStack, Checkbox, Spinner } from 'tamagui'; 
+import { trpc, RouterOutputs, RouterInputs } from '@/utils/trpc';
+import { Check } from '@tamagui/lucide-icons';
+
+// Custom Task type that matches the actual format returned from the backend
+type Task = {
+  id: string;
+  name: string;  // Backend returns 'name' not 'title'
+  status: string;
+  priority?: number;
+  due_date?: string; // Backend returns 'due_date' not 'due'
+  notes?: string;
+  goal_id?: string;
+  // Include other fields as needed
+};
+
+interface TaskItemProps {
+  task: Task;
+  onPress: () => void;
+}
+
+export default function TaskItem({ task, onPress }: TaskItemProps) {
+  
+  // Setup toggleTask mutation with optimistic updates
+  const utils = trpc.useContext();
+  // Setup mutation for task toggling
+  const toggleTaskMutation = trpc.task.toggleTask.useMutation({
+    // Optimistically update the UI
+    onMutate: async ({ taskId, completed }: { taskId: string; completed?: boolean }) => {
+      // Default to toggling the current state if completed is not provided
+      const newCompleted = completed !== undefined ? completed : !isCompleted;
+      // Cancel outgoing fetches that might overwrite our optimistic update
+      await utils.task.getTasks.cancel();
+      await utils.dashboard.getDashboardData.cancel();
+      
+      // Get previous data for potential rollback
+      const prevTasksData = utils.task.getTasks.getData();
+      const prevDashboardData = utils.dashboard.getDashboardData.getData();
+      
+      // Optimistically update tasks data if present
+      if (prevTasksData) {
+        utils.task.getTasks.setData({ goalId: undefined } as any, (old: any) => {
+          if (!old) return old;
+          return old.map((t: any) => {
+            if (t.id === taskId) {
+              return {
+                ...t,
+                status: completed ? 'completed' : 'in-progress'
+              };
+            }
+            return t;
+          });
+        });
+      }
+      
+      // Optimistically update dashboard data if present
+      if (prevDashboardData) {
+        utils.dashboard.getDashboardData.setData({ goalId: undefined } as any, (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            tasks: old.tasks.map((t: any) => {
+              if (t.id === taskId) {
+                return {
+                  ...t,
+                  status: newCompleted ? 'completed' : 'in-progress'
+                };
+              }
+              return t;
+            }),
+          };
+        });
+      }
+      
+      // Return previous data for rollback
+      return { prevTasksData, prevDashboardData };
+    },
+    
+    // If something goes wrong, rollback optimistic updates
+    onError: (err: any, variables: any, context: any) => {
+      if (context?.prevTasksData) {
+        utils.task.getTasks.setData({ goalId: undefined } as any, context.prevTasksData);
+      }
+      if (context?.prevDashboardData) {
+        utils.dashboard.getDashboardData.setData({ goalId: undefined } as any, context.prevDashboardData);
+      }
+      console.error('Error toggling task:', err);
+    },
+    
+    // Always refetch after error or success
+    onSettled: () => {
+      utils.task.getTasks.invalidate();
+      utils.dashboard.getDashboardData.invalidate();
+    }
+  });
+
+  // Handle checkbox toggle
+  const handleToggle = () => {
+    toggleTaskMutation.mutate({
+      taskId: task.id, // Using taskId as expected by the backend
+      completed: !isCompleted
+    });
+  };
+
+  // Map priority to color
+  const priorityColor = task.priority === 1 ? '$brandRed' : 
+                        task.priority === 2 ? '$brandYellow' : 
+                        '$brandGreen';
+  
+  // Format due date
+  const formattedDate = task.due_date 
+    ? new Date(task.due_date).toLocaleDateString(undefined, { 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    : null;
+    
+  // Determine task completion status
+  const isCompleted = task.status === 'completed';
+  // No need for text style object since we use Tamagui props directly
+
+  
+  // Use YStack as the base component
+  return (
+    <YStack 
+      backgroundColor="$backgroundStrong"
+      padding="$3"
+      borderRadius="$4"
+      space="$1" // Add space between XStack and Date Text
+    >
+      <XStack alignItems="center" space="$2"> {/* Use XStack for horizontal layout */}
+        {/* Checkbox for task completion */}
+        <Checkbox
+          size="$4"
+          checked={isCompleted}
+          onCheckedChange={handleToggle}
+          disabled={toggleTaskMutation.isPending}
+        >
+          {toggleTaskMutation.isPending ? (
+            <Spinner size="small" color="$brandPrimary" />
+          ) : (
+            <Checkbox.Indicator>
+              <Check size={16} />
+            </Checkbox.Indicator>
+          )}
+        </Checkbox>
+
+        {/* Container for task details (clickable) */}
+        <XStack flex={1} tag="pressable" onPress={onPress} pressStyle={{ opacity: 0.7 }}>
+          {/* Priority Dot using YStack */}
+          <YStack 
+            width="$2" // Use size token for width
+            height="$2" // Use size token for height
+            borderRadius="$10" // Use a large radius token
+            backgroundColor={priorityColor} 
+            marginRight="$2" // Use space token for margin
+          />
+          <Text 
+            fontSize="$4" // Use font size token
+            fontWeight={task.priority === 1 ? '600' : '400'} // Keep fontWeight
+            color="$color"
+            flex={1} // Allow text to take remaining space
+            opacity={isCompleted ? 0.7 : 1}
+            textDecorationLine={isCompleted ? 'line-through' : undefined} // Proper Tamagui text decoration
+          >
+            {task.name}
+          </Text>
+        </XStack>
+      </XStack>
+      
+      {formattedDate && (
+        // Removed explicit margin, rely on outer YStack space
+        <Text color="$gray9" fontSize="$2">
+          Due: {formattedDate}
+        </Text>
+      )}
+    </YStack>
+  );
+} 
+
+[EOF: components/dashboard/TaskItem.tsx]
+
+========================================
+FILE: components/ui/primitives/AetherCard.tsx
+----------------------------------------
+
+import React from 'react';
+import { Card, CardProps, YStack, styled } from 'tamagui';
+
+type AetherCardVariant = 'default' | 'elevated' | 'outlined';
+
+interface AetherCardProps extends CardProps {
+  variant?: AetherCardVariant;
+  // Additional props specific to AetherCard
+  isInteractive?: boolean;
+}
+
+// Create a styled Card component that uses our custom Tamagui theme variables
+const StyledCard = styled(Card, {
+  name: 'AetherCard',
+  backgroundColor: '$cardBackground',
+  borderRadius: '$4',
+  padding: '$4',
+  elevate: true,
+
+  variants: {
+    variant: {
+      default: {
+        // Using our theme tokens
+        shadowColor: '$shadowColor',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+      },
+      elevated: {
+        shadowColor: '$shadowColor',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 4,
+      },
+      outlined: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+        shadowOpacity: 0,
+        elevation: 0,
+      },
+    },
+    isInteractive: {
+      true: {
+        pressStyle: {
+          backgroundColor: '$cardBackgroundPress',
+          opacity: 0.9,
+        },
+        hoverStyle: {
+          backgroundColor: '$cardBackgroundHover',
+        },
+      },
+    },
+  } as const,
+
+  defaultVariants: {
+    variant: 'default',
+    isInteractive: false,
+  },
+});
+
+/**
+ * AetherCard - A stylized card component following Aether design system
+ *
+ * @param variant - The visual style variant: 'default', 'elevated', or 'outlined'
+ * @param isInteractive - Whether the card responds to press/hover states
+ */
+export function AetherCard({ children, variant, isInteractive, ...props }: AetherCardProps) {
+  return (
+    <StyledCard variant={variant} isInteractive={isInteractive} {...props}>
+      {children}
+    </StyledCard>
+  );
+}
+
+
+[EOF: components/ui/primitives/AetherCard.tsx]
+
+========================================
+FILE: components/ui/primitives/AetherListItem.tsx
+----------------------------------------
+
+import React from 'react';
+import { XStack, YStack, Text, styled, GetProps, Stack } from 'tamagui';
+import { Ionicons } from '@expo/vector-icons';
+
+// Base ListItem container
+const ListItemContainer = styled(XStack, {
+  name: 'ListItemContainer',
+  backgroundColor: '$cardBackground',
+  paddingVertical: '$3',
+  paddingHorizontal: '$4',
+  borderRadius: '$3',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+  minHeight: 60,
+  
+  variants: {
+    isLast: {
+      true: {
+        borderBottomWidth: 0,
+      },
+    },
+    interactive: {
+      true: {
+        pressStyle: {
+          backgroundColor: '$backgroundPress',
+          opacity: 0.9,
+        },
+        hoverStyle: {
+          backgroundColor: '$backgroundHover',
+        },
+      },
+    },
+    variant: {
+      default: {},
+      header: {
+        backgroundColor: '$backgroundStrong',
+        borderBottomColor: '$borderColor',
+        paddingVertical: '$2',
+      },
+    },
+  } as const,
+  
+  defaultVariants: {
+    isLast: false,
+    interactive: true,
+    variant: 'default',
+  },
+});
+
+type ListItemContainerProps = GetProps<typeof ListItemContainer>;
+
+export interface AetherListItemProps extends ListItemContainerProps {
+  title: string;
+  subtitle?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  showChevron?: boolean;
+  badge?: string | number;
+}
+
+/**
+ * AetherListItem - A consistent list item component for use in lists, menus, and settings
+ *
+ * @param title - The primary text
+ * @param subtitle - Optional secondary text shown below the title
+ * @param leftIcon - Optional icon component to show on the left side
+ * @param rightIcon - Optional icon component to show on the right side
+ * @param showChevron - Whether to show a right chevron (useful for navigation items)
+ * @param badge - Optional badge text/number to display
+ * @param isLast - Whether this is the last item in a list (removes bottom border)
+ * @param interactive - Whether the item should visually respond to touch
+ */
+export function AetherListItem({
+  title,
+  subtitle,
+  leftIcon,
+  rightIcon,
+  showChevron = false,
+  badge,
+  isLast,
+  interactive,
+  ...props
+}: AetherListItemProps) {
+  return (
+    <ListItemContainer isLast={isLast} interactive={interactive} {...props}>
+      {/* Left section with icon and text */}
+      <XStack space="$3" flex={1} alignItems="center">
+        {leftIcon && (
+          <Stack marginRight="$2">{leftIcon}</Stack>
+        )}
+        
+        <YStack>
+          <Text fontWeight="500" fontSize="$4">{title}</Text>
+          {subtitle && (
+            <Text fontSize="$2" color="$gray10">{subtitle}</Text>
+          )}
+        </YStack>
+      </XStack>
+      
+      {/* Right section with badge, custom icon or chevron */}
+      <XStack space="$2" alignItems="center">
+        {badge && (
+          <XStack 
+            backgroundColor="$primary"
+            paddingHorizontal="$2"
+            paddingVertical="$1"
+            borderRadius="$2"
+          >
+            <Text color="white" fontSize="$1" fontWeight="bold">{badge}</Text>
+          </XStack>
+        )}
+        
+        {rightIcon && rightIcon}
+        
+        {showChevron && (
+          <Ionicons name="chevron-forward" size={16} color="$gray10" />
+        )}
+      </XStack>
+    </ListItemContainer>
+  );
+}
+
+
+[EOF: components/ui/primitives/AetherListItem.tsx]
+
+========================================
+FILE: components/ui/EmptyOrSkeleton.tsx
+----------------------------------------
+
+import React from 'react';
+import { YStack, Text, Button } from 'tamagui';
+import { SkeletonCard, SkeletonRow, SkeletonCircle } from './Skeleton';
+import { SectionError } from './ErrorBanner';
+
+export interface EmptyOrSkeletonProps {
+  // Loading state
+  isLoading?: boolean;
+  count?: number;
+  type?: 'card' | 'row' | 'circle';
+  
+  // Empty state
+  isEmpty?: boolean;
+  text?: string;
+  actionText?: string;
+  onAction?: () => void;
+  
+  // Error state
+  isError?: boolean;
+  onRetry?: () => void;
+  
+  // Children to render when not in any special state
+  children?: React.ReactNode;
+}
+
+export const EmptyOrSkeleton = ({
+  isLoading = false,
+  count = 3,
+  type = 'row',
+  isEmpty = false,
+  text = 'No items found',
+  actionText = 'Add New',
+  onAction,
+  isError = false,
+  onRetry,
+  children
+}: EmptyOrSkeletonProps) => {
+  // Generate skeleton based on type
+  const renderSkeletons = () => {
+    const skeletons = [];
+    for (let i = 0; i < count; i++) {
+      if (type === 'card') {
+        skeletons.push(<SkeletonCard key={i} />);
+      } else if (type === 'circle') {
+        skeletons.push(<SkeletonCircle key={i} />);
+      } else {
+        skeletons.push(<SkeletonRow key={i} />);
+      }
+    }
+    return skeletons;
+  };
+
+  // Show skeleton if loading
+  if (isLoading) {
+    return (
+      <YStack space="$3">
+        {renderSkeletons()}
+      </YStack>
+    );
+  }
+  
+  // Show error state if there's an error
+  if (isError) {
+    return (
+      <SectionError 
+        message={text} 
+        onRetry={onRetry} 
+      />
+    );
+  }
+  
+  // Show empty state if empty
+  if (isEmpty) {
+    return (
+      <YStack
+        padding="$4"
+        alignItems="center"
+        justifyContent="center"
+        space="$3"
+      >
+        <Text textAlign="center" color="$gray11">
+          {text}
+        </Text>
+        {onAction && (
+          <Button size="$3" onPress={onAction}>
+            {actionText}
+          </Button>
+        )}
+      </YStack>
+    );
+  }
+  
+  // Default: return children
+  return <>{children}</>;
+};
+
+
+[EOF: components/ui/EmptyOrSkeleton.tsx]
+

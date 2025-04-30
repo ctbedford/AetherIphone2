@@ -5,8 +5,8 @@ import { SafeAreaView, View, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '@/utils/supabase';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useUiStore } from '@/stores/uiStore';
+import { useColorScheme } from 'react-native';
+import { useAccent } from '@/app/_layout'; // Import the useAccent hook
 
 interface SettingsSectionProps {
   title: string;
@@ -59,10 +59,11 @@ const SettingsRow = ({ label, icon, rightElement, onPress, showChevron = false }
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
-  const { isDarkMode, toggleTheme } = useUiStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  
+  const { setAccent } = useAccent(); // Get the function to update accent color
+  const [selectedAccent, setSelectedAccent] = useState('blue'); // Placeholder state for selected accent
+
   const handleLogout = async () => {
     Alert.alert(
       'Log Out',
@@ -80,7 +81,28 @@ export default function SettingsScreen() {
       ]
     );
   };
-  
+
+  const AccentSelector = ({ currentAccent, onSelect }: { currentAccent: string, onSelect: (accent: string) => void }) => {
+    const accents = ['blue', 'green', 'orange', 'red']; // Example accents corresponding to theme names
+    return (
+      <XStack space="$2">
+        {accents.map((accent) => (
+          <Button 
+            key={accent} 
+            onPress={() => {
+              onSelect(accent);
+              setAccent(accent); // Call setAccent with the selected accent
+            }} 
+            theme={accent as any} // Preview the theme (cast needed for demo)
+            backgroundColor={accent === currentAccent ? '$backgroundStrong' : '$background'}
+          >
+            {accent.charAt(0).toUpperCase() + accent.slice(1)}
+          </Button>
+        ))}
+      </XStack>
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
       <ScrollView>
@@ -123,13 +145,17 @@ export default function SettingsScreen() {
           >
             <YStack>
               <SettingsRow
-                label="Dark Mode"
+                label="Theme"
                 icon={<Ionicons name="moon-outline" size={20} color="#A0A0A0" />}
+                rightElement={<Text color="$gray10">{colorScheme === 'dark' ? 'Dark (System)' : 'Light (System)'}</Text>}
+              />
+              <SettingsRow
+                label="Accent Color"
+                icon={<Ionicons name="color-palette-outline" size={20} color="#A0A0A0" />}
                 rightElement={
-                  <Switch
-                    size="$3"
-                    checked={isDarkMode}
-                    onCheckedChange={toggleTheme}
+                  <AccentSelector 
+                    currentAccent={selectedAccent} 
+                    onSelect={(accent) => setSelectedAccent(accent)} 
                   />
                 }
               />

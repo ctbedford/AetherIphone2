@@ -1,4 +1,5 @@
 // providers/Providers.tsx
+import '../tamagui.config'; // Ensure Tamagui config is loaded first!
 import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui';

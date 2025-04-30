@@ -10,11 +10,16 @@ import GoalSummaryCard from '@/components/dashboard/GoalSummaryCard';
 import HabitCheckItem from '@/components/dashboard/HabitCheckItem';
 import TaskItem from '@/components/dashboard/TaskItem';
 import StateIndicator from '@/components/dashboard/StateIndicator';
-import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
+import DailyProgressBanner from '@/components/dashboard/DailyProgressBanner'; // Import Banner
+import EmptyOrSkeleton from '@/components/ui/EmptyOrSkeleton';
 import { SkeletonCard, SkeletonRow } from '@/components/ui/Skeleton';
 import { useSkeleton } from '@/hooks/useSkeleton';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useToastController } from '@tamagui/toast';
+import { BlurView } from 'expo-blur';
+import { Plus } from '@tamagui/lucide-icons';
+import LottieView from 'lottie-react-native';
+import SwipeableRow from '@/components/ui/SwipeableRow'; // Import SwipeableRow
 
 // Types inferred from tRPC Router
 type RouterOutput = RouterOutputs['dashboard']['getDashboardData'];
@@ -57,6 +62,7 @@ export type DashboardState = {
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const toast = useToastController();
+  const utils = trpc.useUtils(); // Get tRPC utils for mutations
   
   // Define types using RouterOutputs for clarity and safety
   // type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
@@ -184,46 +190,40 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
       <ScrollView 
-        flex={1}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={onRefresh}
-            tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
+            tintColor="transparent" // Hide default spinner
+            colors={['transparent']} // Hide default spinner (Android)
+            progressBackgroundColor="transparent" // Hide default bg (Android)
+            refreshingComponent={
+              <LottieView
+                source={require('@/assets/refresh-sheikah.json')} // ASSUMES this file exists
+                autoPlay
+                loop
+                style={{ width: 48, height: 48, alignSelf: 'center' }} // Center the animation
+              />
+            }
           />
         }
       >
-        <YStack padding="$4" space="$5">
+        <YStack space="$4" paddingHorizontal="$4">
           {/* Header */}
           <YStack space="$1">
             <H1>{greeting}</H1>
             <Text color="$gray10">{currentDate}</Text>
           </YStack>
 
-          {/* Quick Actions */}
-          <XStack space="$2" justifyContent="flex-start" flexShrink={1} alignSelf="stretch">
-            <Button
-              size="$2"
-              themeInverse
-              onPress={() => {
-                router.push('/planner/add-task');
-              }}
-            >
-              <Ionicons name="add-outline" size={18} color="white" />
-              New Task
-            </Button>
-            <Button
-              size="$2"
-              themeInverse
-              onPress={() => {
-                router.push('/planner/add-habit');
-              }}
-            >
-              <Ionicons name="repeat-outline" size={18} color="white" />
-              New Habit
-            </Button>
-          </XStack>
+          {/* Daily Progress Banner */}
+          <DailyProgressBanner 
+            // tasksCompleted={...} 
+            // totalTasks={...} 
+            // habitsChecked={...} 
+            // totalHabits={...} 
+          />
 
           {/* Goals Section */}
           <DashboardSection 
@@ -248,12 +248,21 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$3">
-                {dashboardDataMemo.goals.slice(0, 3).map((goal: DashboardGoal) => (
-                  <GoalSummaryCard 
-                    key={goal.id} 
-                    goal={goal}
-                    onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } } as any)} 
-                  />
+                {dashboardDataMemo.goals.slice(0, 3).map((goal) => (
+                  <SwipeableRow
+                    key={goal.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.goal.delete.mutate({ id: goal.id })
+                      console.log('Attempting to delete goal:', goal.id); // Placeholder
+                      // utils.goal.delete.mutate({ id: goal.id });
+                    }}
+                  >
+                    <GoalSummaryCard
+                      goal={goal}
+                      onPress={() => router.push(`/planner/goal/${goal.id}`)}
+                    />
+                  </SwipeableRow>
                 ))}
               </YStack>
             )}
@@ -282,24 +291,18 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$2">
-                {dashboardDataMemo.habits.slice(0, 4).map((habit: DashboardHabit) => (
-                  <HabitCheckItem 
-                    key={habit.id} 
-                    habit={habit}
-                    onToggle={(habitId, completed) => {
-                      // Use today's date for the habit entry
-                      const today = new Date().toISOString().split('T')[0];
-                      
-                      // Call the mutation hook defined above
-                      createHabitEntryMutation.mutate(
-                        { 
-                          habit_id: habitId, 
-                          completed, 
-                          date: today
-                        }
-                      );
+                {dashboardDataMemo.habits.slice(0, 4).map((habit) => (
+                  <SwipeableRow
+                    key={habit.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.habit.delete.mutate({ id: habit.id })
+                      console.log('Attempting to delete habit:', habit.id); // Placeholder
+                      // utils.habit.delete.mutate({ id: habit.id });
                     }}
-                  />
+                  >
+                    <HabitCheckItem habit={habit} />
+                  </SwipeableRow>
                 ))}
               </YStack>
             )}
@@ -330,7 +333,7 @@ export default function HomeScreen() {
               />
             ) : (
               <XStack space="$3" flexWrap="wrap"> 
-                {dashboardDataMemo.trackedStates.map((stateData: DashboardState) => (
+                {dashboardDataMemo.trackedStates.map((stateData) => (
                   <StateIndicator
                     key={stateData.id}
                     state={stateData} // Pass the whole state object which includes lastEntry
@@ -366,33 +369,65 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$2">
-                {dashboardDataMemo.tasks.slice(0, 5).map((task: DashboardTask) => (
-                  <TaskItem
+                {dashboardDataMemo.tasks.slice(0, 5).map((task) => (
+                  <SwipeableRow
                     key={task.id}
-                    task={{
-                      // Explicitly pass props matching DashboardTask type
-                      id: task.id, // Ensure id is passed
-                      name: task.name, // Already defaulted in map
-                      status: task.status, // Pass status
-                      due_date: task.due_date, // Pass due_date
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.task.delete.mutate({ id: task.id })
+                      console.log('Attempting to delete task:', task.id); // Placeholder
+                      // utils.task.delete.mutate({ id: task.id });
                     }}
-                    isLast={false} // Adjust if needed for styling
-                    onPress={() => console.log('Task Item Pressed:', task.id)}
-                  />
+                  >
+                    <TaskItem
+                      task={{
+                        // Explicitly pass props matching DashboardTask type
+                        id: task.id, // Ensure id is passed
+                        name: task.name, // Already defaulted in map
+                        status: task.status, // Pass status
+                        due_date: task.due_date, // Pass due_date
+                      }}
+                      isLast={false} // Adjust if needed for styling
+                      onPress={() => console.log('Task Item Pressed:', task.id)}
+                    />
+                  </SwipeableRow>
                 ))}
               </YStack>
             )}
           </DashboardSection>
         </YStack>
       </ScrollView>
+      <QuickAddFAB />
     </SafeAreaView>
   );
 }
 
-// Helper function to determine greeting based on time of day
+// Helper function for greeting
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good Morning';
   if (hour < 18) return 'Good Afternoon';
-  return 'Good Evening';
+  return 'Good evening';
+}
+
+// Quick Add FAB Component
+function QuickAddFAB() {
+  return (
+    <BlurView intensity={40} tint="default" style={{ position:'absolute', bottom:24, right:24, borderRadius:32, overflow: 'hidden' }}>
+      <Button
+        circular
+        size="$5"
+        backgroundColor="$accent"
+        icon={Plus}
+        elevate
+        shadowColor="$shadowColor"
+        shadowRadius={5}
+        shadowOffset={{ width: 0, height: 2 }}
+        pressStyle={{ scale: 0.95, opacity: 0.9 }}
+        onPress={() => {
+          router.push('/planner/add-task');
+        }}
+      />
+    </BlurView>
+  );
 }

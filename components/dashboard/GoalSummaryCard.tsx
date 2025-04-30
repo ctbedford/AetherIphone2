@@ -1,7 +1,8 @@
 import React from 'react';
-import { Text, XStack, Card } from 'tamagui';
+import { Text, XStack, Button } from 'tamagui';
 import ProgressRing from '@/components/aether/ProgressRing';
 import { RouterOutputs } from '@/utils/trpc';
+import { BlurView } from 'expo-blur'; // Import BlurView
 
 // Define a custom type that includes everything we need
 type DashboardGoal = {
@@ -23,30 +24,35 @@ interface GoalSummaryCardProps {
 
 export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps) {
   return (
-    <Card 
-      bordered
-      elevate
-      onPress={onPress} 
-      pressStyle={{ opacity: 0.8 }}
-      padding="$3"
+    <BlurView 
+      intensity={50} 
+      tint="default" 
+      style={{ borderRadius: 12, overflow: 'hidden' }}
     >
-      <XStack alignItems="center" space="$3">
-        <ProgressRing
-          progress={goal.progress}
-          size={40}
-          primaryColor="$primary"
-        />
-        <XStack flex={1} flexDirection="column">
-          <Text fontSize="$4" fontWeight="500" color="$color">
-            {goal.title}
-          </Text>
-          {goal.tasks && (
-            <Text color="$gray9" fontSize="$2">
-              {goal.tasks.completed}/{goal.tasks.total} tasks completed
+      <Button 
+        chromeless // Remove default button styling
+        padding="$3" 
+        onPress={onPress}
+        width="100%" // Ensure it fills the BlurView
+      >
+        <XStack alignItems="center" space="$3" flex={1}> 
+          <ProgressRing
+            progress={goal.progress}
+            size={40}
+            primaryColor="$primary"
+          />
+          <XStack flex={1} flexDirection="column">
+            <Text fontSize="$4" fontWeight="500" color="$color">
+              {goal.title}
             </Text>
-          )}
+            {goal.tasks && (
+              <Text color="$gray9" fontSize="$2">
+                {goal.tasks.completed}/{goal.tasks.total} tasks completed
+              </Text>
+            )}
+          </XStack>
         </XStack>
-      </XStack>
-    </Card>
+      </Button>
+    </BlurView>
   );
 }

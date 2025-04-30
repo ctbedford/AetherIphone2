@@ -62,10 +62,10 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
           return {
             ...old,
             tasks: old.tasks.map((t: any) => {
-              if (t.id === task_id) {
+              if (t.id === taskId) {
                 return {
                   ...t,
-                  status: completed ? 'completed' : 'in-progress'
+                  status: newCompleted ? 'completed' : 'in-progress'
                 };
               }
               return t;
@@ -81,10 +81,10 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
     // If something goes wrong, rollback optimistic updates
     onError: (err: any, variables: any, context: any) => {
       if (context?.prevTasksData) {
-        utils.task.getTasks.setData(undefined, context.prevTasksData);
+        utils.task.getTasks.setData({ goalId: undefined } as any, context.prevTasksData);
       }
       if (context?.prevDashboardData) {
-        utils.dashboard.getDashboardData.setData(undefined, context.prevDashboardData);
+        utils.dashboard.getDashboardData.setData({ goalId: undefined } as any, context.prevDashboardData);
       }
       console.error('Error toggling task:', err);
     },

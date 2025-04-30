@@ -1,13 +1,19 @@
 // app/_layout.tsx
-import React, { useCallback, useEffect, useState, ReactNode } from 'react';
+import '../tamagui.config'; // Import config first!
+
+import React, { useCallback, useEffect, useState, ReactNode, createContext, useContext } from 'react';
 import { Slot, SplashScreen, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import { useColorScheme } from 'react-native';
+import { TamaguiProvider, Theme } from 'tamagui'; // Consolidate Tamagui imports
+// tamagui config is already imported at the top of the file
+import type { ThemeName } from '@tamagui/core'; // Ensure ThemeName is imported from @tamagui/core
+import * as SecureStore from 'expo-secure-store'; // Import SecureStore
 
-import { Providers } from '@/providers/Providers';
 import { supabase } from '@/utils/supabase';
 
 import type { Session } from '@supabase/supabase-js';
@@ -148,6 +154,132 @@ function Root() {
 /* ------------------------------------------------------------------ */
 /*  4. Wrap everything with SafeArea, Providers, etc.                  */
 /* ------------------------------------------------------------------ */
+import { ToastProvider, Toast, useToastState, ToastViewport } from '@tamagui/toast';
+import { CheckCircle, AlertCircle, AlertTriangle, Info } from '@tamagui/lucide-icons';
+import { YStack, XStack } from 'tamagui';
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+
+const ACCENT_COLOR_KEY = 'userAccentColor';
+const DEFAULT_ACCENT = 'blue'; // Set your default accent color theme name here
+
+// Context to provide accent update function down the tree
+const AccentContext = createContext({
+  setAccent: (color: string) => {},
+});
+export const useAccent = () => useContext(AccentContext);
+
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
+  const themeMode = colorScheme === 'dark' ? 'dark' : 'light';
+
+  return (
+    <ToastProvider swipeDirection="horizontal" duration={6000}>
+      <Slot />
+      <CurrentToast />
+      <ToastViewport name="DefaultViewport" top={40} left={0} right={0} /> 
+    </ToastProvider>
+  );
+}
+
+function CurrentToast() {
+  const currentToast = useToastState();
+
+  if (!currentToast || currentToast.isHandledNatively) {
+    return null;
+  }
+
+  const toastType = currentToast.customData?.type || 'info'; // Default to 'info'
+  let themeName = 'toast_info'; // Default theme
+  let IconComponent = Info;
+
+  switch (toastType) {
+    case 'success':
+      themeName = 'toast_success';
+      IconComponent = CheckCircle;
+      break;
+    case 'error':
+      themeName = 'toast_error';
+      IconComponent = AlertCircle;
+      break;
+    case 'warning':
+      themeName = 'toast_warning';
+      IconComponent = AlertTriangle;
+      break;
+  }
+
+  return (
+    <Theme name={themeName as ThemeName}> {/* Cast themeName to ThemeName */}
+      <Toast
+        key={currentToast.id}
+        duration={currentToast.duration}
+        enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+        exitStyle={{ opacity: 0, scale: 0.95, y: -10 }} // Adjusted exit style slightly
+        y={0}
+        opacity={1}
+        scale={1}
+        animation="bouncy" // Apply bouncy animation
+        viewportName={currentToast.viewportName ?? 'DefaultViewport'}
+        backgroundColor="$background" // Use background from the wrapped theme
+        padding="$3"
+        borderRadius="$4"
+        marginHorizontal="$4"
+        elevate
+        shadowColor="$shadowColor"
+      >
+        <YStack space="$1">
+          <XStack space="$2" alignItems="center">
+            <IconComponent size={18} color="$color" /> {/* Use color from the wrapped theme */}
+            <Toast.Title color="$color">{currentToast.title}</Toast.Title> {/* Use color from the wrapped theme */}
+          </XStack>
+          {!!currentToast.message && (
+            <Toast.Description color="$color"> {/* Use color from the wrapped theme */}
+              {currentToast.message}
+            </Toast.Description>
+          )}
+        </YStack>
+      </Toast>
+    </Theme>
+  );
+}
+
+function Providers({ children }: { children: React.ReactNode }) {
+  const colorScheme = useColorScheme();
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT);
+
+  // Load accent color on mount
+  useEffect(() => {
+    const loadAccent = async () => {
+      try {
+        const savedAccent = await SecureStore.getItemAsync(ACCENT_COLOR_KEY);
+        if (savedAccent) {
+          setAccentColor(savedAccent);
+        }
+      } catch (error) {
+        console.error('Failed to load accent color:', error);
+      }
+    };
+    loadAccent();
+  }, []);
+
+  // Function to update and save accent color
+  const handleSetAccent = useCallback(async (newColor: string) => {
+    try {
+      await SecureStore.setItemAsync(ACCENT_COLOR_KEY, newColor);
+      setAccentColor(newColor);
+    } catch (error) {
+      console.error('Failed to save accent color:', error);
+    }
+  }, []);
+
+  return (
+    <AccentContext.Provider value={{ setAccent: handleSetAccent }}>
+      <Theme name={accentColor as ThemeName}> {/* Cast accentColor to ThemeName */}
+        {children}
+      </Theme>
+    </AccentContext.Provider>
+  );
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -157,7 +289,7 @@ export default function RootLayout() {
           {/* Auth Provider manages session state */}
           <AuthProvider>
             {/* Root handles splash, font loading, and redirects */}
-            <Root />
+            <RootLayoutNav />
           </AuthProvider>
         </Providers>
       </SafeAreaProvider>
