@@ -22,7 +22,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home/index" // Update to match actual file path
+        name="home/index"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
@@ -31,7 +31,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="planner/index" // Update to match actual file path
+        name="planner/index"
         options={{
           title: 'Planner',
           tabBarIcon: ({ color, size }) => (
@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="compass/index" // Update to match actual file path
+        name="compass/index"
         options={{
           title: 'Compass',
           tabBarIcon: ({ color, size }) => (
@@ -49,7 +49,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="rewards/index" // Update to match actual file path
+        name="rewards/index"
         options={{
           title: 'Rewards',
           tabBarIcon: ({ color, size }) => (
@@ -58,7 +58,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings/index" // Update to match actual file path
+        name="settings/index"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (

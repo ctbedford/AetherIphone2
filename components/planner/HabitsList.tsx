@@ -105,7 +105,7 @@ function HabitItem({
           onCheckedChange={handleToggle}
           disabled={isUpdating}
           borderColor="$gray8"
-          backgroundColor={isChecked ? "$green9" : undefined}
+          backgroundColor={isChecked ? "green" : undefined}
           opacity={isUpdating ? 0.5 : 1}
           size="$5"
         />

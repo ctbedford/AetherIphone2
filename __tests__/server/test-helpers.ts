@@ -106,10 +106,36 @@ export function resetSupabaseMocks() {
       statusText: 'OK' 
   });
 
+  // Helper type to create Promise-like chain-terminating objects
+  type AsyncResult<T> = Promise<{ data: T | null; error: any; count?: number; status?: number; statusText?: string; }>;
+
+  // Helper function to create a proper mock that handles both chaining AND awaiting
+  function createMockWithPromiseCapability<T>(defaultData: T | null = null): any {
+    const mockObj = mockDeep<MockableTableOperations>();
+    
+    // Add an implicit then handler that allows awaiting the mock directly
+    // This is what Supabase's actual Query Builder does
+    const defaultResponse = { 
+      data: defaultData, 
+      error: null, 
+      count: defaultData && Array.isArray(defaultData) ? defaultData.length : 0,
+      status: 200, 
+      statusText: 'OK' 
+    };
+    
+    // Allow the mock to be awaited directly
+    (mockObj as any).then = jest.fn((onFulfill, onReject) => {
+      return Promise.resolve(defaultResponse).then(onFulfill, onReject);
+    });
+    
+    return mockObj;
+  }
+
   // Default behavior for 'from': Return a mock that handles chaining and terminal methods
   mockSupabaseAdmin.from.mockImplementation((relation: string) => {
     // This inner mock needs to satisfy MockableTableOperations
-    const innerMock = mockDeep<MockableTableOperations>();
+    // AND be awaitable like a promise for terminal operations
+    const innerMock = createMockWithPromiseCapability<any[]>([]);
 
     // --- Configure Default CHAINABLE Methods (Return Self) --- 
     innerMock.select.mockReturnValue(innerMock);
@@ -140,15 +166,42 @@ export function resetSupabaseMocks() {
     innerMock.range.mockReturnValue(innerMock);
     innerMock.order.mockReturnValue(innerMock);
 
-    // --- Configure Default TERMINAL Methods (Return Default Promise or Builder) --- 
-    const defaultResponse = { data: null, error: null, count: 0, status: 200, statusText: 'OK' };
-    innerMock.single.mockResolvedValue(defaultResponse);
-    innerMock.maybeSingle.mockResolvedValue(defaultResponse);
-    // These now return the builder by default to allow chaining
-    innerMock.insert.mockReturnValue(innerMock); 
-    innerMock.upsert.mockReturnValue(innerMock); 
-    innerMock.update.mockReturnValue(innerMock); 
-    innerMock.delete.mockReturnValue(innerMock); 
+    // --- Configure Default TERMINAL Methods --- 
+    // For single-returning methods, default to null
+    const singleResponse = { 
+      data: null, 
+      error: null, 
+      status: 200, 
+      statusText: 'OK' 
+    };
+    
+    innerMock.single.mockResolvedValue(singleResponse);
+    innerMock.maybeSingle.mockResolvedValue(singleResponse);
+    
+    // For insert/update/upsert operations, return the builder that can be chained further or awaited
+    innerMock.insert.mockImplementation(() => {
+      const insertMock = createMockWithPromiseCapability();
+      insertMock.select.mockReturnValue(insertMock);
+      return insertMock;
+    });
+    
+    innerMock.upsert.mockImplementation(() => {
+      const upsertMock = createMockWithPromiseCapability();
+      upsertMock.select.mockReturnValue(upsertMock);
+      return upsertMock;
+    });
+    
+    innerMock.update.mockImplementation(() => {
+      const updateMock = createMockWithPromiseCapability();
+      updateMock.select.mockReturnValue(updateMock);
+      return updateMock;
+    });
+    
+    innerMock.delete.mockImplementation(() => {
+      const deleteMock = createMockWithPromiseCapability();
+      deleteMock.select.mockReturnValue(deleteMock);
+      return deleteMock;
+    });
 
     return innerMock;
   });

@@ -3,7 +3,18 @@ import { Text, XStack, Card } from 'tamagui';
 import ProgressRing from '@/components/aether/ProgressRing';
 import { RouterOutputs } from '@/utils/trpc';
 
-type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
+// Define a custom type that includes everything we need
+type DashboardGoal = {
+  id: string;
+  title: string;
+  status?: string;
+  priority?: number;
+  progress: number;
+  tasks?: {
+    total: number;
+    completed: number;
+  };
+};
 
 interface GoalSummaryCardProps {
   goal: DashboardGoal;

@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       badge_definitions: {
@@ -702,8 +677,7 @@ export type Database = {
           id: string
           notes: string | null
           parent_task_id: string | null
-          priority: number | null
-          priority_enum: Database["public"]["Enums"]["task_priority"] | null
+          priority: Database["public"]["Enums"]["task_priority"] | null
           recurrence_end_date: string | null
           recurrence_rule: string | null
           sort_order: number | null
@@ -720,8 +694,7 @@ export type Database = {
           id?: string
           notes?: string | null
           parent_task_id?: string | null
-          priority?: number | null
-          priority_enum?: Database["public"]["Enums"]["task_priority"] | null
+          priority?: Database["public"]["Enums"]["task_priority"] | null
           recurrence_end_date?: string | null
           recurrence_rule?: string | null
           sort_order?: number | null
@@ -738,8 +711,7 @@ export type Database = {
           id?: string
           notes?: string | null
           parent_task_id?: string | null
-          priority?: number | null
-          priority_enum?: Database["public"]["Enums"]["task_priority"] | null
+          priority?: Database["public"]["Enums"]["task_priority"] | null
           recurrence_end_date?: string | null
           recurrence_rule?: string | null
           sort_order?: number | null
@@ -1155,9 +1127,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       habit_frequency_period: ["day", "week", "month"],

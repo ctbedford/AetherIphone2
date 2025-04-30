@@ -26,6 +26,11 @@ export const useValue = {
   // Add strongly typed hooks here
 };
 
+// principle hooks
+export const usePrinciple = {
+  // Add strongly typed hooks here
+};
+
 // goal hooks
 export const useGoal = {
   // Add strongly typed hooks here
@@ -48,6 +53,16 @@ export const useState = {
 
 // rewards hooks
 export const useRewards = {
+  // Add strongly typed hooks here
+};
+
+// reminder hooks
+export const useReminder = {
+  // Add strongly typed hooks here
+};
+
+// goalProgressNote hooks
+export const useGoalProgressNote = {
   // Add strongly typed hooks here
 };
 

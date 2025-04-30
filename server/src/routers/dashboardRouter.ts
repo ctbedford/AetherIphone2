@@ -152,10 +152,14 @@ export const dashboardRouter = router({
           const progress = total > 0 ? comp / total : 0;
           return {
             id: g.id,
-            name: g.name, // Use name
+            title: g.name, // Changed name to title to match frontend expectations
             status: g.status, // Pass status directly
             priority: g.priority, // Pass priority
             progress: Math.round(progress * 100) / 100, // Keep calculated progress
+            tasks: { // Add tasks information expected by GoalSummaryCard
+              total: total,
+              completed: comp
+            }
           };
         });
 

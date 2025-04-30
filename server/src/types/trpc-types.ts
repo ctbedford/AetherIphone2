@@ -1,3 +1,4 @@
+// server/src/types/trpc-types.ts
 /*
   Aether – Shared tRPC Types
   ------------------------------------------------------------------
@@ -12,7 +13,7 @@ import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '../router';
 
 /* ------------------------------------------------------------------
- *  Enums (keep in sync with DB enums)
+ * Enums (keep in sync with DB enums)
  * ----------------------------------------------------------------*/
 export const TaskStatusEnum = z.enum(['todo', 'doing', 'done', 'blocked', 'pending']);
 export const TaskPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -21,7 +22,7 @@ export const HabitTypeEnum = z.enum(['boolean', 'quantity']);
 export const HabitFrequencyPeriodEnum = z.enum(['day', 'week', 'month']);
 
 /* ------------------------------------------------------------------
- *  Domain Models (DB row shapes) – keep in sync with Supabase tables
+ * Domain Models (DB row shapes) – keep in sync with Supabase tables
  * ----------------------------------------------------------------*/
 export const UserProfile = z.object({
   id: z.string().uuid(),
@@ -63,7 +64,7 @@ export type UserSettings = z.infer<typeof UserSettings>;
 export const Value = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  name: z.string(),
+  title: z.string(), 
   description: z.string().nullish(),
   color: z.string().nullish(),
   icon: z.string().nullish(),
@@ -76,8 +77,8 @@ export type Value = z.infer<typeof Value>;
 export const Principle = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullish(),
+  title: z.string(), // <<< Changed from 'name' to 'title'
+  body: z.string(), // <<< Renamed from description for clarity, matching migration
   sort_order: z.number().int().nullish(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime().nullish(),
@@ -104,7 +105,7 @@ export const Task = z.object({
   title: z.string(),
   notes: z.string().nullish(),
   status: TaskStatusEnum.default('todo'),
-  priority: TaskPriorityEnum.nullish(),
+  priority_enum: TaskPriorityEnum.nullish(), // <<< Renamed from priority
   due_date: z.string().datetime().nullish(),
   goal_id: z.string().uuid().nullish(),
   parent_task_id: z.string().uuid().nullish(),
@@ -134,6 +135,7 @@ export const Habit = z.object({
   recurrence_rule: z.string().nullish(),
   recurrence_end_date: z.string().datetime().nullish(),
   archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(), // <<< Added sort_order
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
 });
@@ -155,11 +157,15 @@ export const TrackedStateDef = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   name: z.string(),
-  category: z.string(),
-  unit: z.string().nullish(),
-  icon: z.string().nullish(),
-  target_min_value: z.number().nullish(),
-  target_max_value: z.number().nullish(),
+  // category: z.string(), // Category seems removed/replaced in DB schema by scale/custom_labels
+  scale: z.enum(['1-5', 'low-high', 'custom']), // <<< Added scale
+  custom_labels: z.array(z.string()).nullish(), // <<< Added custom_labels
+  unit: z.string().nullish(), // Keep unit if still used alongside scale
+  icon: z.string().nullish(), // Keep icon if still used
+  target_min_value: z.number().nullish(), // <<< Added
+  target_max_value: z.number().nullish(), // <<< Added
+  active: z.boolean().default(true), // <<< Added active
+  priority: z.number().int().default(1), // <<< Added priority
   created_at: z.string().datetime(),
   updated_at: z.string().datetime().nullish(),
 });
@@ -168,30 +174,54 @@ export type TrackedStateDef = z.infer<typeof TrackedStateDef>;
 export const StateEntry = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  tracked_state_def_id: z.string().uuid(),
-  value: z.number(),
-  timestamp: z.string().datetime(),
-  notes: z.string().nullish(),
+  definition_id: z.string().uuid(), // <<< Renamed from tracked_state_def_id for consistency? check DB
+  value_numeric: z.number().optional().nullable(),
+  value_text: z.string().optional().nullable(),
+  entry_timestamp: z.string().datetime({ message: "Invalid datetime string. Must be UTC ISO 8601" }).optional(),
+  notes: z.string().optional().nullable(), // <<< Added notes
 });
 export type StateEntry = z.infer<typeof StateEntry>;
 
 export const Reward = z.object({
   id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  type: RewardTypeEnum,
-  title: z.string(),
+  name: z.string(),
   description: z.string().nullish(),
-  icon: z.string().nullish(),
-  points_cost: z.number().int().nullish(),
+  type: RewardTypeEnum,
+  required_points: z.number().int().nonnegative().default(0),
+  can_earn_multiple: z.boolean().default(false),
+  image_url: z.string().url().nullish(),
   metadata: z.record(z.any()).nullish(),
-  claimed: z.boolean().default(false),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
 });
 export type Reward = z.infer<typeof Reward>;
 
-export const BadgeDefinition = z.object({
+export const UserReward = z.object({
   id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  reward_id: z.string().uuid(),
+  reward_type: z.string().nullish(), // From DB schema
+  earned_at: z.string().datetime(),
+  points_spent: z.number().int().nonnegative().default(0),
+  metadata: z.record(z.any()).nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type UserReward = z.infer<typeof UserReward>;
+
+export const PointTransaction = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  points: z.number().int(),
+  reason: z.string(),
+  source_type: z.string(),
+  source_id: z.string().uuid().nullish(),
+  created_at: z.string().datetime(),
+});
+export type PointTransaction = z.infer<typeof PointTransaction>;
+
+export const BadgeDefinition = z.object({
+  id: z.string(), // From DB: text primary key
   title: z.string(),
   description: z.string().nullish(),
   icon: z.string(),
@@ -199,10 +229,11 @@ export const BadgeDefinition = z.object({
 export type BadgeDefinition = z.infer<typeof BadgeDefinition>;
 
 export const UserBadge = z.object({
-  id: z.string().uuid(),
+  // Note: user_badges might be merged into user_rewards with type='badge'
   user_id: z.string().uuid(),
-  badge_id: z.string().uuid(),
+  badge_id: z.string(), // Matches badge_definitions.id (text)
   earned_at: z.string().datetime(),
+  progress: z.number().nullish(), // From DB schema
 });
 export type UserBadge = z.infer<typeof UserBadge>;
 
@@ -228,7 +259,7 @@ export const GoalProgressNote = z.object({
 export type GoalProgressNote = z.infer<typeof GoalProgressNote>;
 
 /* ------------------------------------------------------------------
- *  Router‑level Schemas – inputs & outputs for every procedure
+ * Router‑level Schemas – inputs & outputs for every procedure
  * ----------------------------------------------------------------*/
 export const greetingInput = z.object({ name: z.string().optional() });
 export const greetingOutput = z.object({ greeting: z.string() });
@@ -245,6 +276,7 @@ export const createValueInput = Value.omit({ id: true, user_id: true, created_at
 export const updateValueInput = createValueInput.partial().extend({ id: z.string().uuid() });
 
 // Principles
+// Uses 'title' and 'body' from the updated Principle schema
 export const createPrincipleInput = Principle.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updatePrincipleInput = createPrincipleInput.partial().extend({ id: z.string().uuid() });
 
@@ -268,102 +300,53 @@ export const updateHabitEntryInput = createHabitEntryInput.partial().extend({ id
 // Tracked State Definitions
 export const createTrackedStateDefInput = TrackedStateDef.omit({ id: true, user_id: true, created_at: true, updated_at: true });
 export const updateTrackedStateDefInput = createTrackedStateDefInput.partial().extend({ id: z.string().uuid() });
-
-// State Entries
-export const createStateEntryInput = StateEntry.omit({ id: true, user_id: true });
-export const updateStateEntryInput = createStateEntryInput.partial().extend({ id: z.string().uuid() });
-
-// Rewards
-export const createRewardInput = Reward.omit({ id: true, user_id: true, created_at: true, updated_at: true });
-export const updateRewardInput = createRewardInput.partial().extend({ id: z.string().uuid() });
-export const claimRewardInput = z.object({ id: z.string().uuid() });
-
-// Reminders
-export const createReminderInput = Reminder.omit({ id: true, user_id: true, created_at: true, updated_at: true });
-export const updateReminderInput = createReminderInput.partial().extend({ id: z.string().uuid() });
-
-// Goal Progress Notes
-export const createGoalProgressNoteInput = GoalProgressNote.omit({ id: true, user_id: true, created_at: true });
-
-// --- TrackedStateDef Inputs ---
-export const CreateTrackedStateDefInput = TrackedStateDef.omit({
-  id: true,
-  user_id: true,
-  created_at: true,
-  updated_at: true,
-});
-export const UpdateTrackedStateDefInput = TrackedStateDef.pick({ id: true })
-  .merge(CreateTrackedStateDefInput.partial());
 export const GetTrackedStateDefByIdInput = z.object({ id: z.string().uuid() });
 export const DeleteTrackedStateDefInput = z.object({ id: z.string().uuid() });
 
-// --- StateEntry Inputs ---
-export const CreateStateEntryInput = StateEntry.omit({
-  id: true,
-  user_id: true,
-}).extend({
-  timestamp: z.string().datetime().optional(), // Make timestamp optional on creation
+// State Entries
+export const CreateStateEntryInput = StateEntry.omit({ id: true, user_id: true })
+.extend({
+  tracked_state_def_id: z.string().uuid(), // Ensure this is required
+  // Values are optional in base schema
 });
-export const UpdateStateEntryInput = StateEntry.pick({ id: true })
-  .merge(StateEntry.omit({ id: true, user_id: true, tracked_state_def_id: true }).partial()); // Don't allow changing user_id or tracked_state_def_id
+export const updateStateEntryInput = CreateStateEntryInput.partial().extend({ id: z.string().uuid() });
 export const GetStateEntriesInput = z.object({
-  tracked_state_def_id: z.string().uuid(),
+  tracked_state_def_id: z.string().uuid(), // Renamed from definition_id to match DB? Check usage.
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   limit: z.number().int().positive().optional(),
 });
 export const DeleteStateEntryInput = z.object({ id: z.string().uuid() });
 
-// --- Reminder Inputs ---
-export const CreateReminderInput = Reminder.omit({
-  id: true,
-  user_id: true,
-  created_at: true,
-  updated_at: true,
-}).extend({
-  reminder_time: z.string().datetime(), // Ensure reminder_time is provided on creation
+// Rewards (Assuming rewards definitions are managed elsewhere)
+// No create/update for Reward definitions needed via API?
+export const claimLootInput = z.object({
+  rewardId: z.string().uuid(), // Use rewardId to match router
 });
-export const UpdateReminderInput = Reminder.pick({ id: true })
-  .merge(
-    Reminder.omit({
-      id: true,
-      user_id: true,
-      created_at: true,
-      updated_at: true,
-      // Prevent changing the entity it's linked to? Maybe allow message/time/active updates.
-      related_entity_id: true,
-      related_entity_type: true,
-    }).partial()
-  );
+
+// Badges
+export const awardBadgeInput = z.object({
+  badgeId: z.string(), // Matches text ID in badge_definitions
+  description: z.string().optional(), // Example custom field if needed
+});
+
+// Reminders
+export const createReminderInput = Reminder.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateReminderInput = createReminderInput.partial().extend({ id: z.string().uuid() });
 export const GetRemindersForEntityInput = z.object({
-    related_entity_type: z.string(),
-    related_entity_id: z.string().uuid(),
+  related_entity_type: z.string(),
+  related_entity_id: z.string().uuid(),
 });
 export const DeleteReminderInput = z.object({ id: z.string().uuid() });
 
-// --- GoalProgressNote Inputs ---
-export const CreateGoalProgressNoteInput = GoalProgressNote.omit({
-  id: true,
-  user_id: true,
-  created_at: true,
-});
-export const UpdateGoalProgressNoteInput = GoalProgressNote.pick({ id: true })
-  .merge(GoalProgressNote.pick({ note: true }).partial()); // Only allow updating notes?
+// Goal Progress Notes
+export const createGoalProgressNoteInput = GoalProgressNote.omit({ id: true, user_id: true, created_at: true });
+export const updateGoalProgressNoteInput = createGoalProgressNoteInput.partial().extend({ id: z.string().uuid() });
 export const GetGoalProgressNotesInput = z.object({ goal_id: z.string().uuid() });
 export const DeleteGoalProgressNoteInput = z.object({ id: z.string().uuid() });
 
-// --- Rewards Router Schemas ---
-export const claimLootInput = z.object({
-  rewardId: z.string().uuid(),
-});
-
-export const awardBadgeInput = z.object({
-  badgeId: z.string().uuid(),
-  description: z.string().optional(),
-});
-
 /* ------------------------------------------------------------------
- *  Aggregate Router Types – automatically inferred
+ * Aggregate Router Types – automatically inferred
  * ----------------------------------------------------------------*/
 export type RouterInputs = inferRouterInputs<AppRouter>;
 export type RouterOutputs = inferRouterOutputs<AppRouter>;

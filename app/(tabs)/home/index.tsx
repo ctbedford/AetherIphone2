@@ -1,5 +1,5 @@
 // File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/home/index.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { YStack, H1, Text, XStack, Button, ScrollView, Spinner } from 'tamagui';
 import { SafeAreaView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,13 +16,52 @@ import { useSkeleton } from '@/hooks/useSkeleton';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useToastController } from '@tamagui/toast';
 
+// Types inferred from tRPC Router
+type RouterOutput = RouterOutputs['dashboard']['getDashboardData'];
+// --- Define types for the STRUCTURE AFTER mapping in useMemo ---
+export type DashboardGoal = {
+  id: string;
+  title: string;
+  progress: number;
+  tasks: { completed: number; total: number };
+  // Include other relevant fields if needed by GoalSummaryCard
+  status?: string | null; 
+  priority?: number | null;
+};
+export type DashboardHabit = {
+  id: string;
+  name: string;
+  description?: string | null;
+  completed: boolean; // Mapped from completedToday
+  streak: number;
+  last_entry_id?: string; // Mapped from habit.last_entry_id (null -> undefined)
+  habit_type?: string | null;
+};
+export type DashboardTask = {
+  id: string;
+  name: string;
+  status: string | null; // Allow null
+  due_date?: Date | string | null;
+  // Include other relevant fields if needed by TaskItem
+};
+export type DashboardState = {
+  id: string;
+  name: string | null;
+  unit: string | null;
+  currentValue: number | string | null;
+  lastUpdated: string | null;
+  lastEntry: { value: number | null; created_at: Date | string } | null; // Explicitly include lastEntry
+};
+// --- End mapped type definitions ---
+
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const toast = useToastController();
   
   // Define types using RouterOutputs for clarity and safety
-  type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
-  type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
+  // type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
+  // type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
+  // type DashboardTask = RouterOutputs['dashboard']['getDashboardData']['tasks'][number];
 
   // Use tRPC hooks to fetch data - Types are inferred but can be explicitly used
   const { 
@@ -32,6 +71,19 @@ export default function HomeScreen() {
     refetch,
     isRefetching 
   } = trpc.dashboard.getDashboardData.useQuery();
+
+  // Define the habit entry mutation hook
+  const createHabitEntryMutation = trpc.habit.createHabitEntry.useMutation({
+    onSuccess: () => {
+      refetch(); // Refresh data after successful mutation
+      // Optional: Add success toast
+      // toast.show('Habit updated!', { type: 'success' });
+    },
+    onError: (error) => {
+      // Handle tRPC client error
+      toast.show(error.message || 'Failed to update habit', { type: 'error' });
+    }
+  });
 
   // Handle errors
   React.useEffect(() => {
@@ -65,6 +117,69 @@ export default function HomeScreen() {
     month: 'long', 
     day: 'numeric' 
   });
+
+  const dashboardDataMemo = useMemo(() => {
+    // Fix: Add check to ensure dashboardData exists before accessing properties
+    if (!dashboardData) {
+      return null; // Or return default structure: { goals: [], habits: [], tasks: [], trackedStates: [] }
+    }
+
+    // Map and filter data, ensuring structure matches exported types
+    return {
+      // Filter goals to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      goals: (dashboardData.goals ?? [])
+        .filter((goal): goal is typeof goal & { id: string } => !!goal?.id)
+        .map((goal) => ({
+        // Map to DashboardGoal structure
+        id: goal.id, 
+        title: goal.title ?? 'Untitled Goal', // Provide default for title
+        progress: goal.progress ?? 0, 
+        tasks: goal.tasks ?? { completed: 0, total: 0 }, 
+        status: goal.status,
+        priority: goal.priority,
+      })),
+      // Filter habits to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      habits: (dashboardData.habits ?? [])
+        .filter((habit): habit is typeof habit & { id: string } => !!habit?.id)
+        .map((habit) => ({
+        // Map to DashboardHabit structure
+        id: habit.id, 
+        name: habit.name ?? 'Unnamed Habit', // Provide default for name
+        description: habit.description,
+        completed: habit.completedToday ?? false, // Map completedToday to completed
+        streak: habit.streak ?? 0, 
+        last_entry_id: habit.last_entry_id ?? undefined, // Map null to undefined
+        habit_type: habit.habit_type,
+      })),
+      // Filter tasks to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      tasks: (dashboardData.tasks ?? [])
+        .filter((task): task is typeof task & { id: string } => !!task?.id)
+        .map((task) => ({
+        // Map to DashboardTask structure
+        id: task.id,
+        name: task.name ?? 'Untitled Task', // Provide default name
+        status: task.status,
+        due_date: task.due_date,
+      })),
+      // Map trackedStates, ensuring lastEntry is preserved
+      // Fix: Use nullish coalescing and optional chaining
+      trackedStates: (dashboardData.trackedStates ?? [])
+        .filter((state): state is typeof state & { id: string } => !!state?.id)
+        .map((trackedState) => ({
+        // Map to DashboardState structure
+        id: trackedState.id,
+        name: trackedState.name,
+        unit: trackedState.unit,
+        currentValue: trackedState.currentValue,
+        lastUpdated: trackedState.lastUpdated,
+        // Ensure lastEntry structure matches definition or is null
+        lastEntry: trackedState.lastEntry ?? null, 
+      })),
+    };
+  }, [dashboardData]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
@@ -124,7 +239,7 @@ export default function HomeScreen() {
                 onRetry={refetch}
                 text="Failed to load goals"
               />
-            ) : !dashboardData?.goals || dashboardData.goals.length === 0 ? (
+            ) : !dashboardDataMemo?.goals || dashboardDataMemo.goals.length === 0 ? (
               <EmptyOrSkeleton
                 isEmpty={true}
                 text="No goals yet"
@@ -133,11 +248,11 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$3">
-                {dashboardData.goals.slice(0, 3).map((goal: DashboardGoal) => (
+                {dashboardDataMemo.goals.slice(0, 3).map((goal: DashboardGoal) => (
                   <GoalSummaryCard 
-                    key={goal.id}
+                    key={goal.id} 
                     goal={goal}
-                    onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } } as any)}
+                    onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } } as any)} 
                   />
                 ))}
               </YStack>
@@ -158,7 +273,7 @@ export default function HomeScreen() {
                 onRetry={refetch}
                 text="Failed to load habits"
               />
-            ) : !dashboardData?.habits || dashboardData.habits.length === 0 ? (
+            ) : !dashboardDataMemo?.habits || dashboardDataMemo.habits.length === 0 ? (
               <EmptyOrSkeleton
                 isEmpty={true}
                 text="No habits for today"
@@ -167,28 +282,18 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$2">
-                {dashboardData.habits.slice(0, 4).map((habit: DashboardHabit) => (
+                {dashboardDataMemo.habits.slice(0, 4).map((habit: DashboardHabit) => (
                   <HabitCheckItem 
-                    key={habit.id}
+                    key={habit.id} 
                     habit={habit}
                     onToggle={(habitId, completed) => {
                       // Use today's date for the habit entry
                       const today = new Date().toISOString().split('T')[0];
                       
-                      // Call the tRPC mutation to create a habit entry
-                      const createEntry = trpc.habit.createHabitEntry.useMutation({
-                        onSuccess: () => {
-                          refetch(); // Refresh data after toggling
-                        },
-                        onError: (error) => {
-                          // Handle tRPC client error
-                          toast.show(error.message || 'Failed to update habit', { type: 'error' });
-                        }
-                      });
-                      
-                      createEntry.mutate(
+                      // Call the mutation hook defined above
+                      createHabitEntryMutation.mutate(
                         { 
-                          habitId, 
+                          habit_id: habitId, 
                           completed, 
                           date: today
                         }
@@ -215,7 +320,7 @@ export default function HomeScreen() {
                 onRetry={refetch}
                 text="Failed to load state"
               />
-            ) : !dashboardData?.trackedStates || dashboardData.trackedStates.length === 0 ? (
+            ) : !dashboardDataMemo?.trackedStates || dashboardDataMemo.trackedStates.length === 0 ? (
               <EmptyOrSkeleton
                 isEmpty={true}
                 text="No states being tracked"
@@ -225,10 +330,11 @@ export default function HomeScreen() {
               />
             ) : (
               <XStack space="$3" flexWrap="wrap"> 
-                {dashboardData.trackedStates.map((stateData) => (
+                {dashboardDataMemo.trackedStates.map((stateData: DashboardState) => (
                   <StateIndicator
                     key={stateData.id}
-                    state={stateData} // Pass the formatted state data object
+                    state={stateData} // Pass the whole state object which includes lastEntry
+                    lastEntry={stateData.lastEntry} // Pass lastEntry explicitly
                     // TODO: Handle interaction - e.g., navigate to state detail/entry screen
                     onPress={() => console.log('State pressed:', stateData.id)}
                   />
@@ -251,7 +357,7 @@ export default function HomeScreen() {
                 onRetry={refetch}
                 text="Failed to load tasks"
               />
-            ) : !dashboardData?.tasks || dashboardData.tasks.length === 0 ? (
+            ) : !dashboardDataMemo?.tasks || dashboardDataMemo.tasks.length === 0 ? (
               <EmptyOrSkeleton
                 isEmpty={true}
                 text="No upcoming tasks"
@@ -260,17 +366,18 @@ export default function HomeScreen() {
               />
             ) : (
               <YStack space="$2">
-                {dashboardData.tasks.slice(0, 3).map((task) => (
-                  <TaskItem 
+                {dashboardDataMemo.tasks.slice(0, 5).map((task: DashboardTask) => (
+                  <TaskItem
                     key={task.id}
                     task={{
-                      id: task.id,
-                      title: task.title,
-                      status: task.status || 'pending',
-                      due: task.due, // Using the correct property name from our API
-                      priority: task.priority || 0
+                      // Explicitly pass props matching DashboardTask type
+                      id: task.id, // Ensure id is passed
+                      name: task.name, // Already defaulted in map
+                      status: task.status, // Pass status
+                      due_date: task.due_date, // Pass due_date
                     }}
-                    onPress={() => {/* Navigate to task details */}}
+                    isLast={false} // Adjust if needed for styling
+                    onPress={() => console.log('Task Item Pressed:', task.id)}
                   />
                 ))}
               </YStack>

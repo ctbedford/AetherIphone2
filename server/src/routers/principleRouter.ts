@@ -1,7 +1,11 @@
+// server/src/routers/principleRouter.ts
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
-import { createPrincipleInput, updatePrincipleInput } from '../types/trpc-types'; // Assuming Principle schema is also imported if needed for parsing
+import { createPrincipleInput, updatePrincipleInput } from '../types/trpc-types'; // These now expect 'title' and 'body'
+
+// Define fields for consistent selection, using 'title' and 'body'
+const PRINCIPLE_FIELDS = 'id, user_id, title, body, sort_order, created_at, updated_at';
 
 export const principleRouter = router({
   getPrinciples: protectedProcedure
@@ -9,14 +13,14 @@ export const principleRouter = router({
       try {
         const { data: principles, error } = await ctx.supabaseAdmin
           .from('principles')
-          .select('id, user_id, name, description, sort_order, created_at, updated_at')
+          .select(PRINCIPLE_FIELDS) // Use the constant with 'title' and 'body'
           .eq('user_id', ctx.userId)
           .order('sort_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
 
         if (error) throw error;
         // TODO: Parse with Principle schema from trpc-types?
-        return principles;
+        return principles || []; // Return empty array if null
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -33,18 +37,19 @@ export const principleRouter = router({
       try {
         const { data: principle, error } = await ctx.supabaseAdmin
           .from('principles')
-          .select('id, user_id, name, description, sort_order, created_at, updated_at')
+          .select(PRINCIPLE_FIELDS) // Use the constant with 'title' and 'body'
           .eq('id', input.id)
           .eq('user_id', ctx.userId)
           .single();
 
-        if (error) throw error;
-        if (!principle) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Principle not found',
-          });
+        if (error) {
+           if (error.code === 'PGRST116') { // Handle not found specifically
+             throw new TRPCError({ code: 'NOT_FOUND', message: 'Principle not found' });
+           }
+           throw error; // Rethrow other errors
         }
+        // No need for !principle check if .single() is used and error isn't PGRST116
+
         // TODO: Parse with Principle schema from trpc-types?
         return principle;
       } catch (error: any) {
@@ -58,16 +63,16 @@ export const principleRouter = router({
     }),
 
   createPrinciple: protectedProcedure
-    .input(createPrincipleInput)
+    .input(createPrincipleInput) // This Zod schema now expects 'title' and 'body'
     .mutation(async ({ ctx, input }) => {
       try {
         const { data: principle, error } = await ctx.supabaseAdmin
           .from('principles')
           .insert({
-            ...input, // Includes name, description, sort_order
+            ...input, // Spread validated input, already contains 'title' and 'body'
             user_id: ctx.userId,
           })
-          .select('id, user_id, name, description, sort_order, created_at, updated_at')
+          .select(PRINCIPLE_FIELDS) // Use the constant
           .single();
 
         if (error) throw error;
@@ -82,7 +87,7 @@ export const principleRouter = router({
     }),
 
   updatePrinciple: protectedProcedure
-    .input(updatePrincipleInput)
+    .input(updatePrincipleInput) // This Zod schema now expects 'title' and 'body' (optional)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input;
@@ -95,20 +100,20 @@ export const principleRouter = router({
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !existing) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Principle not found or you do not have permission to update it',
-          });
+        if (fetchError) {
+           if (fetchError.code === 'PGRST116') {
+             throw new TRPCError({ code: 'NOT_FOUND', message: 'Principle not found or you do not have permission to update it' });
+           }
+           throw fetchError;
         }
 
         // Update
         const { data: updatedPrinciple, error } = await ctx.supabaseAdmin
           .from('principles')
-          .update(updateData)
+          .update(updateData) // updateData contains validated 'title'/'body' if provided
           .eq('id', id)
           .eq('user_id', ctx.userId)
-          .select('id, user_id, name, description, sort_order, created_at, updated_at')
+          .select(PRINCIPLE_FIELDS) // Use the constant
           .single();
 
         if (error) throw error;
@@ -138,11 +143,11 @@ export const principleRouter = router({
           .eq('user_id', ctx.userId)
           .single();
 
-        if (fetchError || !existing) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Principle not found or you do not have permission to delete it',
-          });
+        if (fetchError) {
+            if (fetchError.code === 'PGRST116') {
+             throw new TRPCError({ code: 'NOT_FOUND', message: 'Principle not found or you do not have permission to delete it' });
+           }
+           throw fetchError;
         }
 
         // Delete

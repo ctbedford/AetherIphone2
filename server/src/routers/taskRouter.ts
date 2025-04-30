@@ -5,13 +5,60 @@ import {
   createTaskInput,
   updateTaskInput,
   updateTaskStatusInput,
-  TaskStatusEnum,
-  TaskPriorityEnum, // Import if needed for parsing/validation, though DB handles storage
+  TaskStatusEnum, // Import the enum
+  TaskPriorityEnum,
 } from '../types/trpc-types';
 
 // Define fields for selection consistency
 const TASK_FIELDS =
-  'id, user_id, title, notes, status, priority, due_date, goal_id, parent_task_id, recurrence_rule, recurrence_end_date, archived_at, sort_order, created_at, updated_at';
+  'id, user_id, title, notes, status, priority, due_date, goal_id, parent_task_id, recurrence_rule, recurrence_end_date, archived_at, sort_order, created_at, updated_at'; // Corrected: 'priority' instead of 'priority_enum' if that's the actual column name after migration
+const GOAL_FIELDS = 'id, user_id, title, description, progress, target_date, archived_at, sort_order, created_at, updated_at';
+
+
+// --- Helper function to update goal progress ---
+async function updateGoalProgress(goalId: string, userId: string, supabase: any) {
+  try {
+    // 1. Fetch all non-archived tasks for the goal
+    const { data: tasks, error: tasksError } = await supabase
+      .from('tasks')
+      .select('id, status') // Only need id and status
+      .eq('goal_id', goalId)
+      .eq('user_id', userId)
+      .is('archived_at', null); // Exclude archived tasks
+
+    if (tasksError) {
+      console.error(`Error fetching tasks for goal ${goalId} during progress update:`, tasksError);
+      // Decide how to handle this - maybe just log and skip update?
+      return; // Exit if tasks can't be fetched
+    }
+
+    const totalTasks = tasks?.length || 0;
+    const completedTasks = tasks?.filter((t: { status: string }) => t.status === TaskStatusEnum.enum.done).length || 0;
+
+    // 2. Calculate progress (avoid division by zero)
+    const newProgress = totalTasks > 0 ? completedTasks / totalTasks : 0;
+    // Ensure progress is between 0 and 1, rounded to avoid floating point issues
+    const clampedProgress = Math.round(Math.min(1, Math.max(0, newProgress)) * 100) / 100;
+
+    // 3. Update the goal record
+    const { error: updateError } = await supabase
+      .from('goals')
+      .update({ progress: clampedProgress })
+      .eq('id', goalId)
+      .eq('user_id', userId); // Ensure user owns the goal
+
+    if (updateError) {
+      console.error(`Error updating progress for goal ${goalId}:`, updateError);
+      // Log error but don't necessarily throw, task toggle was successful
+    } else {
+        console.log(`Updated progress for goal ${goalId} to ${clampedProgress}`);
+    }
+
+  } catch (err) {
+    console.error(`Unexpected error during goal progress update for goal ${goalId}:`, err);
+    // Log unexpected errors
+  }
+}
 
 export const taskRouter = router({
   getTasks: protectedProcedure // Gets non-archived tasks
@@ -500,13 +547,14 @@ export const taskRouter = router({
   toggleTask: protectedProcedure // Toggles between 'todo' and 'done'
     .input(z.object({
       taskId: z.string().uuid(),
+      completed: z.boolean().optional() // Optional for backward compatibility
     }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // 1. Fetch the current task
+        // 1. Fetch the current task, including goal_id
         const { data: currentTask, error: fetchError } = await ctx.supabaseAdmin
           .from('tasks')
-          .select('id, status')
+          .select('id, status, goal_id, title') // <-- Include goal_id and title
           .eq('id', input.taskId)
           .eq('user_id', ctx.userId)
           .single();
@@ -516,9 +564,16 @@ export const taskRouter = router({
         }
 
         // 2. Determine the new status
-        const newStatus = currentTask.status === TaskStatusEnum.enum.done
-             ? TaskStatusEnum.enum.todo
-             : TaskStatusEnum.enum.done;
+        let newStatus;
+        if (input.completed !== undefined) {
+          // If completed was explicitly provided, use it
+          newStatus = input.completed ? TaskStatusEnum.enum.done : TaskStatusEnum.enum.todo;
+        } else {
+          // Otherwise toggle the current status
+          newStatus = currentTask.status === TaskStatusEnum.enum.done
+            ? TaskStatusEnum.enum.todo
+            : TaskStatusEnum.enum.done;
+        }
 
         // 3. Update the task status
         const { data: updatedTask, error: updateError } = await ctx.supabaseAdmin
@@ -529,11 +584,20 @@ export const taskRouter = router({
           .single();
 
         if (updateError) throw updateError;
-        // TODO: Parse with Task schema?
+
+        // 4. *** NEW: Update goal progress if applicable ***
+        if (currentTask.goal_id) {
+           // Call the helper function asynchronously - no need to await here
+           // unless the UI needs the updated goal immediately (unlikely for a toggle)
+          updateGoalProgress(currentTask.goal_id, ctx.userId, ctx.supabaseAdmin);
+        }
+
+        // 5. Return the updated task
         return updatedTask;
 
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
+        console.error("Error in toggleTask:", error); // Log unexpected errors
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Failed to toggle task status',

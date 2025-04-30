@@ -25,6 +25,38 @@ function createTestCaller(userId: string | null = 'test-user-id') {
   return appRouter.createCaller(ctx);
 }
 
+// Helper function to create a properly awaitable mock with data
+function createTableMockWithData<T>(data: T) {
+  const mock = mockDeep<MockableTableOperations>();
+  
+  // Configure chainable methods to return this (for method chaining)
+  mock.select.mockReturnThis();
+  mock.eq.mockReturnThis();
+  mock.order.mockReturnThis();
+  mock.limit.mockReturnThis();
+  mock.in.mockReturnThis();
+  mock.update.mockReturnThis();
+  mock.is.mockReturnThis();
+  mock.isNull.mockReturnThis();
+  mock.neq.mockReturnThis();
+  mock.or.mockReturnThis();
+  mock.filter.mockReturnThis();
+  mock.delete.mockReturnThis();
+  mock.upsert.mockReturnThis();
+  mock.insert.mockReturnThis();
+  
+  // Add proper promise handling for awaitable operations
+  const response = { data, error: null, status: 200, count: Array.isArray(data) ? data.length : undefined };
+  const mockPromise = Promise.resolve(response);
+  
+  // Add then/catch/finally methods to make the mock awaitable
+  (mock as any).then = mockPromise.then.bind(mockPromise);
+  (mock as any).catch = mockPromise.catch.bind(mockPromise);
+  (mock as any).finally = mockPromise.finally.bind(mockPromise);
+  
+  return mock;
+}
+
 describe('habitRouter', () => {
   beforeEach(() => {
     resetSupabaseMocks();
@@ -43,25 +75,16 @@ describe('habitRouter', () => {
         { habit_id: 'habit-1' }, // Only habit 1 is completed today
       ];
 
-      // Explicitly chain mocks for habits fetch
-      const habitsFilterMock = jest.fn<() => Promise<{ data: Habit[] | null; error: any }>>();
-      habitsFilterMock.mockResolvedValue({ data: mockHabits, error: null });
-      const isNullHabitsMock = jest.fn().mockReturnValue({ filter: habitsFilterMock });
-      const eqHabitsMock = jest.fn().mockReturnValue({ isNull: isNullHabitsMock });
-      const selectHabitsMock = jest.fn().mockReturnValue({ eq: eqHabitsMock });
+      // Create properly awaitable mocks with the test data
+      const habitsMock = createTableMockWithData(mockHabits);
+      const entriesMock = createTableMockWithData(mockEntriesToday);
 
-      // Explicitly chain mocks for entries fetch
-      const entriesFilterMock = jest.fn<() => Promise<{ data: any[] | null; error: any }>>();
-      entriesFilterMock.mockResolvedValue({ data: mockEntriesToday, error: null });
-      const eqDateEntriesMock = jest.fn().mockReturnValue({ filter: entriesFilterMock });
-      const eqUserEntriesMock = jest.fn().mockReturnValue({ eq: eqDateEntriesMock });
-      const selectEntriesMock = jest.fn().mockReturnValue({ eq: eqUserEntriesMock });
-
-      mockSupabaseAdmin.from.mockReturnValueOnce({ // Mock from('habits')
-        select: selectHabitsMock,
-      } as any).mockReturnValueOnce({ // Mock from('habit_entries')
-        select: selectEntriesMock,
-      } as any);
+      // Configure mockSupabaseAdmin.from to return the appropriate mock for each table
+      mockSupabaseAdmin.from.mockImplementation((table: string) => {
+        if (table === 'habits') return habitsMock;
+        if (table === 'habit_entries') return entriesMock;
+        return createTableMockWithData([]); // Default empty result for other tables
+      });
       
       // --- Act --- 
       const caller = createTestCaller(userId);

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { createInnerTRPCContext, mockSupabaseAdmin } from '../test-helpers';
+import { createInnerTRPCContext, mockSupabaseAdmin, MockableTableOperations } from '../test-helpers';
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { appRouter } from '../../../server/src/router';
 import { TRPCError } from '@trpc/server';
 
@@ -84,69 +85,50 @@ describe('dashboardRouter', () => {
         }
       ];
 
-      // Setup mock responses
+      // Create typed mock objects for each table, using our helper from test-helpers.ts
+      function createTableMockWithData<T>(data: T) {
+        const mock = mockDeep<MockableTableOperations>();
+        
+        // Configure chainable methods to return this (for method chaining)
+        mock.select.mockReturnThis();
+        mock.eq.mockReturnThis();
+        mock.is.mockReturnThis();
+        mock.neq.mockReturnThis();
+        mock.or.mockReturnThis();
+        mock.in.mockReturnThis();
+        mock.order.mockReturnThis();
+        mock.limit.mockReturnThis();
+        
+        // Make the mock awaitable with the provided data
+        // Using a proper Promise interface implementation
+        const response = { data, error: null, status: 200 };
+        const mockPromise = Promise.resolve(response);
+        
+        // Add then/catch/finally methods to make the mock awaitable
+        (mock as any).then = mockPromise.then.bind(mockPromise);
+        (mock as any).catch = mockPromise.catch.bind(mockPromise);
+        (mock as any).finally = mockPromise.finally.bind(mockPromise);
+        
+        return mock;
+      }
+      
+      // Create mocks with the appropriate data
+      const habitsTableMock = createTableMockWithData(mockHabits);
+      const goalsTableMock = createTableMockWithData(mockGoals);
+      const tasksTableMock = createTableMockWithData(mockTasks);
+      const trackedStatesTableMock = createTableMockWithData(mockTrackedStates);
+      const habitEntriesTableMock = createTableMockWithData(mockHabitEntries);
+
+      // Configure mockSupabaseAdmin.from to return the appropriate mock for each table
       mockSupabaseAdmin.from.mockImplementation((table: TableName) => {
-        if (table === 'habits') {
-          return {
-            ...mockSupabaseAdmin,
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockReturnThis(),
-            limit: jest.fn().mockReturnValue({ 
-              data: mockHabits, 
-              error: null 
-            }),
-          };
-        }
-        if (table === 'goals') {
-          return {
-            ...mockSupabaseAdmin,
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockReturnThis(),
-            limit: jest.fn().mockReturnValue({ 
-              data: mockGoals, 
-              error: null 
-            }),
-          };
-        }
-        if (table === 'tasks') {
-          return {
-            ...mockSupabaseAdmin,
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            neq: jest.fn().mockReturnThis(),
-            or: jest.fn().mockReturnThis(),
-            order: jest.fn().mockReturnThis(),
-            limit: jest.fn().mockReturnValue({ 
-              data: mockTasks, 
-              error: null 
-            }),
-          };
-        }
-        if (table === 'tracked_state_defs') {
-          return {
-            ...mockSupabaseAdmin,
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockReturnValue({ 
-              data: mockTrackedStates, 
-              error: null 
-            }),
-          };
-        }
-        if (table === 'habit_entries') {
-          return {
-            ...mockSupabaseAdmin,
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            in: jest.fn().mockReturnValue({ 
-              data: mockHabitEntries, 
-              error: null 
-            }),
-          };
-        }
-        return mockSupabaseAdmin;
+        if (table === 'habits') return habitsTableMock;
+        if (table === 'goals') return goalsTableMock;
+        if (table === 'tasks') return tasksTableMock;
+        if (table === 'tracked_state_defs') return trackedStatesTableMock;
+        if (table === 'habit_entries') return habitEntriesTableMock;
+        
+        // Default fallback - empty result mock
+        return createTableMockWithData([]);
       });
 
       const caller = createTestCaller();
@@ -173,28 +155,37 @@ describe('dashboardRouter', () => {
         progress: 0.5
       }));
 
-      // Verify limits were passed correctly
-      expect(mockSupabaseAdmin.limit).toHaveBeenCalledWith(5); // Default habit limit
-      expect(mockSupabaseAdmin.limit).toHaveBeenCalledWith(10); // Default task limit
+      // Verify limits were passed correctly - now targeting the specific table mocks
+      expect(habitsTableMock.limit).toHaveBeenCalledWith(5); // Default habit limit
+      expect(tasksTableMock.limit).toHaveBeenCalledWith(10); // Default task limit
     });
 
     it('should fetch dashboard data with custom limits', async () => {
-      // Setup similar mocks as the previous test
-      // Simplified for brevity
+      // Create typed mock objects for each table
+      const habitsTableMock = mockDeep<MockableTableOperations>();
+      const goalsTableMock = mockDeep<MockableTableOperations>();
+      const tasksTableMock = mockDeep<MockableTableOperations>();
+      const trackedStatesTableMock = mockDeep<MockableTableOperations>();
+      const habitEntriesTableMock = mockDeep<MockableTableOperations>();
+
+      // Configure mockSupabaseAdmin.from to return the appropriate mock for each table
       mockSupabaseAdmin.from.mockImplementation((table: TableName) => {
-        return {
-          ...mockSupabaseAdmin,
-          select: jest.fn().mockReturnThis(),
-          eq: jest.fn().mockReturnThis(),
-          neq: jest.fn().mockReturnThis(),
-          or: jest.fn().mockReturnThis(),
-          order: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnValue({ 
-            data: [], 
-            error: null 
-          }),
-        };
+        if (table === 'habits') return habitsTableMock;
+        if (table === 'goals') return goalsTableMock;
+        if (table === 'tasks') return tasksTableMock;
+        if (table === 'tracked_state_defs') return trackedStatesTableMock;
+        if (table === 'habit_entries') return habitEntriesTableMock;
+        
+        // Default case - should not happen in this test
+        return mockDeep<MockableTableOperations>();
       });
+
+      // No need to configure these mocks further - they already have their Promise behavior set
+      // through the createTableMockWithData function with proper awaitable responses
+
+      // Add specific behaviors needed for tasks
+      tasksTableMock.neq.mockReturnThis();
+      tasksTableMock.or.mockReturnThis();
 
       const caller = createTestCaller();
       await caller.dashboard.getDashboardData({

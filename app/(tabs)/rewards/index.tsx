@@ -20,7 +20,14 @@ export default function RewardsScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Grid);
   const colorScheme = useColorScheme();
   const theme = useTheme();
-  
+
+  // Define fallback colors
+  const blue2 = theme?.blue2?.val ?? '#eff6ff';
+  const blue5 = theme?.blue5?.val ?? '#60a5fa';
+  const blue10 = theme?.blue10?.val ?? '#1e40af';
+  const blue11 = theme?.blue11?.val ?? '#1e3a8a';
+  const green9 = theme?.green9?.val ?? '#16a34a';
+
   // Fetch available rewards from tRPC
   const { 
     data: rewards, 
@@ -43,7 +50,7 @@ export default function RewardsScreen() {
     }
   });
   
-  const handleClaimReward = useCallback((id: string) => {
+  const handleClaimReward = useCallback((rewardId: string) => {
     if (claimMutation.isPending) return; // Prevent double-clicks
     
     Alert.alert(
@@ -54,7 +61,7 @@ export default function RewardsScreen() {
         { 
           text: 'Claim', 
           onPress: () => {
-            claimMutation.mutate({ lootId: id });
+            claimMutation.mutate({ rewardId });
           },
           style: 'default'
         }
@@ -90,7 +97,7 @@ export default function RewardsScreen() {
               position: 'absolute', 
               top: 5, 
               right: 5, 
-              backgroundColor: theme.blue10.val, 
+              backgroundColor: blue5,
               borderRadius: 10,
               padding: 4
             }}>
@@ -108,11 +115,11 @@ export default function RewardsScreen() {
             <Button
               size="$2"
               themeInverse={claimed}
-              backgroundColor={claimed ? undefined : theme.green9.val}
+              backgroundColor={claimed ? undefined : blue10}
               onPress={() => handleClaimReward(item.id)}
               disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
             >
-              {claimMutation.isPending && claimMutation.variables?.lootId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
+              {claimMutation.isPending && claimMutation.variables?.rewardId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
             </Button>
           </YStack>
         </Card>
@@ -144,17 +151,17 @@ export default function RewardsScreen() {
             <YStack flex={1} space="$1">
               <Text fontSize="$5" fontWeight="bold">{item.name}</Text>
               <Text fontSize="$3" color="$gray11" numberOfLines={2}>{item.description}</Text>
-              <Text fontSize="$3" color="$blue10" fontWeight="500">{pointCost} points</Text>
+              <Text fontSize="$3" color={blue10} fontWeight="500">{pointCost} points</Text>
             </YStack>
             
             <Button
               size="$3"
-              backgroundColor={claimed ? undefined : theme.green9.val}
+              backgroundColor={claimed ? undefined : blue10}
               themeInverse={claimed}
               onPress={() => handleClaimReward(item.id)}
               disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
             >
-              {claimMutation.isPending && claimMutation.variables?.lootId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
+              {claimMutation.isPending && claimMutation.variables?.rewardId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
             </Button>
           </XStack>
         </Card>
@@ -175,13 +182,13 @@ export default function RewardsScreen() {
                 chromeless
                 circular
                 padding="$2"
-                backgroundColor={viewMode === ViewMode.Grid ? theme.blue5.val : 'transparent'}
+                backgroundColor={viewMode === ViewMode.Grid ? blue5 : 'transparent'}
                 onPress={() => setViewMode(ViewMode.Grid)}
               >
                 <Ionicons 
                   name="grid-outline" 
                   size={22} 
-                  color={viewMode === ViewMode.Grid ? theme.blue10.val : (colorScheme === 'dark' ? '#fff' : '#000')} 
+                  color={viewMode === ViewMode.Grid ? blue10 : (colorScheme === 'dark' ? '#fff' : '#000')} 
                 />
               </Button>
               
@@ -189,23 +196,23 @@ export default function RewardsScreen() {
                 chromeless
                 circular
                 padding="$2"
-                backgroundColor={viewMode === ViewMode.List ? theme.blue5.val : 'transparent'}
+                backgroundColor={viewMode === ViewMode.List ? blue5 : 'transparent'}
                 onPress={() => setViewMode(ViewMode.List)}
               >
                 <Ionicons 
                   name="list-outline" 
                   size={22} 
-                  color={viewMode === ViewMode.List ? theme.blue10.val : (colorScheme === 'dark' ? '#fff' : '#000')} 
+                  color={viewMode === ViewMode.List ? blue10 : (colorScheme === 'dark' ? '#fff' : '#000')} 
                 />
               </Button>
             </XStack>
           </XStack>
           
           {/* Stats */}
-          <Card padding="$3" backgroundColor="$blue2">
+          <Card padding="$3" backgroundColor={blue2}>
             <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize="$5" fontWeight="bold" color="$blue11">Your Points</Text>
-              <Text fontSize="$6" fontWeight="bold" color="$blue10">275</Text>
+              <Text fontSize="$5" fontWeight="bold" color={blue11}>Your Points</Text>
+              <Text fontSize="$6" fontWeight="bold" color={blue10}>275</Text>
             </XStack>
           </Card>
         </YStack>
@@ -213,22 +220,23 @@ export default function RewardsScreen() {
         {/* Content Area */} 
         <EmptyOrSkeleton 
           isLoading={isLoading}
+          isEmpty={!isLoading && (!rewards || rewards.length === 0)}
           isError={!!error}
-          isEmpty={!rewards || rewards.length === 0}
-          count={viewMode === ViewMode.Grid ? 4 : 3}
-          type={viewMode === ViewMode.Grid ? 'card' : 'row'} // Adjust skeleton type
-          text={error ? error.message : "No rewards available right now."}
-          actionText="Refresh"
+          text={error ? error.message : 'No rewards available yet.'} // Use text for error OR empty msg
           onRetry={refetch}
-          onAction={refetch} // Action for empty state could also be refresh
+          type={viewMode === ViewMode.Grid ? 'card' : 'row'}
+          count={viewMode === ViewMode.Grid ? 6 : 3}
         >
           <FlatList
+            key={viewMode} // Change key based on viewMode to force re-render
             data={rewards}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `${item.id}-${viewMode}`} // Apply patch #1
             numColumns={viewMode === ViewMode.Grid ? 2 : 1}
-            key={viewMode} // Change key on viewMode switch to force re-render
-            contentContainerStyle={{ paddingBottom: 50 }}
+            contentContainerStyle={{ paddingBottom: 50 }} // Add padding at the bottom
+            // Optional Optimizations (Patch #6)
+            initialNumToRender={8}
+            removeClippedSubviews={true} // Note: Can have visual glitches on iOS sometimes
           />
         </EmptyOrSkeleton>
 

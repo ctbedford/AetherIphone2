@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
 import {
-  CreateGoalProgressNoteInput,
-  UpdateGoalProgressNoteInput,
+  createGoalProgressNoteInput,
+  updateGoalProgressNoteInput,
   GetGoalProgressNotesInput,
   DeleteGoalProgressNoteInput,
 } from '../types/trpc-types';
@@ -52,7 +52,7 @@ export const goalProgressNoteRouter = router({
     }),
 
   createNote: protectedProcedure
-    .input(CreateGoalProgressNoteInput)
+    .input(createGoalProgressNoteInput)
     .mutation(async ({ ctx, input }) => {
       try {
         // Ensure the goal exists and belongs to the user before adding a note
@@ -90,7 +90,7 @@ export const goalProgressNoteRouter = router({
     }),
 
   updateNote: protectedProcedure
-    .input(UpdateGoalProgressNoteInput)
+    .input(updateGoalProgressNoteInput)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input;

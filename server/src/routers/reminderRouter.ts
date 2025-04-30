@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
 import {
-  CreateReminderInput,
-  UpdateReminderInput,
+  createReminderInput,
+  updateReminderInput,
   GetRemindersForEntityInput,
   DeleteReminderInput,
 } from '../types/trpc-types';
@@ -57,7 +57,7 @@ export const reminderRouter = router({
     }),
 
   createReminder: protectedProcedure
-    .input(CreateReminderInput)
+    .input(createReminderInput)
     .mutation(async ({ ctx, input }) => {
       try {
         // TODO: Potentially validate that related_entity_id exists and belongs to user?
@@ -83,7 +83,7 @@ export const reminderRouter = router({
     }),
 
   updateReminder: protectedProcedure
-    .input(UpdateReminderInput)
+    .input(updateReminderInput)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input;

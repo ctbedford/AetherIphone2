@@ -1,11 +1,20 @@
 import React from 'react';
 // Use Tamagui components
 import { Text, XStack, YStack, Checkbox, Spinner } from 'tamagui'; 
-import { trpc, RouterOutputs } from '../../utils/trpc';
+import { trpc, RouterOutputs, RouterInputs } from '@/utils/trpc';
 import { Check } from '@tamagui/lucide-icons';
 
-// Use RouterOutputs to ensure type consistency with backend
-type Task = RouterOutputs['dashboard']['getDashboardData']['tasks'][number];
+// Custom Task type that matches the actual format returned from the backend
+type Task = {
+  id: string;
+  name: string;  // Backend returns 'name' not 'title'
+  status: string;
+  priority?: number;
+  due_date?: string; // Backend returns 'due_date' not 'due'
+  notes?: string;
+  goal_id?: string;
+  // Include other fields as needed
+};
 
 interface TaskItemProps {
   task: Task;
@@ -13,15 +22,15 @@ interface TaskItemProps {
 }
 
 export default function TaskItem({ task, onPress }: TaskItemProps) {
-  // Determine if task is completed based on status
-  const isCompleted = task.status === 'completed';
   
   // Setup toggleTask mutation with optimistic updates
   const utils = trpc.useContext();
   // Setup mutation for task toggling
   const toggleTaskMutation = trpc.task.toggleTask.useMutation({
     // Optimistically update the UI
-    onMutate: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
+    onMutate: async ({ taskId, completed }: { taskId: string; completed?: boolean }) => {
+      // Default to toggling the current state if completed is not provided
+      const newCompleted = completed !== undefined ? completed : !isCompleted;
       // Cancel outgoing fetches that might overwrite our optimistic update
       await utils.task.getTasks.cancel();
       await utils.dashboard.getDashboardData.cancel();
@@ -53,7 +62,7 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
           return {
             ...old,
             tasks: old.tasks.map((t: any) => {
-              if (t.id === taskId) {
+              if (t.id === task_id) {
                 return {
                   ...t,
                   status: completed ? 'completed' : 'in-progress'
@@ -90,7 +99,7 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
   // Handle checkbox toggle
   const handleToggle = () => {
     toggleTaskMutation.mutate({
-      taskId: task.id,
+      taskId: task.id, // Using taskId as expected by the backend
       completed: !isCompleted
     });
   };
@@ -101,17 +110,16 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
                         '$brandGreen';
   
   // Format due date
-  const formattedDate = task.due 
-    ? new Date(task.due).toLocaleDateString(undefined, { 
+  const formattedDate = task.due_date 
+    ? new Date(task.due_date).toLocaleDateString(undefined, { 
         month: 'short', 
         day: 'numeric' 
       })
     : null;
     
   // Determine task completion status
-  const isCompleted = task.status === 'completed' || task.completed === true;
-  // Use Tamagui-compatible styling approach
-  const textStyle = isCompleted ? { opacity: 0.7 } : {};
+  const isCompleted = task.status === 'completed';
+  // No need for text style object since we use Tamagui props directly
 
   
   // Use YStack as the base component
@@ -157,7 +165,7 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
             opacity={isCompleted ? 0.7 : 1}
             textDecorationLine={isCompleted ? 'line-through' : undefined} // Proper Tamagui text decoration
           >
-            {task.title}
+            {task.name}
           </Text>
         </XStack>
       </XStack>

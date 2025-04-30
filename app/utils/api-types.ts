@@ -4,7 +4,7 @@
  */
 
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { AppRouter } from '../server/src/router';
+import type { AppRouter } from '../../server/src/router';
 
 /**
  * Inference helper for inputs.

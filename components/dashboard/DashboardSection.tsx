@@ -62,7 +62,7 @@ export default function DashboardSection<T>({
       ) : error ? (
         <SectionError message={error ? String(error) : 'An error occurred'} onRetry={onRetry} />
       ) : data && data.length === 0 ? (
-        <YStack ai="center" p="$4">
+        <YStack alignItems="center" padding="$4">
           <Text color="$gray10">{emptyMessage ?? 'No items found'}</Text>
         </YStack>
       ) : (

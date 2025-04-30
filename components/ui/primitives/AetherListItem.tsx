@@ -24,11 +24,11 @@ const ListItemContainer = styled(XStack, {
     interactive: {
       true: {
         pressStyle: {
-          backgroundColor: '$cardBackgroundPress',
+          backgroundColor: '$backgroundPress',
           opacity: 0.9,
         },
         hoverStyle: {
-          backgroundColor: '$cardBackgroundHover',
+          backgroundColor: '$backgroundHover',
         },
       },
     },
@@ -94,7 +94,7 @@ export function AetherListItem({
         <YStack>
           <Text fontWeight="500" fontSize="$4">{title}</Text>
           {subtitle && (
-            <Text fontSize="$2" color="$colorMuted">{subtitle}</Text>
+            <Text fontSize="$2" color="$gray10">{subtitle}</Text>
           )}
         </YStack>
       </XStack>
@@ -115,7 +115,7 @@ export function AetherListItem({
         {rightIcon && rightIcon}
         
         {showChevron && (
-          <Ionicons name="chevron-forward" size={16} color="$colorMuted" />
+          <Ionicons name="chevron-forward" size={16} color="$gray10" />
         )}
       </XStack>
     </ListItemContainer>

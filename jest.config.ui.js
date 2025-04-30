@@ -14,4 +14,9 @@ module.exports = {
     '!**/babel.config.js',
     '!**/jest.setup.js',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/test-utils\\.tsx$',
+    '/__tests__/server/test-helpers\\.ts$'
+  ],
 };

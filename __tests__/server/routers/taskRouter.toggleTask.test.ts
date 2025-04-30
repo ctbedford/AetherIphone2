@@ -159,26 +159,49 @@ describe('taskRouter.toggleTask', () => {
       .mockResolvedValueOnce({ data: initialTaskData, error: null }) // Fetch task
       .mockResolvedValueOnce({ data: updatedTaskData, error: null }); // Update task
 
+    // Helper function to create a properly awaitable mock with data
+    function createTableMockWithData<T>(data: T) {
+      const mock = mockDeep<MockableTableOperations>();
+      
+      // Configure chainable methods to return this (for method chaining)
+      mock.select.mockReturnThis();
+      mock.eq.mockReturnThis();
+      mock.order.mockReturnThis();
+      mock.limit.mockReturnThis();
+      mock.in.mockReturnThis();
+      mock.update.mockReturnThis();
+      mock.is.mockReturnThis();
+      mock.neq.mockReturnThis();
+      mock.or.mockReturnThis();
+      
+      // Add proper promise handling for awaitable operations
+      const response = { data, error: null, status: 200, count: Array.isArray(data) ? data.length : undefined };
+      const mockPromise = Promise.resolve(response);
+      
+      // Add then/catch/finally methods to make the mock awaitable
+      (mock as any).then = mockPromise.then.bind(mockPromise);
+      (mock as any).catch = mockPromise.catch.bind(mockPromise);
+      (mock as any).finally = mockPromise.finally.bind(mockPromise);
+      
+      return mock;
+    }
+    
     // --- Goal Task List Mock --- 
-    const goalTasksListMock = mockDeep<MockableTableOperations>();
-    // Simulate fetching tasks for the goal AFTER the toggle (one is now completed)
+    // Create a properly awaitable mock with the goal tasks data
     const goalTasksData = [
         { id: taskId, status: 'completed' }, // The toggled task
         { id: 'task-2', status: 'in-progress' },
     ];
-    goalTasksListMock.select.mockReturnValue(goalTasksListMock);
-    goalTasksListMock.eq.mockReturnValue(goalTasksListMock);
-    // Mock the implicit .then() for await when fetching multiple rows
-    (goalTasksListMock as any).then.mockResolvedValue({ data: goalTasksData, error: null, count: goalTasksData.length }); 
+    const goalTasksListMock = createTableMockWithData(goalTasksData);
 
     // --- Goal Update Mock --- 
-    const goalUpdateMock = mockDeep<MockableTableOperations>();
     const updatedGoalData = { id: goalId, name: 'Test Goal', progress: 0.5, /* other fields */ updated_at: new Date().toISOString() }; // Example with 50% progress
     
-    goalUpdateMock.update.mockReturnValue(goalUpdateMock);
-    goalUpdateMock.eq.mockReturnValue(goalUpdateMock);
-    goalUpdateMock.select.mockReturnValue(goalUpdateMock);
-    goalUpdateMock.single.mockResolvedValue({ data: updatedGoalData, error: null }); // Update goal confirmation
+    // Create an awaitable mock with the goal update data
+    const goalUpdateMock = createTableMockWithData(updatedGoalData);
+    // Make sure single() returns a properly typed response
+    goalUpdateMock.single.mockResolvedValue({ data: updatedGoalData, error: null });
+
 
     // --- Configure from() to return the right mock based on table --- 
     mockSupabaseAdmin.from.mockImplementation((table: TableName) => {

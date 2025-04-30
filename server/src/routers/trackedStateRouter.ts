@@ -1,19 +1,23 @@
+// File: server/src/routers/trackedStateRouter.ts
+
 import { z } from 'zod';
 import { router, protectedProcedure } from '../router';
 import { TRPCError } from '@trpc/server';
 import {
-  CreateTrackedStateDefInput,
-  UpdateTrackedStateDefInput,
+  // Ensure all necessary input types from trpc-types are imported
+  createTrackedStateDefInput,
+  updateTrackedStateDefInput,
   GetTrackedStateDefByIdInput,
   DeleteTrackedStateDefInput,
-  CreateStateEntryInput,
-  UpdateStateEntryInput,
-  GetStateEntriesInput,
-  DeleteStateEntryInput
+  CreateStateEntryInput,      // <--- Import for createEntry
+  updateStateEntryInput,      // <--- Import for updateEntry
+  GetStateEntriesInput,       // <--- Import for getEntries
+  DeleteStateEntryInput       // <--- Import for deleteEntry
 } from '../types/trpc-types';
 
-const TRACKED_STATE_DEF_FIELDS = 'id, user_id, name, category, unit, icon, target_min_value, target_max_value, created_at, updated_at';
-const STATE_ENTRY_FIELDS = 'id, user_id, tracked_state_def_id, value, timestamp, notes';
+// Use correct field names from database.types.ts & trpc-types.ts
+const TRACKED_STATE_DEF_FIELDS = 'id, user_id, name, description, scale, custom_labels, unit, icon, target_min_value, target_max_value, created_at, updated_at, active, priority';
+const STATE_ENTRY_FIELDS = 'id, user_id, definition_id, value_numeric, value_text, entry_timestamp, notes';
 
 export const trackedStateRouter = router({
   getDefinitions: protectedProcedure
@@ -23,6 +27,8 @@ export const trackedStateRouter = router({
           .from('tracked_state_defs')
           .select(TRACKED_STATE_DEF_FIELDS)
           .eq('user_id', ctx.userId)
+          .eq('active', true)
+          .order('priority', { ascending: true, nullsFirst: false }) // Corrected: nullsFirst
           .order('created_at', { ascending: true });
 
         if (error) throw error;
@@ -32,17 +38,17 @@ export const trackedStateRouter = router({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Failed to fetch tracked state definitions',
         });
-      } 
+      }
     }),
 
   getDefinitionById: protectedProcedure
-    .input(GetTrackedStateDefByIdInput)
+    .input(GetTrackedStateDefByIdInput) // Use correct Zod schema
     .query(async ({ ctx, input }) => {
-      try {
+       try {
         const { data: definition, error } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
           .select(TRACKED_STATE_DEF_FIELDS)
-          .eq('id', input.id)
+          .eq('id', input.id) // input.id is now correctly typed
           .eq('user_id', ctx.userId)
           .single();
 
@@ -63,13 +69,13 @@ export const trackedStateRouter = router({
     }),
 
   createDefinition: protectedProcedure
-    .input(CreateTrackedStateDefInput)
+    .input(createTrackedStateDefInput) // Use correct Zod schema
     .mutation(async ({ ctx, input }) => {
-      try {
+       try {
         const { data: definition, error } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
           .insert({
-            ...input,
+            ...input, // input is now correctly typed
             user_id: ctx.userId,
           })
           .select(TRACKED_STATE_DEF_FIELDS)
@@ -86,10 +92,10 @@ export const trackedStateRouter = router({
     }),
 
   updateDefinition: protectedProcedure
-    .input(UpdateTrackedStateDefInput)
+    .input(updateTrackedStateDefInput) // Use correct Zod schema
     .mutation(async ({ ctx, input }) => {
-      try {
-        const { id, ...updateData } = input;
+       try {
+        const { id, ...updateData } = input; // input is now correctly typed
 
         const { error: fetchError } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
@@ -125,13 +131,13 @@ export const trackedStateRouter = router({
     }),
 
   deleteDefinition: protectedProcedure
-    .input(DeleteTrackedStateDefInput)
+    .input(DeleteTrackedStateDefInput) // Use correct Zod schema
     .mutation(async ({ ctx, input }) => {
-      try {
+       try {
         const { error: fetchError } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
           .select('id')
-          .eq('id', input.id)
+          .eq('id', input.id) // input.id is now correctly typed
           .eq('user_id', ctx.userId)
           .single();
 
@@ -145,11 +151,11 @@ export const trackedStateRouter = router({
         const { error } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
           .delete()
-          .eq('id', input.id)
+          .eq('id', input.id) // input.id is now correctly typed
           .eq('user_id', ctx.userId);
 
         if (error) throw error;
-        return { success: true, id: input.id };
+        return { success: true, id: input.id }; // input.id is now correctly typed
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
@@ -159,26 +165,28 @@ export const trackedStateRouter = router({
       }
     }),
 
+  // --- State Entry Procedures ---
+
   getEntries: protectedProcedure
-    .input(GetStateEntriesInput)
+    .input(GetStateEntriesInput) // <<<--- ADDED .input() BINDING
     .query(async ({ ctx, input }) => {
       try {
         let query = ctx.supabaseAdmin
           .from('state_entries')
           .select(STATE_ENTRY_FIELDS)
           .eq('user_id', ctx.userId)
-          .eq('tracked_state_def_id', input.tracked_state_def_id);
+          .eq('definition_id', input.tracked_state_def_id); // input is now typed
 
-        if (input.startDate) {
-          query = query.gte('timestamp', input.startDate);
+        if (input.startDate) { // input is now typed
+          query = query.gte('entry_timestamp', input.startDate);
         }
-        if (input.endDate) {
-          query = query.lte('timestamp', input.endDate);
+        if (input.endDate) { // input is now typed
+          query = query.lte('entry_timestamp', input.endDate);
         }
 
-        query = query.order('timestamp', { ascending: false });
+        query = query.order('entry_timestamp', { ascending: false });
 
-        if (input.limit) {
+        if (input.limit) { // input is now typed
           query = query.limit(input.limit);
         }
 
@@ -195,13 +203,14 @@ export const trackedStateRouter = router({
     }),
 
   createEntry: protectedProcedure
-    .input(CreateStateEntryInput)
+    .input(CreateStateEntryInput) // <<<--- ADDED .input() BINDING
     .mutation(async ({ ctx, input }) => {
       try {
+        // Check definition ownership (already implemented correctly)
         const { error: defError } = await ctx.supabaseAdmin
           .from('tracked_state_defs')
           .select('id')
-          .eq('id', input.tracked_state_def_id)
+          .eq('id', input.tracked_state_def_id) // input is now typed
           .eq('user_id', ctx.userId)
           .single();
 
@@ -212,12 +221,16 @@ export const trackedStateRouter = router({
           });
         }
 
+        // Insert typed data
         const { data: entry, error } = await ctx.supabaseAdmin
           .from('state_entries')
           .insert({
-            ...input,
             user_id: ctx.userId,
-            timestamp: input.timestamp || new Date().toISOString(),
+            definition_id: input.tracked_state_def_id, // input is now typed
+            value_numeric: input.value_numeric,     // input is now typed
+            value_text: input.value_text,         // input is now typed
+            entry_timestamp: input.entry_timestamp || new Date().toISOString(), // input is now typed
+            notes: input.notes,                 // input is now typed
           })
           .select(STATE_ENTRY_FIELDS)
           .single();
@@ -234,15 +247,16 @@ export const trackedStateRouter = router({
     }),
 
   updateEntry: protectedProcedure
-    .input(UpdateStateEntryInput)
+    .input(updateStateEntryInput) // <<<--- ADDED .input() BINDING
     .mutation(async ({ ctx, input }) => {
       try {
-        const { id, ...updateData } = input;
+        const { id, ...updateData } = input; // input is now typed
 
+        // Check ownership (already implemented correctly)
         const { error: fetchError } = await ctx.supabaseAdmin
           .from('state_entries')
           .select('id')
-          .eq('id', id)
+          .eq('id', id) // Use id from destructured input
           .eq('user_id', ctx.userId)
           .single();
 
@@ -253,10 +267,11 @@ export const trackedStateRouter = router({
           });
         }
 
+        // updateData is now correctly typed from the input schema
         const { data: updatedEntry, error } = await ctx.supabaseAdmin
           .from('state_entries')
           .update(updateData)
-          .eq('id', id)
+          .eq('id', id) // Use id from destructured input
           .eq('user_id', ctx.userId)
           .select(STATE_ENTRY_FIELDS)
           .single();
@@ -273,13 +288,14 @@ export const trackedStateRouter = router({
     }),
 
   deleteEntry: protectedProcedure
-    .input(DeleteStateEntryInput)
+    .input(DeleteStateEntryInput) // <<<--- ADDED .input() BINDING
     .mutation(async ({ ctx, input }) => {
-      try {
+       try {
+        // Check ownership (already implemented correctly)
         const { error: fetchError } = await ctx.supabaseAdmin
           .from('state_entries')
           .select('id')
-          .eq('id', input.id)
+          .eq('id', input.id) // input is now typed
           .eq('user_id', ctx.userId)
           .single();
 
@@ -293,11 +309,11 @@ export const trackedStateRouter = router({
         const { error } = await ctx.supabaseAdmin
           .from('state_entries')
           .delete()
-          .eq('id', input.id)
+          .eq('id', input.id) // input is now typed
           .eq('user_id', ctx.userId);
 
         if (error) throw error;
-        return { success: true, id: input.id };
+        return { success: true, id: input.id }; // input is now typed
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
