@@ -1,32 +1,14 @@
-module.exports = function (api) {
+module.exports = function(api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
-    plugins: [
-      // Inline env variables for Tamagui
-      [
-        'transform-inline-environment-variables',
-        {
-          include: ['TAMAGUI_TARGET'],
-        },
-      ],
-      
-      // Tamagui plugin for optimized compilation
-      [
-        '@tamagui/babel-plugin',
-        {
-          components: ['tamagui'],
-          config: './tamagui.config.ts',
-          logTimings: true,
-          disableExtraction: process.env.NODE_ENV === 'development',
-        },
-      ],
-      
-      // NativeWind plugin for Tailwind CSS support
-      'nativewind/babel',
-      
-      // Reanimated plugin must be last
-      'react-native-reanimated/plugin',
+    presets: [
+      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+      "nativewind/babel"
     ],
+    plugins: [
+      // Expo Router v4 is included via expo-preset, no need for expo-router/babel
+      // (Expo preset also auto-includes Reanimated for SDK>=50)
+      // Add any other plugins (e.g. module-resolver) if needed here
+    ]
   };
-}; 
+};

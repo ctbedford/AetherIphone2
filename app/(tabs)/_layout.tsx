@@ -1,28 +1,25 @@
-// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/_layout.tsx
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Example icon library
-import { useThemeColor } from '@/hooks/useThemeColor'; // Assuming path alias is set
+import { Ionicons } from '@expo/vector-icons';
+import { useColorModeValue } from '@/design-system/Primitives';
 
-export default function TabLayout() {
-  const tabBarActiveTintColor = useThemeColor({}, 'tabIconSelected');
-  const tabBarInactiveTintColor = useThemeColor({}, 'tabIconDefault');
-  const backgroundColor = useThemeColor({}, 'background'); // Use standard background color
+export default function TabsLayout() {
+  const active = useColorModeValue('#86A5A9', '#64FFDA');
+  const inactive = useColorModeValue('#8e8e93', '#626262');
+  const bg = useColorModeValue('#FDFFE0', '#1A2E3A');
+  const border = useColorModeValue('#E5E5EA', '#2C2C2E');
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: tabBarActiveTintColor,
-        tabBarInactiveTintColor: tabBarInactiveTintColor,
-        tabBarStyle: {
-          backgroundColor: backgroundColor,
-          // Add other styles like borderTopColor if needed
-        },
-        headerShown: false, // We might handle headers inside each screen or using Stack
+        headerShown: false,
+        tabBarActiveTintColor: active,
+        tabBarInactiveTintColor: inactive,
+        tabBarStyle: { backgroundColor: bg, borderTopColor: border, height: 60 },
       }}
     >
       <Tabs.Screen
-        name="home/index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
@@ -31,7 +28,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="planner/index"
+        name="planner"
         options={{
           title: 'Planner',
           tabBarIcon: ({ color, size }) => (
@@ -40,25 +37,25 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="compass/index"
+        name="compass"
         options={{
           title: 'Compass',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass-outline" size={size} color={color} />
+            <Ionicons name="stats-chart-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="rewards/index"
+        name="rewards"
         options={{
           title: 'Rewards',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="gift-outline" size={size} color={color} />
+            <Ionicons name="sparkles-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="settings/index"
+        name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (

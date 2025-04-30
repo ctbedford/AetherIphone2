@@ -19,5 +19,11 @@ export const ScrollView = styled(gs.ScrollView);
 export const useToast = gs.useToast;
 export const useColorMode = gs.useColorMode;
 
+export function useColorModeValue<T>(light: T, dark: T) {
+  const { colorMode } = useColorMode();
+  return colorMode === 'dark' ? dark : light;
+}
+
+
 // Export all other Gluestack components as-is
 export { gs };

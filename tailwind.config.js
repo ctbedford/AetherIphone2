@@ -1,8 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 // Import the Zelda theme tokens
 const zelda = require('./design-system/tokens');
+// Import NativeWind preset
+const nativewind = require('nativewind/preset');
 
 module.exports = {
+  presets: [nativewind],
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
@@ -10,6 +13,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'heading': ['HyliaSerif'],
+        'body': ['CalamitySans'],
+      },
       colors: {
         // Zelda theme colors
         'parchment': zelda.colors.parchment,

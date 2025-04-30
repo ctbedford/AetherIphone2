@@ -1,95 +1,64 @@
-// app/(tabs)/home/index.gluestack.tsx
-// New implementation of Home tab using Gluestack UI + NativeWind
-
+/* app/(tabs)/home/index.tsx */
 import React from 'react';
-import { ScrollView, RefreshControl } from 'react-native';
-import { Stack, Text, Button } from '@/design-system/Primitives';
-import { router } from 'expo-router';
+import { RefreshControl } from 'react-native';
+import { Stack, Text, ScrollView, Button } from '@/design-system/Primitives';
 import { useDashboardQuery } from '@/app/lib/useDashboardQuery';
 import { useToggleTaskStatus } from '@/app/lib/useToggleTaskStatus';
-import { SectionCard } from '@/app/components/SectionCard';
 import { SwipeableRow } from '@/app/components/SwipeableRow';
 import { TaskRow } from '@/app/components/TaskRow';
-import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons'; // Use Ionicons which is already in your project
-import LottieView from 'lottie-react-native';
+import { SectionCard } from '@/app/components/SectionCard';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useColorModeValue } from '@gluestack-ui/themed';
 
-/**
- * Home Screen using Gluestack UI + NativeWind 
- * with Task Swipe → Done functionality
- */
-export default function Home() {
-  // Fetch dashboard data and task mutation
+export default function HomeScreen() {
+  const router = useRouter();
   const { data, isLoading, isRefetching, refetch } = useDashboardQuery();
-  const toggleTaskMutation = useToggleTaskStatus();
-  
-  // Handle task completion with haptic feedback
-  const handleCompleteTask = (taskId: string) => {
-    // Trigger haptic feedback
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
-    // Call mutation to mark task as complete
-    toggleTaskMutation.mutate({ taskId, completed: true });
-  };
+  const toggleTask = useToggleTaskStatus();
 
-  // Handle task deletion (placeholder for now)
-  const handleDeleteTask = (taskId: string) => {
-    console.log(`Delete task: ${taskId}`);
-    // TODO: Implement delete mutation
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-  };
+  const parchment = useColorModeValue('#FDFFE0', '#1A2E3A');
 
   return (
     <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          // Custom refresh colors aligned with Zelda theme
-          tintColor="#86A5A9" // sheikahCyan
-          colors={['#86A5A9', '#92C582']} // sheikahCyan, korokGreen
-        />
-      }
-      className="bg-parchment/30 dark:bg-darkTealBg/90"
+      className="flex-1 px-4"
+      style={{ backgroundColor: parchment }}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
     >
-      <Stack className="p-4">
-        {/* Today's Tasks Section */}
-        <SectionCard title="Today's Tasks">
-          {isLoading ? (
-            <Stack className="items-center justify-center py-4">
-              <Text className="text-darkText/70 dark:text-parchment/70">Loading tasks...</Text>
-            </Stack>
-          ) : data?.tasks?.length ? (
-            // Map through tasks and wrap each in SwipeableRow
-            data.tasks.slice(0, 5).map((task) => (
-              <SwipeableRow
-                key={task.id}
-                onComplete={() => handleCompleteTask(task.id)}
-                onDelete={() => handleDeleteTask(task.id)}
-              >
-                <TaskRow task={task} />
-              </SwipeableRow>
-            ))
-          ) : (
-            <Stack className="items-center justify-center py-4">
-              <Text className="text-darkText/70 dark:text-parchment/70">No tasks for today</Text>
-            </Stack>
-          )}
-          
-          {/* Add Task Button */}
-          <Stack className="mt-3 self-center">
-            <Button
-              className="bg-sheikahCyan/10 rounded-full py-2 px-4 border border-sheikahCyan/50 flex-row items-center"
-              onPress={() => router.push('/(tabs)/tasks/add-task' as any)}
+      <Text className="text-2xl font-heading text-darkText mt-6 mb-4">
+        Good morning, Link!
+      </Text>
+
+      {/* Tasks Section */}
+      <SectionCard
+        title="Tasks for today"
+        action={
+          <Button
+            className="flex-row items-center"
+            onPress={() => router.push('/(tabs)/planner/add-task')}
+          >
+            <Ionicons name="add" size={18} color="#86A5A9" />
+            <Text className="ml-1 text-sheikahCyan">New</Text>
+          </Button>
+        }
+      >
+        {isLoading && <Text>Loading…</Text>}
+        {!isLoading && (!data?.tasks?.length ? (
+          <Text className="text-ios-gray-3">No tasks 🎉</Text>
+        ) : (
+          data.tasks.map((task) => (
+            <SwipeableRow
+              key={task.id}
+              onComplete={() =>
+                toggleTask.mutate({ taskId: task.id, completed: task.status !== 'done' })
+              }
             >
-              <Ionicons name="add-outline" size={16} color="#86A5A9" />
-              <Text className="text-sheikahCyan ml-1">New Task</Text>
-            </Button>
-          </Stack>
-        </SectionCard>
-        
-        {/* Additional sections can be added here */}
-      </Stack>
+              <TaskRow task={task} />
+            </SwipeableRow>
+          ))
+        ))}
+      </SectionCard>
+
+      {/* You can add Habits / Goals sections here following the same pattern */}
     </ScrollView>
   );
 }
