@@ -1,13 +1,26 @@
 /** @type {import('tailwindcss').Config} */
+// Import the Zelda theme tokens
+const zelda = require('./design-system/tokens');
+
 module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
+    "./design-system/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
-      // iOS standard colors
       colors: {
+        // Zelda theme colors
+        'parchment': zelda.colors.parchment,
+        'sheikahCyan': zelda.colors.sheikahCyan,
+        'korokGreen': zelda.colors.korokGreen,
+        'darkText': zelda.colors.darkText,
+        'guardianOrange': zelda.colors.guardianOrange,
+        'darkTealBg': zelda.colors.darkTealBg,
+        'cyanGlow': zelda.colors.cyanGlow,
+        
+        // iOS standard colors
         // iOS system colors
         'ios-blue': '#007AFF',
         'ios-dark-blue': '#0A84FF', // dark mode variant

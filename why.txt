@@ -1,0 +1,51 @@
+yarn why v1.22.22
+[1/4] Why do we have the module "@tamagui/core"...?
+[2/4] Initialising dependency graph...
+[3/4] Finding dependency...
+[4/4] Calculating file sizes...
+info => Found "@tamagui/core@1.126.1"
+info Has been hoisted to "@tamagui/core"
+info Reasons this module exists
+   - Specified in "dependencies"
+   - Hoisted from "@tamagui#font-inter#@tamagui#core"
+   - Hoisted from "@tamagui#lucide-icons#@tamagui#core"
+   - Hoisted from "@tamagui#stacks#@tamagui#core"
+   - Hoisted from "@tamagui#toast#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#accordion#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#adapt#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#alert-dialog#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#avatar#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#checkbox#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#dialog#@tamagui#core"
+   - Hoisted from "@tamagui#toast#@tamagui#dismissable#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#elements#@tamagui#core"
+   - Hoisted from "@tamagui#config#@tamagui#font-silkscreen#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#font-size#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#form#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#get-font-sized#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#group#@tamagui#core"
+   - Hoisted from "@tamagui#lucide-icons#@tamagui#helpers-icon#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#image#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#linear-gradient#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#popover#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#popper#@tamagui#core"
+   - Hoisted from "@tamagui#toast#@tamagui#portal#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#progress#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#radio-group#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#select#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#separator#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#sheet#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#slider#@tamagui#core"
+   - Hoisted from "@tamagui#babel-plugin#@tamagui#static#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#switch#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#tooltip#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#accordion#@tamagui#collapsible#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#accordion#@tamagui#collection#@tamagui#core"
+   - Hoisted from "@tamagui#babel-plugin#@tamagui#static#@tamagui#config-default#@tamagui#core"
+   - Hoisted from "tamagui#@tamagui#radio-group#@tamagui#roving-focus#@tamagui#core"
+info Disk size without dependencies: "2.18MB"
+info Disk size with unique dependencies: "11.06MB"
+info Disk size with transitive dependencies: "12.35MB"
+info Number of shared dependencies: 13
+Done in 0.74s.

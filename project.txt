@@ -1,0 +1,3938 @@
+# Aether iPhone: Tamagui to Gluestack/NativeWind Migration
+Generated on Wed Apr 30 00:52:25 CDT 2025
+
+\n\n# 1️⃣ Core Design System
+\nMigration path: Tamagui tokens → Gluestack UI + NativeWind
+\n\n## Current tokens (tamagui.config.ts)
+**Current implementation:** tamagui.config.ts
+\n```
+// tamagui.config.ts
+import { createAnimations } from '@tamagui/animations-react-native';
+import { createFont, createTamagui, createTokens } from 'tamagui';
+import { Platform } from 'react-native';
+import * as MotionConstants from '@/constants/motion'; // Import motion constants
+
+// Font definitions - Zelda Theme
+// Assumes 'CalamitySans' and 'HyliaSerif' are loaded via useFonts or similar
+const headingFont = createFont({
+  family: 'HyliaSerif', // Zelda Display Font
+  size: {
+    // Mapped closer to iOS Dynamic Type: https://developer.apple.com/design/human-interface-guidelines/typography
+    1: 13,  // Caption 2
+    2: 15,  // Subheadline
+    3: 17,  // Body (true default)
+    4: 20,  // Title 3
+    5: 22,  // Title 2
+    6: 28,  // Title 1
+    7: 34,  // Large Title
+    8: 40,  // Extra Large Title (custom)
+    true: 17, // Default size (Body)
+  },
+  lineHeight: {
+    // Approximate line heights based on new sizes
+    1: 18, 2: 20, 3: 22, 4: 25, 5: 28, 6: 34, 7: 41, 8: 50, 
+    true: 22,
+  },
+  weight: {
+    // Prompt 2 asks for 400-700
+    4: '400', // Normal
+    6: '600', // Semi-bold/Bold
+    7: '700', // Extra-bold/Black
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0, 2: 0, 3: -0.5, 4: -0.5, 5: -1, 6: -1, 7: -1.5, 8: -1.5,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'HyliaSerif-Bold')
+  // face: {
+  //   400: { normal: 'HyliaSerif-Regular' },
+  //   700: { normal: 'HyliaSerif-Bold' },
+  // },
+});
+
+const bodyFont = createFont({
+  family: 'CalamitySans', // Zelda Body Font
+  size: {
+    // Mapped closer to iOS Dynamic Type
+    1: 11,  // Footnote
+    2: 12,  // Caption 1
+    3: 13,  // Caption 2
+    4: 15,  // Subheadline
+    5: 17,  // Body (true default)
+    6: 20,  // Title 3 (matching headingFont.$4)
+    true: 17, // Default body size
+  },
+  lineHeight: {
+    // Approximate line heights
+    1: 13, 2: 16, 3: 18, 4: 20, 5: 22, 6: 25,
+    true: 22, // Default body line height
+  },
+  weight: {
+    4: '400', // Regular
+    5: '500', // Medium (if available)
+    7: '700', // Bold (if needed/available)
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0.1, 2: 0.1, 3: 0, 4: 0, 5: -0.1, 6: -0.1,
+    true: 0,
+  },
+  // Required: Map weights to specific font faces if needed (e.g., 'CalamitySans-Medium')
+  // face: {
+  //   400: { normal: 'CalamitySans-Regular' },
+  //   500: { normal: 'CalamitySans-Medium' },
+  // },
+});
+
+const monoFont = createFont({
+  family: Platform.select({ web: 'monospace', default: 'SpaceMono' }), // Keep SpaceMono for code
+  size: {
+    1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20, true: 15,
+  },
+  lineHeight: {
+    1: 18, 2: 22, 3: 24, 4: 26, 5: 28, 6: 32, true: 24,
+  },
+  weight: {
+    4: '400', // Normal weight
+    true: '400',
+  },
+  letterSpacing: {
+    4: 0,
+    true: 0,
+  },
+  face: {
+    400: { normal: 'SpaceMono' }, // Map weight 400 to the loaded SpaceMono font
+  },
+});
+
+// Animation driver using reanimated
+const animations = createAnimations({
+  fast: {
+    type: 'timing',
+    duration: MotionConstants.durations.standard,
+    // easing: MotionConstants.easings.standard, // Removed as createAnimations defaults work well
+  },
+  medium: {
+    type: 'timing',
+    duration: MotionConstants.durations.modal,
+  },
+  slow: {
+    type: 'timing',
+    duration: MotionConstants.durations.long,
+  },
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    mass: 0.9,
+    stiffness: 150,
+  },
+  lazy: {
+    type: 'spring',
+    damping: 18,
+    stiffness: 50,
+  },
+  quick: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+});
+
+// Standard Radix Gray scale (light theme)
+const gray = {
+  gray1: '#fcfcfc', gray2: '#f8f8f8', gray3: '#f3f3f3', gray4: '#ededed', gray5: '#e8e8e8', gray6: '#e2e2e2', gray7: '#dbdbdb', gray8: '#c7c7c7', gray9: '#8f8f8f', gray10: '#858585', gray11: '#6f6f6f', gray12: '#171717',
+};
+
+// Standard Radix Gray scale (dark theme)
+const grayDark = {
+  gray1: '#191919', gray2: '#212121', gray3: '#282828', gray4: '#303030', gray5: '#393939', gray6: '#424242', gray7: '#4f4f4f', gray8: '#626262', gray9: '#737373', gray10: '#838383', gray11: '#ababab', gray12: '#ededed',
+};
+
+// Tokens (refined based on your existing config)
+const tokens = createTokens({
+  size: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16,
+  },
+  space: {
+    0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 36, 10: 40, 11: 44, 12: 48, 13: 52, 14: 56, 15: 60, 16: 64, true: 16, '-1': -4, '-2': -8, '-3': -12, '-4': -16,
+  },
+  radius: {
+    0: 0, 1: 3, 2: 5, 3: 8, 4: 10, 5: 14, 6: 16, 7: 20, 8: 24, 9: 28, 10: 32, true: 10, // Updated radius.5 to 14
+  },
+  zIndex: { 0: 0, 1: 100, 2: 200, 3: 300, 4: 400, 5: 500 },
+  color: {
+    // Zelda Palette (Prompt 1)
+    ...gray, // Add light greys
+    ...grayDark, // Add dark greys (will be overridden in dark theme definition)
+    parchment: '#FDFFE0',
+    sheikahCyan: '#86A5A9',
+    korokGreen: '#92C582',
+    darkText: '#536F50',
+    guardianOrange: '#FF9F0A',
+    darkTealBg: '#1A2E3A',
+    darkCyanGlow: '#64FFDA',
+
+    // Shadow Colors (Prompt 5)
+    shadowColorLight: 'rgba(83, 111, 80, 1)', // dark desaturated text color
+    shadowColorDark: 'rgba(0, 0, 0, 1)', // Black base
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+});
+
+// Define themes using Zelda Palette
+const lightTheme = {
+  // Base Colors
+  background: tokens.color.parchment,      // Light bg
+  backgroundStrong: tokens.color.white,     // Keep white for strong contrast areas if needed
+  backgroundTransparent: 'rgba(253, 255, 224, 0)', // Fully transparent parchment
+  color: tokens.color.darkText,             // Dark desaturated text
+  colorSecondary: tokens.color.darkText,      // Use main text color, maybe slightly lighter if needed later
+  colorTertiary: tokens.color.sheikahCyan,    // Use accent for tertiary info?
+  borderColor: tokens.color.sheikahCyan,      // Use accent for borders
+  borderColorHover: tokens.color.korokGreen,  // Korok green on hover?
+
+  // Theme-specific states (can refine later)
+  backgroundHover: tokens.color.parchment,    // Keep parchment, maybe slightly darker/lighter
+  backgroundPress: tokens.color.parchment,    // Keep parchment
+  backgroundFocus: tokens.color.parchment,    // Keep parchment
+  colorHover: tokens.color.korokGreen,        // Korok green text on hover?
+  colorPress: tokens.color.korokGreen,
+  colorFocus: tokens.color.sheikahCyan,
+  borderColorPress: tokens.color.korokGreen,
+  borderColorFocus: tokens.color.sheikahCyan,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.parchment,    // Base color, apply opacity in component (e.g., rgba(253,255,224,0.8))
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping (can use Zelda colors)
+  primary: tokens.color.sheikahCyan,        // Map primary to accent
+  secondary: tokens.color.korokGreen,       // Map secondary to korok green?
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,     // Use guardian orange for warning
+  error: tokens.color.guardianOrange,       // Use guardian orange for error
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.parchment, // Maps to background
+  onSurface: tokens.color.darkText,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorLight, // Use darkText color base for shadow
+  shadowColorHover: 'rgba(83, 111, 80, 0.15)',
+  shadowSm: 'rgba(83, 111, 80, 0.10)', // 10% opacity
+  shadowMd: 'rgba(83, 111, 80, 0.15)', // 15% opacity
+  shadowLg: 'rgba(83, 111, 80, 0.20)', // 20% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.parchment,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.parchment,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.parchment,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.parchment,
+};
+
+const darkTheme: typeof lightTheme = {
+  // Base Colors
+  ...grayDark, // Override light greys with dark greys
+  background: tokens.color.darkTealBg,      // Dark-mode bg
+  backgroundStrong: tokens.color.black,       // Black for contrast?
+  backgroundTransparent: 'rgba(26, 46, 58, 0)', // Fully transparent dark teal
+  color: tokens.color.parchment,          // Use light parchment for text
+  colorSecondary: tokens.color.sheikahCyan,   // Sheikah cyan for secondary text
+  colorTertiary: tokens.color.korokGreen,     // Korok green for tertiary
+  borderColor: tokens.color.sheikahCyan,      // Sheikah cyan borders
+  borderColorHover: tokens.color.darkCyanGlow, // Glow cyan on hover?
+
+  // Theme-specific states
+  backgroundHover: tokens.color.darkTealBg,   // Keep bg, maybe slightly lighter
+  backgroundPress: tokens.color.darkTealBg,
+  backgroundFocus: tokens.color.darkTealBg,
+  colorHover: tokens.color.darkCyanGlow,
+  colorPress: tokens.color.darkCyanGlow,
+  colorFocus: tokens.color.darkCyanGlow,
+  borderColorPress: tokens.color.darkCyanGlow,
+  borderColorFocus: tokens.color.darkCyanGlow,
+
+  // Semantic Tokens (Prompt 4)
+  accent: tokens.color.sheikahCyan,
+  surfaceSubtle: tokens.color.darkTealBg, // Use dark bg, apply opacity in component
+  destructive: tokens.color.guardianOrange,
+
+  // Standard Semantic Mapping
+  primary: tokens.color.darkCyanGlow,       // Use glow cyan for primary actions
+  secondary: tokens.color.korokGreen,
+  success: tokens.color.korokGreen,
+  warning: tokens.color.guardianOrange,
+  error: tokens.color.guardianOrange,
+  info: tokens.color.sheikahCyan,
+
+  // Semantic Aliases (Playbook 1.1)
+  surface: tokens.color.darkTealBg,   // Maps to background
+  onSurface: tokens.color.parchment,  // Maps to color
+  outline: tokens.color.sheikahCyan, // Maps to borderColor
+
+  // Shadows (Playbook 1.1 & Prompt 5)
+  shadowColor: tokens.color.shadowColorDark, // Darker shadow for dark mode
+  shadowColorHover: 'rgba(0, 0, 0, 0.30)',
+  shadowSm: 'rgba(0, 0, 0, 0.20)', // 20% opacity
+  shadowMd: 'rgba(0, 0, 0, 0.30)', // 30% opacity
+  shadowLg: 'rgba(0, 0, 0, 0.40)', // 40% opacity
+
+  // Toast Themes (Report Item 6)
+  toast_success_background: tokens.color.korokGreen,
+  toast_success_color: tokens.color.darkTealBg,
+  toast_error_background: tokens.color.guardianOrange,
+  toast_error_color: tokens.color.darkTealBg,
+  toast_warning_background: tokens.color.guardianOrange, // Often same as error
+  toast_warning_color: tokens.color.darkTealBg,
+  toast_info_background: tokens.color.sheikahCyan,
+  toast_info_color: tokens.color.darkTealBg,
+};
+
+// Create the Tamagui config
+const config = createTamagui({
+  animations,
+  shouldAddPrefersColorThemes: true,
+  themeClassNameOnRoot: true,
+  shorthands: {
+    // Keep your existing shorthands
+    m: 'margin', mt: 'marginTop', mr: 'marginRight', mb: 'marginBottom', ml: 'marginLeft', mx: 'marginHorizontal', my: 'marginVertical',
+    p: 'padding', pt: 'paddingTop', pr: 'paddingRight', pb: 'paddingBottom', pl: 'paddingLeft', px: 'paddingHorizontal', py: 'paddingVertical',
+    bg: 'backgroundColor', br: 'borderRadius', bw: 'borderWidth', bc: 'borderColor',
+    f: 'flex', fd: 'flexDirection', ai: 'alignItems', jc: 'justifyContent', w: 'width', h: 'height',
+    ac: 'alignContent',
+    als: 'alignSelf',
+    btc: 'borderTopColor',
+    bbc: 'borderBottomColor',
+    blc: 'borderLeftColor',
+    brc: 'borderRightColor',
+    boc: 'borderColor',
+    bs: 'borderStyle',
+    dsp: 'display',
+    fb: 'flexBasis',
+    fg: 'flexGrow',
+    fs: 'flexShrink',
+    fw: 'flexWrap',
+    mah: 'maxHeight',
+    maw: 'maxWidth',
+    mih: 'minHeight',
+    miw: 'minWidth',
+    op: 'opacity',
+    ov: 'overflow',
+    r: 'right',
+    shac: 'shadowColor',
+    shar: 'shadowRadius',
+    shof: 'shadowOffset',
+    shop: 'shadowOpacity',
+    t: 'top',
+    ta: 'textAlign',
+    tt: 'textTransform',
+    va: 'verticalAlign',
+    zi: 'zIndex',
+  },
+  fonts: {
+    // Use Zelda fonts
+    heading: headingFont,
+    body: bodyFont,
+    mono: monoFont, // Keep mono
+  },
+  themes: {
+    light: lightTheme,
+    dark: darkTheme,
+  },
+  tokens,
+  media: { // Keep standard media queries
+    xs: { maxWidth: 660 }, sm: { maxWidth: 800 }, md: { maxWidth: 1020 }, lg: { maxWidth: 1280 }, xl: { maxWidth: 1420 }, xxl: { maxWidth: 1600 },
+    gtXs: { minWidth: 661 }, gtSm: { minWidth: 801 }, gtMd: { minWidth: 1021 }, gtLg: { minWidth: 1281 },
+    short: { maxHeight: 820 }, tall: { minHeight: 820 },
+    hoverNone: { hover: 'none' }, pointerCoarse: { pointer: 'coarse' },
+  },
+  settings: {
+      allowedStyleValues: 'somewhat-strict',
+      autocompleteSpecificTokens: 'except-special',
+  },
+});
+
+type AppConfig = typeof config;
+
+// Augment Tamagui interface - this is crucial!
+declare module '@tamagui/core' {
+  // If AppConfig is defined and exported:
+  interface TamaguiCustomConfig extends AppConfig {}
+}
+
+export default config;```
+\n\n## tailwind.config.js (to be rewritten)
+**Current implementation:** tailwind.config.js
+\n```
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {
+      // iOS standard colors
+      colors: {
+        // iOS system colors
+        'ios-blue': '#007AFF',
+        'ios-dark-blue': '#0A84FF', // dark mode variant
+        'ios-red': '#FF3B30',
+        'ios-dark-red': '#FF453A', // dark mode variant
+        'ios-green': '#34C759',
+        'ios-dark-green': '#30D158', // dark mode variant
+        'ios-orange': '#FF9500',
+        'ios-dark-orange': '#FF9F0A', // dark mode variant
+        'ios-purple': '#AF52DE',
+        'ios-dark-purple': '#BF5AF2', // dark mode variant
+        'ios-yellow': '#FFCC00',
+        'ios-dark-yellow': '#FFD60A', // dark mode variant
+        'ios-pink': '#FF2D55',
+        'ios-dark-pink': '#FF375F', // dark mode variant
+        'ios-indigo': '#5856D6',
+        'ios-dark-indigo': '#5E5CE6', // dark mode variant
+        
+        // iOS gray palette
+        'ios-gray': {
+          1: '#8E8E93',
+          2: '#AEAEB2',
+          3: '#C7C7CC',
+          4: '#D1D1D6',
+          5: '#E5E5EA',
+          6: '#F2F2F7',
+        },
+        'ios-dark-gray': {
+          1: '#8E8E93',
+          2: '#636366',
+          3: '#48484A',
+          4: '#3A3A3C',
+          5: '#2C2C2E',
+          6: '#1C1C1E',
+        },
+        
+        // System background colors
+        'ios-system': {
+          DEFAULT: '#FFFFFF',
+          secondary: '#F2F2F7',
+          tertiary: '#FFFFFF',
+        },
+        'ios-dark-system': {
+          DEFAULT: '#000000',
+          secondary: '#1C1C1E',
+          tertiary: '#2C2C2E',
+        },
+      },
+      
+      // iOS standard spacing
+      spacing: {
+        // Added standard iOS spacing if needed beyond Tailwind defaults
+      },
+      
+      // iOS standard border radius
+      borderRadius: {
+        'ios-small': '4px',
+        'ios-regular': '8px',
+        'ios-large': '12px',
+        'ios-xl': '16px',
+      },
+      
+      // iOS system font weights
+      fontWeight: {
+        'ios-regular': '400',
+        'ios-medium': '500', 
+        'ios-semibold': '600',
+        'ios-bold': '700',
+      },
+      
+      // iOS shadows
+      boxShadow: {
+        'ios-small': '0 1px 2px rgba(0, 0, 0, 0.05)',
+        'ios-medium': '0 2px 4px rgba(0, 0, 0, 0.1)',
+        'ios-large': '0 4px 6px rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+  plugins: [],
+}; ```
+\n\n## Motion constants
+**Current implementation:** constants/motion.ts
+\n```
+import { Easing } from 'react-native-reanimated';
+
+/**
+ * Standard animation durations (in milliseconds)
+ */
+export const durations = {
+  /** Ultra-fast for micro-interactions */
+  micro: 80,
+  /** Tap/press feedback */
+  tap: 120,
+  /** Default animation speed for most UI transitions */
+  standard: 200,
+  /** For more noticeable animations */
+  medium: 250,
+  /** Modal entrances/exits, complex transitions */
+  modal: 300,
+  /** Full screen transitions */
+  screen: 350,
+  /** Extended animations for emphasis */
+  long: 450,
+};
+
+/**
+ * Standard easing curves
+ */
+export const easings = {
+  /** Quick acceleration, gradual deceleration - for elements entering the screen */
+  enter: Easing.bezier(0.25, 0.1, 0.25, 1.0),
+  /** Gradual acceleration, quick deceleration - for elements exiting the screen */
+  exit: Easing.bezier(0.25, 0.0, 0.2, 1.0),
+  /** For transitions between UI states */
+  standard: Easing.bezier(0.4, 0.0, 0.2, 1.0),
+  /** Quick in, quick out - for emphasis */
+  energetic: Easing.bezier(0.55, 0.0, 0.1, 1.0),
+  /** Linear - consistent motion with no acceleration/deceleration */
+  linear: Easing.linear,
+  /** Slow start, fast finish */
+  accelerate: Easing.in(Easing.quad),
+  /** Fast start, slow finish */
+  decelerate: Easing.out(Easing.quad),
+  /** Fast start and end, slower in the middle */
+  emphasize: Easing.inOut(Easing.quad),
+};
+
+/**
+ * Animation presets for common UI patterns
+ */
+export const presets = {
+  fadeIn: {
+    duration: durations.standard,
+    easing: easings.enter,
+  },
+  fadeOut: {
+    duration: durations.standard,
+    easing: easings.exit,
+  },
+  slideIn: {
+    duration: durations.modal,
+    easing: easings.enter,
+  },
+  slideOut: {
+    duration: durations.modal,
+    easing: easings.exit,
+  },
+  scaleIn: {
+    duration: durations.standard,
+    easing: easings.emphasize,
+  },
+  scaleOut: {
+    duration: durations.standard,
+    easing: easings.emphasize,
+  },
+  tapFeedback: {
+    duration: durations.tap,
+    easing: easings.emphasize,
+  },
+  skeleton: {
+    duration: durations.long * 2,
+    easing: easings.linear,
+  },
+};
+
+/**
+ * Animation values for specific components
+ */
+export const componentAnimations = {
+  toast: {
+    show: {
+      duration: durations.modal,
+      easing: easings.enter,
+    },
+    hide: {
+      duration: durations.standard,
+      easing: easings.exit,
+    },
+  },
+  modal: {
+    overlay: {
+      show: {
+        duration: durations.modal,
+        easing: easings.standard,
+      },
+      hide: {
+        duration: durations.modal,
+        easing: easings.standard,
+      },
+    },
+    content: {
+      show: {
+        duration: durations.modal,
+        easing: easings.enter,
+      },
+      hide: {
+        duration: durations.standard,
+        easing: easings.exit,
+      },
+    },
+  },
+  button: {
+    press: {
+      duration: durations.tap,
+      easing: easings.emphasize,
+    },
+    release: {
+      duration: durations.tap,
+      easing: easings.emphasize,
+    },
+  },
+  navigation: {
+    screen: {
+      duration: durations.screen,
+      easing: easings.standard,
+    },
+    tab: {
+      duration: durations.standard,
+      easing: easings.standard,
+    },
+  },
+}; ```
+\n\n## Planned new files
+* tokens.ts - Export Tailwind-ready object instead of Tamagui createTokens
+* theme.glue.ts - Wire Zelda palette & fonts into Gluestack provider
+* Primitives.tsx - Create wrappers for Gluestack equivalents
+* Animations.ts - Create reusable Moti presets
+\n\n# 2️⃣ Global Providers
+\n\n## Current app/_layout.tsx (to be rewritten)
+**Current implementation:** app/_layout.tsx
+\n```
+// app/_layout.tsx
+import '../tamagui.config'; // Import config first!
+
+import React, { useCallback, useEffect, useState, ReactNode, createContext, useContext } from 'react';
+import { Slot, SplashScreen, useRouter, useSegments } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { useColorScheme } from 'react-native';
+import { TamaguiProvider, Theme } from 'tamagui'; // Consolidate Tamagui imports
+// tamagui config is already imported at the top of the file
+import type { ThemeName } from '@tamagui/core'; // Ensure ThemeName is imported from @tamagui/core
+import * as SecureStore from 'expo-secure-store'; // Import SecureStore
+
+import { supabase } from '@/utils/supabase';
+
+import type { Session } from '@supabase/supabase-js';
+
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
+/* ------------------------------------------------------------------ */
+/*  1. Simple Auth-aware context                                       */
+/* ------------------------------------------------------------------ */
+interface AuthCtx {
+  session: Session | null;
+  isLoading: boolean;
+}
+export const AuthContext = React.createContext<AuthCtx>({
+  session: null,
+  isLoading: true,
+});
+export const useAuth = () => React.useContext(AuthContext);
+
+/* ------------------------------------------------------------------ */
+/*  2. The actual Provider                                             */
+/* ------------------------------------------------------------------ */
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initial session check
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session ?? null);
+      setIsLoading(false);
+      console.log('Initial session check:', data.session ? 'Session found' : 'No session');
+    }).catch(error => {
+        console.error("Error getting initial session:", error);
+        setIsLoading(false);
+    });
+
+    // Subscribe to auth changes (login / logout / token refresh)
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        console.log('Auth state changed:', _event, newSession ? 'New session' : 'No session');
+        setSession(newSession ?? null);
+        // If the event is SIGNED_IN or TOKEN_REFRESHED, loading might briefly be true again
+        // depending on how you handle redirects, but usually setting session is enough.
+        // If SIGNED_OUT, ensure loading is false.
+        if (_event === 'SIGNED_OUT') {
+          setIsLoading(false);
+        }
+      },
+    );
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ session, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  3. Enforce splash-screen logic & route guarding                    */
+/* ------------------------------------------------------------------ */
+function Root() {
+  const { session, isLoading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments(); // e.g., ["(tabs)", "home"] or ["(auth)", "login"]
+
+  /* Load Fonts ----------------------------------------------------- */
+  const [fontsLoaded, fontError] = useFonts({
+    // Ensure font names match those used in tamagui.config.ts
+    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  /* Handle Font Loading & Errors ----------------------------------- */
+  useEffect(() => {
+    if (fontError) {
+      console.error("Font loading error:", fontError);
+      // Decide how to handle font errors - maybe show an error message?
+      // For now, we still need to hide splash eventually.
+      SplashScreen.hideAsync();
+    }
+  }, [fontError]);
+
+  /* Redirect Logic ------------------------------------------------- */
+  useEffect(() => {
+    // Wait until auth state is confirmed AND fonts are potentially loaded
+    if (isLoading || !fontsLoaded && !fontError) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    console.log(`Auth State: isLoading=${isLoading}, session=${!!session}, inAuthGroup=${inAuthGroup}, segments=${segments.join('/')}`);
+
+    if (!session && !inAuthGroup) {
+      console.log('Redirecting to login...');
+      router.replace('/(auth)/login');
+    } else if (session && inAuthGroup) {
+      console.log('Redirecting to home...');
+      router.replace('/(tabs)/home');
+    } else {
+        console.log('No redirect needed.');
+    }
+  }, [isLoading, session, segments, router, fontsLoaded, fontError]);
+
+  /* Hide splash only when fonts loaded/error AND auth check done ---- */
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && !isLoading) {
+        console.log('Hiding SplashScreen...');
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError, isLoading]);
+
+  /* Show loading indicator until ready ----------------------------- */
+  if (!fontsLoaded && !fontError || isLoading) {
+    // Optionally, return the Splash Screen component itself or a custom loading view
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1C1C1E' /* Approx dark bg */ }}>
+        <ActivityIndicator size="large" color="#FFFFFF" />
+      </View>
+    );
+  }
+
+  // Once loaded and auth checked, render the content based on route
+  return (
+    <>
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <Slot />
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  4. Wrap everything with SafeArea, Providers, etc.                  */
+/* ------------------------------------------------------------------ */
+import { ToastProvider, Toast, useToastState, ToastViewport } from '@tamagui/toast';
+import { CheckCircle, AlertCircle, AlertTriangle, Info } from '@tamagui/lucide-icons';
+import { YStack, XStack } from 'tamagui';
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+
+const ACCENT_COLOR_KEY = 'userAccentColor';
+const DEFAULT_ACCENT = 'blue'; // Set your default accent color theme name here
+
+// Context to provide accent update function down the tree
+const AccentContext = createContext({
+  setAccent: (color: string) => {},
+});
+export const useAccent = () => useContext(AccentContext);
+
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
+  const themeMode = colorScheme === 'dark' ? 'dark' : 'light';
+
+  return (
+    <ToastProvider swipeDirection="horizontal" duration={6000}>
+      <Slot />
+      <CurrentToast />
+      <ToastViewport name="DefaultViewport" top={40} left={0} right={0} /> 
+    </ToastProvider>
+  );
+}
+
+function CurrentToast() {
+  const currentToast = useToastState();
+
+  if (!currentToast || currentToast.isHandledNatively) {
+    return null;
+  }
+
+  const toastType = currentToast.customData?.type || 'info'; // Default to 'info'
+  let themeName = 'toast_info'; // Default theme
+  let IconComponent = Info;
+
+  switch (toastType) {
+    case 'success':
+      themeName = 'toast_success';
+      IconComponent = CheckCircle;
+      break;
+    case 'error':
+      themeName = 'toast_error';
+      IconComponent = AlertCircle;
+      break;
+    case 'warning':
+      themeName = 'toast_warning';
+      IconComponent = AlertTriangle;
+      break;
+  }
+
+  return (
+    <Theme name={themeName as ThemeName}> {/* Cast themeName to ThemeName */}
+      <Toast
+        key={currentToast.id}
+        duration={currentToast.duration}
+        enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+        exitStyle={{ opacity: 0, scale: 0.95, y: -10 }} // Adjusted exit style slightly
+        y={0}
+        opacity={1}
+        scale={1}
+        animation="bouncy" // Apply bouncy animation
+        viewportName={currentToast.viewportName ?? 'DefaultViewport'}
+        backgroundColor="$background" // Use background from the wrapped theme
+        padding="$3"
+        borderRadius="$4"
+        marginHorizontal="$4"
+        elevate
+        shadowColor="$shadowColor"
+      >
+        <YStack space="$1">
+          <XStack space="$2" alignItems="center">
+            <IconComponent size={18} color="$color" /> {/* Use color from the wrapped theme */}
+            <Toast.Title color="$color">{currentToast.title}</Toast.Title> {/* Use color from the wrapped theme */}
+          </XStack>
+          {!!currentToast.message && (
+            <Toast.Description color="$color"> {/* Use color from the wrapped theme */}
+              {currentToast.message}
+            </Toast.Description>
+          )}
+        </YStack>
+      </Toast>
+    </Theme>
+  );
+}
+
+function Providers({ children }: { children: React.ReactNode }) {
+  const colorScheme = useColorScheme();
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT);
+
+  // Load accent color on mount
+  useEffect(() => {
+    const loadAccent = async () => {
+      try {
+        const savedAccent = await SecureStore.getItemAsync(ACCENT_COLOR_KEY);
+        if (savedAccent) {
+          setAccentColor(savedAccent);
+        }
+      } catch (error) {
+        console.error('Failed to load accent color:', error);
+      }
+    };
+    loadAccent();
+  }, []);
+
+  // Function to update and save accent color
+  const handleSetAccent = useCallback(async (newColor: string) => {
+    try {
+      await SecureStore.setItemAsync(ACCENT_COLOR_KEY, newColor);
+      setAccentColor(newColor);
+    } catch (error) {
+      console.error('Failed to save accent color:', error);
+    }
+  }, []);
+
+  return (
+    <AccentContext.Provider value={{ setAccent: handleSetAccent }}>
+      <Theme name={accentColor as ThemeName}> {/* Cast accentColor to ThemeName */}
+        {children}
+      </Theme>
+    </AccentContext.Provider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        {/* Core Providers (Tamagui, QueryClient, tRPC) */}
+        <Providers>
+          {/* Auth Provider manages session state */}
+          <AuthProvider>
+            {/* Root handles splash, font loading, and redirects */}
+            <RootLayoutNav />
+          </AuthProvider>
+        </Providers>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+```
+\n\n## Current AppProvider.tsx (to be refactored)
+**Current implementation:** providers/AppProvider.tsx
+\n```
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { httpBatchLink } from '@trpc/client';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
+import { TamaguiProvider } from 'tamagui';
+
+import { NativeWindProvider } from '@/components/ui/nativewind-setup';
+import config from '../tamagui.config';
+import { trpc } from '@/utils/trpc';
+import { useUiStore } from '@/stores/uiStore'; // Import store to get theme
+
+/**
+ * Complete app provider that integrates:
+ * - tRPC
+ * - React Query
+ * - Tamagui
+ * - NativeWind
+ * - Additional providers can be added here
+ */
+export function AppProvider({ children }: { children: ReactNode }) {
+  // Create Query Client
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 1000, // 5 seconds
+        retry: Platform.OS === 'web' ? 3 : 1, // Less retries on mobile to save battery
+      },
+    },
+  }));
+  
+  // Create tRPC client
+  const [trpcClient] = useState(() => 
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: 'http://localhost:3000/api/trpc',
+          fetch: (input, init) => {
+            return fetch(input, {
+              ...init,
+              credentials: 'include',
+            });
+          },
+        }),
+      ],
+    })
+  );
+  
+  // Get theme state from Zustand
+  const { isDarkMode } = useUiStore();
+  const currentTheme = isDarkMode ? 'dark' : 'light';
+  
+  // You could add NATS initialization here
+  useEffect(() => {
+    // Example: Initialize NATS for real-time updates
+    // Note: This is commented out since we don't have a real NATS server to connect to
+    /*
+    try {
+      const url = 'ws://localhost:4222';
+      initNatsClient(url, queryClient)
+        .then(conn => {
+          console.log('NATS client initialized successfully');
+          // Set up subscriptions to relevant topics
+          subscribeWithCache('users.updates', ['users']);
+          subscribeWithCache('messages.updates', ['messages']);
+        })
+        .catch(err => {
+          console.error('Failed to initialize NATS client:', err);
+        });
+    } catch (error) {
+      console.error('Error in NATS setup:', error);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      closeNatsConnection().catch(err => {
+        console.error('Error closing NATS connection:', err);
+      });
+    };
+    */
+  }, [queryClient]);
+  
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <NativeWindProvider theme={currentTheme}>
+          <TamaguiProvider config={config}>
+            {children}
+          </TamaguiProvider>
+        </NativeWindProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+} ```
+\n\n## Current ConfettiProvider.tsx (to be refactored)
+**Current implementation:** providers/ConfettiProvider.tsx
+\n```
+import { ReactNode, createContext, useCallback, useContext, useRef, useState } from 'react';
+import { StyleSheet, Dimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  withDelay,
+  runOnJS,
+} from 'react-native-reanimated';
+import { View } from 'tamagui';
+import * as Haptics from 'expo-haptics';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const CONFETTI_COUNT = 50; // Number of confetti pieces
+const COLORS = ['#ff4747', '#ffae47', '#fff347', '#47ff70', '#47d0ff', '#9147ff', '#ff47f3'];
+
+interface ConfettiContextValue {
+  showConfetti: () => void;
+}
+
+const ConfettiContext = createContext<ConfettiContextValue>({
+  showConfetti: () => {},
+});
+
+export const useConfetti = () => useContext(ConfettiContext);
+
+// Create a single confetti piece component
+function ConfettiPiece({ 
+  size, 
+  color, 
+  initialX, 
+  initialY, 
+  duration, 
+  delay 
+}: { 
+  size: number, 
+  color: string, 
+  initialX: number, 
+  initialY: number, 
+  duration: number, 
+  delay: number 
+}) {
+  const translateX = useSharedValue(initialX);
+  const translateY = useSharedValue(initialY);
+  const rotate = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  // Create animation when component mounts
+  useState(() => {
+    // Random horizontal movement
+    const targetX = initialX + (Math.random() * 2 - 1) * SCREEN_WIDTH * 0.5;
+    
+    // Fall down animation
+    translateY.value = withDelay(
+      delay,
+      withTiming(SCREEN_HEIGHT + 100, { duration })
+    );
+    
+    // Horizontal movement with some randomness
+    translateX.value = withDelay(
+      delay,
+      withSequence(
+        withTiming(targetX, { duration: duration * 0.4 }),
+        withTiming(targetX + (Math.random() * 2 - 1) * 100, { duration: duration * 0.6 })
+      )
+    );
+    
+    // Rotation animation
+    rotate.value = withDelay(
+      delay,
+      withTiming(Math.random() * 1080, { duration })
+    );
+    
+    // Fade out toward the end
+    opacity.value = withDelay(
+      delay + duration * 0.7,
+      withTiming(0, { duration: duration * 0.3 })
+    );
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { rotate: `${rotate.value}deg` },
+    ],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          width: size,
+          height: size * (Math.random() * 0.8 + 0.2), // Varying heights
+          backgroundColor: color,
+          borderRadius: Math.random() > 0.5 ? size / 2 : 0, // Some round, some square
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+export function ConfettiProvider({ children }: { children: ReactNode }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const animationTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  // Generate confetti pieces data
+  const generateConfettiData = useCallback(() => {
+    const pieces = [];
+    for (let i = 0; i < CONFETTI_COUNT; i++) {
+      pieces.push({
+        id: i,
+        size: Math.random() * 8 + 4, // Size between 4-12
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        initialX: Math.random() * SCREEN_WIDTH,
+        initialY: -20, // Start just above the screen
+        duration: Math.random() * 1000 + 2000, // Duration between 2-3 seconds
+        delay: Math.random() * 500, // Random delay up to 500ms
+      });
+    }
+    return pieces;
+  }, []);
+
+  const [confettiPieces, setConfettiPieces] = useState(generateConfettiData());
+
+  const showConfetti = useCallback(() => {
+    // Trigger haptic feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
+    // Clear any existing timeout
+    if (animationTimeout.current) {
+      clearTimeout(animationTimeout.current);
+    }
+    
+    // Generate new confetti data and show
+    setConfettiPieces(generateConfettiData());
+    setIsVisible(true);
+    
+    // Hide confetti after animation completes
+    animationTimeout.current = setTimeout(() => {
+      setIsVisible(false);
+    }, 3500); // Slightly longer than the max animation time to ensure all pieces are gone
+  }, [generateConfettiData]);
+
+  return (
+    <ConfettiContext.Provider value={{ showConfetti }}>
+      {children}
+      {isVisible && (
+        <View style={styles.confettiContainer} pointerEvents="none">
+          {confettiPieces.map((piece) => (
+            <ConfettiPiece
+              key={piece.id}
+              size={piece.size}
+              color={piece.color}
+              initialX={piece.initialX}
+              initialY={piece.initialY}
+              duration={piece.duration}
+              delay={piece.delay}
+            />
+          ))}
+        </View>
+      )}
+    </ConfettiContext.Provider>
+  );
+}
+
+const styles = StyleSheet.create({
+  confettiContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    pointerEvents: 'none',
+  },
+}); ```
+\n\n## Current Providers.tsx (to be refactored)
+**Current implementation:** providers/Providers.tsx
+\n```
+// providers/Providers.tsx
+import '../tamagui.config'; // Ensure Tamagui config is loaded first!
+import { getConfig } from '@tamagui/core';
+console.log('Effective Tamagui config keys:', Object.keys(getConfig() ?? {}));
+import { QueryClientProvider } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui';
+import { ToastProvider, ToastViewport } from '@tamagui/toast'; // Import from Tamagui Toast
+import React, { useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native'; // Import Platform
+
+import config from '../tamagui.config'; // Import your config
+import { trpc } from '../utils/trpc'; // Your tRPC hook setup
+import { queryClient, persister, initializeNetworkMonitoring, resumeMutationsAndInvalidate } from '@/utils/query-client';
+import { useUiStore } from '@/stores/uiStore';
+import { supabase } from '@/utils/supabase'; // Needed for auth link
+import { createTRPCClient, httpBatchLink, TRPCLink, TRPCClientError } from '@trpc/client'; // Import TRPC Client utils
+import { observable } from '@trpc/server/observable';
+import type { AppRouter } from '../server/src/router'; // Adjust path if needed
+import type { Session } from '@supabase/supabase-js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Setup query client persistence
+persistQueryClient({
+  queryClient,
+  persister,
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  dehydrateOptions: {
+    shouldDehydrateMutation: () => false, // Usually don't dehydrate mutations
+  },
+});
+
+// New component for the viewport using safe area
+const CurrentToastViewport = () => {
+  const { top, bottom, left, right } = useSafeAreaInsets();
+  return (
+    <>
+      {/* Adjust positioning based on your desired toast location */}
+      <ToastViewport
+        name="global_top"
+        flexDirection="column" // Stack new toasts below older ones
+        top={top + 10} // Add padding below status bar
+        left={left + 10} // Add padding from sides
+        right={right + 10}
+      />
+      <ToastViewport
+        name="global_bottom"
+        flexDirection="column-reverse"
+        bottom={bottom + 10}
+        left={left + 10}
+        right={right + 10}
+      />
+    </>
+  );
+};
+
+// Extract tRPC links setup
+function getTRPCLinks(getSession: () => Promise<Session | null>): TRPCLink<AppRouter>[] {
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/trpc'; // Default to localhost
+  console.log('Using tRPC API URL:', apiBaseUrl);
+
+  return [
+    // Link to handle auth token injection and refresh
+    (runtime) => {
+      return ({ op, next }) => {
+        return observable((observer) => {
+          getSession().then(session => {
+            const headers = (op.context?.headers || {}) as Record<string, string>;
+            if (session?.access_token) {
+              headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+
+            // Proceed with the request, ensuring context is passed correctly
+            next({ ...op, context: { ...op.context, headers } })
+              .subscribe({
+                next: (value) => observer.next(value),
+                error: async (err) => {
+                  if (err instanceof TRPCClientError && err.data?.httpStatus === 401) {
+                    console.log('tRPC: Token expired or invalid, attempting refresh...');
+                    try {
+                      // Supabase handles refresh internally if needed when getSession is called
+                      const { data, error: refreshError } = await supabase.auth.refreshSession();
+                      if (refreshError) throw refreshError;
+
+                      if (data.session) {
+                        console.log('tRPC: Session refreshed successfully, retrying request.');
+                        const refreshedHeaders = { ...headers, Authorization: `Bearer ${data.session.access_token}` };
+                        // Retry with new headers in context
+                        next({ ...op, context: { ...op.context, headers: refreshedHeaders } }).subscribe(observer);
+                      } else {
+                        console.error('tRPC: Session refresh failed, no session returned.');
+                        observer.error(err); // Propagate original error if no new session
+                        // Optionally trigger logout here
+                        supabase.auth.signOut();
+                      }
+                    } catch (refreshCatchError) {
+                      console.error('tRPC: Session refresh catch error:', refreshCatchError);
+                      observer.error(err); // Propagate original error
+                      supabase.auth.signOut();
+                    }
+                  } else {
+                    observer.error(err); // Propagate non-auth errors
+                  }
+                },
+                complete: () => observer.complete(),
+              });
+          }).catch(err => {
+             console.error('tRPC: Error getting session for headers:', err);
+             observer.error(new TRPCClientError('Failed to get session')); // Use TRPCClientError
+          });
+
+          // Return cleanup function if needed
+          return () => {};
+        });
+      };
+    },
+    // The terminating HTTP link
+    httpBatchLink({
+      url: apiBaseUrl,
+       headers() {
+         // Headers are injected by the middleware link above
+         return {};
+       },
+      // Add superjson transformer here if you use one
+      // transformer: superjson,
+    }),
+  ];
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  // Get theme state from Zustand
+  const { isDarkMode } = useUiStore();
+  const currentTheme = isDarkMode ? 'dark' : 'light';
+
+  // Initialize network monitoring and query client persistence
+  useEffect(() => {
+    const unsubscribeNetworkMonitoring = initializeNetworkMonitoring();
+    resumeMutationsAndInvalidate(); // Try resuming mutations on app load
+    return () => {
+      unsubscribeNetworkMonitoring();
+    };
+  }, []);
+
+  // Memoize tRPC client creation
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: getTRPCLinks(async () => { // Pass session getter to links setup
+        const { data } = await supabase.auth.getSession();
+        return data.session;
+      }),
+    })
+  );
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <TamaguiProvider
+            config={config}
+            defaultTheme={currentTheme}
+            // disableInjectCSS // May not be needed depending on setup
+        >
+          {/* Use Tamagui's ToastProvider */}
+          <ToastProvider
+            // burntOptions={{ from: 'top' }} // Disabled until native module 'Burnt' is installed
+            swipeDirection="horizontal"
+            duration={4000}
+            native={[]}
+          >
+            {children}
+            {/* Add the safe-area aware ToastViewport */}
+            <CurrentToastViewport />
+          </ToastProvider>
+        </TamaguiProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}```
+\n\n## Planned new providers
+* providers/TRPCProvider.tsx - Instantiate trpc.createClient() + React Query
+* providers/SupabaseProvider.tsx - Context for supabase-js instance + session
+\n\n# 3️⃣ Navigation Shells (Expo Router)
+\n\n## Current tab layout (to be rewritten)
+**Current implementation:** app/(tabs)/_layout.tsx
+\n```
+// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/_layout.tsx
+import React from 'react';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Example icon library
+import { useThemeColor } from '@/hooks/useThemeColor'; // Assuming path alias is set
+
+export default function TabLayout() {
+  const tabBarActiveTintColor = useThemeColor({}, 'tabIconSelected');
+  const tabBarInactiveTintColor = useThemeColor({}, 'tabIconDefault');
+  const backgroundColor = useThemeColor({}, 'background'); // Use standard background color
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: tabBarActiveTintColor,
+        tabBarInactiveTintColor: tabBarInactiveTintColor,
+        tabBarStyle: {
+          backgroundColor: backgroundColor,
+          // Add other styles like borderTopColor if needed
+        },
+        headerShown: false, // We might handle headers inside each screen or using Stack
+      }}
+    >
+      <Tabs.Screen
+        name="home/index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planner/index"
+        options={{
+          title: 'Planner',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="compass/index"
+        options={{
+          title: 'Compass',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="compass-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="rewards/index"
+        options={{
+          title: 'Rewards',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="gift-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings/index"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+}
+```
+\n\n## Current auth layout
+**Current implementation:** app/(auth)/_layout.tsx
+\n```
+// Auth Stack Layout
+import React from 'react';
+import { Stack } from 'expo-router';
+
+export default function AuthLayout() {
+  return (
+    <Stack>
+      <Stack.Screen 
+        name="login" 
+        options={{ 
+          title: 'Sign In',
+          headerShown: false
+        }} 
+      />
+      <Stack.Screen 
+        name="register" 
+        options={{ 
+          title: 'Create Account',
+          headerShown: false
+        }} 
+      />
+      <Stack.Screen 
+        name="forgot-password" 
+        options={{ 
+          title: 'Reset Password',
+          headerShown: false
+        }} 
+      />
+    </Stack>
+  );
+}
+```
+\n\n# 4️⃣ Reusable Components
+\n\n## Current UI primitives
+\n\n## AetherListItem
+**Current implementation:** components/ui/primitives/AetherListItem.tsx
+\n```
+import React from 'react';
+import { XStack, YStack, Text, styled, GetProps, Stack } from 'tamagui';
+import { Ionicons } from '@expo/vector-icons';
+
+// Base ListItem container
+const ListItemContainer = styled(XStack, {
+  name: 'ListItemContainer',
+  backgroundColor: '$cardBackground',
+  paddingVertical: '$3',
+  paddingHorizontal: '$4',
+  borderRadius: '$3',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+  minHeight: 60,
+  
+  variants: {
+    isLast: {
+      true: {
+        borderBottomWidth: 0,
+      },
+    },
+    interactive: {
+      true: {
+        pressStyle: {
+          backgroundColor: '$backgroundPress',
+          opacity: 0.9,
+        },
+        hoverStyle: {
+          backgroundColor: '$backgroundHover',
+        },
+      },
+    },
+    variant: {
+      default: {},
+      header: {
+        backgroundColor: '$backgroundStrong',
+        borderBottomColor: '$borderColor',
+        paddingVertical: '$2',
+      },
+    },
+  } as const,
+  
+  defaultVariants: {
+    isLast: false,
+    interactive: true,
+    variant: 'default',
+  },
+});
+
+type ListItemContainerProps = GetProps<typeof ListItemContainer>;
+
+export interface AetherListItemProps extends ListItemContainerProps {
+  title: string;
+  subtitle?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  showChevron?: boolean;
+  badge?: string | number;
+}
+
+/**
+ * AetherListItem - A consistent list item component for use in lists, menus, and settings
+ *
+ * @param title - The primary text
+ * @param subtitle - Optional secondary text shown below the title
+ * @param leftIcon - Optional icon component to show on the left side
+ * @param rightIcon - Optional icon component to show on the right side
+ * @param showChevron - Whether to show a right chevron (useful for navigation items)
+ * @param badge - Optional badge text/number to display
+ * @param isLast - Whether this is the last item in a list (removes bottom border)
+ * @param interactive - Whether the item should visually respond to touch
+ */
+export function AetherListItem({
+  title,
+  subtitle,
+  leftIcon,
+  rightIcon,
+  showChevron = false,
+  badge,
+  isLast,
+  interactive,
+  ...props
+}: AetherListItemProps) {
+  return (
+    <ListItemContainer isLast={isLast} interactive={interactive} {...props}>
+      {/* Left section with icon and text */}
+      <XStack space="$3" flex={1} alignItems="center">
+        {leftIcon && (
+          <Stack marginRight="$2">{leftIcon}</Stack>
+        )}
+        
+        <YStack>
+          <Text fontWeight="500" fontSize="$4">{title}</Text>
+          {subtitle && (
+            <Text fontSize="$2" color="$gray10">{subtitle}</Text>
+          )}
+        </YStack>
+      </XStack>
+      
+      {/* Right section with badge, custom icon or chevron */}
+      <XStack space="$2" alignItems="center">
+        {badge && (
+          <XStack 
+            backgroundColor="$primary"
+            paddingHorizontal="$2"
+            paddingVertical="$1"
+            borderRadius="$2"
+          >
+            <Text color="white" fontSize="$1" fontWeight="bold">{badge}</Text>
+          </XStack>
+        )}
+        
+        {rightIcon && rightIcon}
+        
+        {showChevron && (
+          <Ionicons name="chevron-forward" size={16} color="$gray10" />
+        )}
+      </XStack>
+    </ListItemContainer>
+  );
+}
+```
+\n\n## SectionHeader
+**Current implementation:** components/ui/primitives/SectionHeader.tsx
+\n```
+import React from 'react';
+import { XStack, Text, styled, GetProps, Button } from 'tamagui';
+
+const SectionContainer = styled(XStack, {
+  name: 'SectionContainer',
+  paddingVertical: '$2',
+  paddingHorizontal: '$4',
+  marginTop: '$4',
+  marginBottom: '$2',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+});
+
+type SectionContainerProps = GetProps<typeof SectionContainer>;
+
+export interface SectionHeaderProps extends SectionContainerProps {
+  title: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+/**
+ * SectionHeader - A consistent section header with optional action button
+ * 
+ * Used to separate content sections in screens like Home, Settings, etc.
+ *
+ * @param title - The section title
+ * @param actionLabel - Optional label for the action button
+ * @param onAction - Optional callback when action button is pressed
+ */
+export function SectionHeader({ 
+  title, 
+  actionLabel, 
+  onAction, 
+  ...props 
+}: SectionHeaderProps) {
+  return (
+    <SectionContainer {...props}>
+      <Text 
+        fontSize="$5" 
+        fontWeight="600" 
+        color="$color"
+      >
+        {title}
+      </Text>
+      
+      {actionLabel && onAction && (
+        <Button
+          onPress={onAction}
+          fontSize="$2"
+          backgroundColor="transparent"
+          color="$primary"
+          paddingHorizontal="$2"
+          height="$5"
+        >
+          {actionLabel}
+        </Button>
+      )}
+    </SectionContainer>
+  );
+}
+```
+\n\n## AetherCard
+**Current implementation:** components/ui/primitives/AetherCard.tsx
+\n```
+import React from 'react';
+import { Card, CardProps, YStack, styled } from 'tamagui';
+
+type AetherCardVariant = 'default' | 'elevated' | 'outlined';
+
+interface AetherCardProps extends CardProps {
+  variant?: AetherCardVariant;
+  // Additional props specific to AetherCard
+  isInteractive?: boolean;
+}
+
+// Create a styled Card component that uses our custom Tamagui theme variables
+const StyledCard = styled(Card, {
+  name: 'AetherCard',
+  backgroundColor: '$cardBackground',
+  borderRadius: '$4',
+  padding: '$4',
+  elevate: true,
+
+  variants: {
+    variant: {
+      default: {
+        // Using our theme tokens
+        shadowColor: '$shadowColor',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+      },
+      elevated: {
+        shadowColor: '$shadowColor',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 4,
+      },
+      outlined: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+        shadowOpacity: 0,
+        elevation: 0,
+      },
+    },
+    isInteractive: {
+      true: {
+        pressStyle: {
+          backgroundColor: '$cardBackgroundPress',
+          opacity: 0.9,
+        },
+        hoverStyle: {
+          backgroundColor: '$cardBackgroundHover',
+        },
+      },
+    },
+  } as const,
+
+  defaultVariants: {
+    variant: 'default',
+    isInteractive: false,
+  },
+});
+
+/**
+ * AetherCard - A stylized card component following Aether design system
+ *
+ * @param variant - The visual style variant: 'default', 'elevated', or 'outlined'
+ * @param isInteractive - Whether the card responds to press/hover states
+ */
+export function AetherCard({ children, variant, isInteractive, ...props }: AetherCardProps) {
+  return (
+    <StyledCard variant={variant} isInteractive={isInteractive} {...props}>
+      {children}
+    </StyledCard>
+  );
+}
+```
+\n\n## Key components to migrate
+\n\n## Container
+**Current implementation:** components/ui/Container.tsx
+\n```
+import React, { ReactNode } from 'react';
+import { SafeAreaView, SafeAreaViewProps } from 'react-native';
+import { styled, useTheme, YStack } from 'tamagui';
+
+interface ContainerProps extends SafeAreaViewProps {
+  children: ReactNode;
+}
+
+const StyledSafeArea = styled(SafeAreaView, {
+  name: 'StyledSafeArea',
+  flex: 1,
+});
+
+export const Container: React.FC<ContainerProps> = ({ style, children, ...props }) => {
+  const theme = useTheme();
+  return (
+    <StyledSafeArea
+      style={[
+        { backgroundColor: theme.background.val },
+        style as any
+      ]}
+      {...props}
+    >
+      <YStack flex={1}>{children}</YStack>
+    </StyledSafeArea>
+  );
+};
+
+export default Container;
+```
+\n\n## EmptyOrSkeleton
+**Current implementation:** components/ui/EmptyOrSkeleton.tsx
+\n```
+import React from 'react';
+import { YStack, Text, Button } from 'tamagui';
+import { SkeletonCard, SkeletonRow, SkeletonCircle } from './Skeleton';
+import { SectionError } from './ErrorBanner';
+
+export interface EmptyOrSkeletonProps {
+  // Loading state
+  isLoading?: boolean;
+  count?: number;
+  type?: 'card' | 'row' | 'circle';
+  
+  // Empty state
+  isEmpty?: boolean;
+  text?: string;
+  actionText?: string;
+  onAction?: () => void;
+  
+  // Error state
+  isError?: boolean;
+  onRetry?: () => void;
+  
+  // Children to render when not in any special state
+  children?: React.ReactNode;
+}
+
+export const EmptyOrSkeleton = ({
+  isLoading = false,
+  count = 3,
+  type = 'row',
+  isEmpty = false,
+  text = 'No items found',
+  actionText = 'Add New',
+  onAction,
+  isError = false,
+  onRetry,
+  children
+}: EmptyOrSkeletonProps) => {
+  // Generate skeleton based on type
+  const renderSkeletons = () => {
+    const skeletons = [];
+    for (let i = 0; i < count; i++) {
+      if (type === 'card') {
+        skeletons.push(<SkeletonCard key={i} />);
+      } else if (type === 'circle') {
+        skeletons.push(<SkeletonCircle key={i} />);
+      } else {
+        skeletons.push(<SkeletonRow key={i} />);
+      }
+    }
+    return skeletons;
+  };
+
+  // Show skeleton if loading
+  if (isLoading) {
+    return (
+      <YStack space="$3">
+        {renderSkeletons()}
+      </YStack>
+    );
+  }
+  
+  // Show error state if there's an error
+  if (isError) {
+    return (
+      <SectionError 
+        message={text} 
+        onRetry={onRetry} 
+      />
+    );
+  }
+  
+  // Show empty state if empty
+  if (isEmpty) {
+    return (
+      <YStack
+        padding="$4"
+        alignItems="center"
+        justifyContent="center"
+        space="$3"
+      >
+        <Text textAlign="center" color="$gray11">
+          {text}
+        </Text>
+        {onAction && (
+          <Button size="$3" onPress={onAction}>
+            {actionText}
+          </Button>
+        )}
+      </YStack>
+    );
+  }
+  
+  // Default: return children
+  return <>{children}</>;
+};
+```
+\n\n## DashboardSection
+**Current implementation:** components/dashboard/DashboardSection.tsx
+\n```
+import React, { ReactNode } from 'react';
+import { Text, YStack, XStack, Button, Anchor, H4 } from 'tamagui';
+import { router } from 'expo-router';
+import { SkeletonRow } from '@/components/ui/Skeleton';
+import { SectionError } from '@/components/ui/ErrorBanner';
+import { BlurView } from 'expo-blur'; // Import BlurView
+
+interface DashboardSectionProps<T> {
+  title: string;
+  data?: T[];
+  isLoading?: boolean;
+  emptyMessage?: string;
+  seeAllRoute?: string;
+  renderItem?: (item: T) => ReactNode;
+  skeletonCount?: number;
+  error?: string;
+  onRetry?(): void;
+  children?: ReactNode;
+  onSeeAll?(): void;
+}
+
+export default function DashboardSection<T>({ 
+  title, 
+  data, 
+  isLoading, 
+  emptyMessage,
+  seeAllRoute,
+  renderItem,
+  skeletonCount = 2,
+  error,
+  onRetry,
+  children,
+  onSeeAll
+}: DashboardSectionProps<T>) {
+  return (
+    <YStack space="$2">
+      <XStack justifyContent="space-between" alignItems="center" marginBottom="$2" paddingHorizontal="$2">
+        <H4>{title}</H4>
+        {((data && data.length > 0 && seeAllRoute) || onSeeAll) && (
+          <Button 
+            chromeless 
+            size="$2" 
+            onPress={() => {
+              if (onSeeAll) {
+                onSeeAll();
+              } else if (seeAllRoute) {
+                // Navigate to route using type assertions
+                // Safe because the route will be a tab/screen name within the app
+                router.push(seeAllRoute as any);
+              }
+            }}
+          >
+            See All
+          </Button>
+        )}
+      </XStack>
+      
+      {/* Wrap content in BlurView */}
+      <BlurView 
+        intensity={50} 
+        tint="default" 
+        style={{ borderRadius: 12, overflow: 'hidden' }} 
+      >
+        <YStack padding="$3">
+          {/* If children are provided, render them */}
+          {children ? (
+            children
+          ) : isLoading ? (
+            <SkeletonRow lines={skeletonCount} />
+          ) : error ? (
+            <SectionError message={error ? String(error) : 'An error occurred'} onRetry={onRetry} />
+          ) : data && data.length === 0 ? (
+            <YStack alignItems="center" padding="$4">
+              <Text color="$gray10">{emptyMessage ?? 'No items found'}</Text>
+            </YStack>
+          ) : (
+            data && renderItem && data.map(renderItem)
+          )}
+        </YStack>
+      </BlurView>
+    </YStack>
+  );
+} ```
+\n\n## GoalSummaryCard
+**Current implementation:** components/dashboard/GoalSummaryCard.tsx
+\n```
+import React from 'react';
+import { Text, XStack, Button } from 'tamagui';
+import ProgressRing from '@/components/aether/ProgressRing';
+import { RouterOutputs } from '@/utils/trpc';
+import { BlurView } from 'expo-blur'; // Import BlurView
+
+// Define a custom type that includes everything we need
+type DashboardGoal = {
+  id: string;
+  title: string;
+  status?: string;
+  priority?: number;
+  progress: number;
+  tasks?: {
+    total: number;
+    completed: number;
+  };
+};
+
+interface GoalSummaryCardProps {
+  goal: DashboardGoal;
+  onPress: () => void;
+}
+
+export default function GoalSummaryCard({ goal, onPress }: GoalSummaryCardProps) {
+  return (
+    <BlurView 
+      intensity={50} 
+      tint="default" 
+      style={{ borderRadius: 12, overflow: 'hidden' }}
+    >
+      <Button 
+        chromeless // Remove default button styling
+        padding="$3" 
+        onPress={onPress}
+        width="100%" // Ensure it fills the BlurView
+      >
+        <XStack alignItems="center" space="$3" flex={1}> 
+          <ProgressRing
+            progress={goal.progress}
+            size={40}
+            primaryColor="$primary"
+          />
+          <XStack flex={1} flexDirection="column">
+            <Text fontSize="$4" fontWeight="500" color="$color">
+              {goal.title}
+            </Text>
+            {goal.tasks && (
+              <Text color="$gray9" fontSize="$2">
+                {goal.tasks.completed}/{goal.tasks.total} tasks completed
+              </Text>
+            )}
+          </XStack>
+        </XStack>
+      </Button>
+    </BlurView>
+  );
+}```
+\n\n## Planned new components
+* SectionCard.tsx - Glazed parchment card with header, children slot
+* StatBadge.tsx - Heart/rupee style KPI badge
+* SkeletonCard.tsx - NativeWind animated placeholder
+* EmptyState.tsx - Triforce-in-cloud illustration + call-to-action
+\n\n# 5️⃣ Feature Screens
+\n\n## Current implementations
+\n\n## Current  screen
+**Current implementation:** app/(tabs)/home/index.tsx
+\n```
+// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/home/index.tsx
+import React, { useCallback, useMemo } from 'react';
+import { YStack, H1, Text, XStack, Button, ScrollView, Spinner } from 'tamagui';
+import { SafeAreaView, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { trpc, RouterOutputs } from '@/utils/trpc';
+import DashboardSection from '@/components/dashboard/DashboardSection';
+import GoalSummaryCard from '@/components/dashboard/GoalSummaryCard';
+import HabitCheckItem from '@/components/dashboard/HabitCheckItem';
+import TaskItem from '@/components/dashboard/TaskItem';
+import StateIndicator from '@/components/dashboard/StateIndicator';
+import DailyProgressBanner from '@/components/dashboard/DailyProgressBanner'; // Import Banner
+import EmptyOrSkeleton from '@/components/ui/EmptyOrSkeleton';
+import { SkeletonCard, SkeletonRow } from '@/components/ui/Skeleton';
+import { useSkeleton } from '@/hooks/useSkeleton';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { useToastController } from '@tamagui/toast';
+import { BlurView } from 'expo-blur';
+import { Plus } from '@tamagui/lucide-icons';
+import LottieView from 'lottie-react-native';
+import SwipeableRow from '@/components/ui/SwipeableRow'; // Import SwipeableRow
+
+// Types inferred from tRPC Router
+type RouterOutput = RouterOutputs['dashboard']['getDashboardData'];
+// --- Define types for the STRUCTURE AFTER mapping in useMemo ---
+export type DashboardGoal = {
+  id: string;
+  title: string;
+  progress: number;
+  tasks: { completed: number; total: number };
+  // Include other relevant fields if needed by GoalSummaryCard
+  status?: string | null; 
+  priority?: number | null;
+};
+export type DashboardHabit = {
+  id: string;
+  name: string;
+  description?: string | null;
+  completed: boolean; // Mapped from completedToday
+  streak: number;
+  last_entry_id?: string; // Mapped from habit.last_entry_id (null -> undefined)
+  habit_type?: string | null;
+};
+export type DashboardTask = {
+  id: string;
+  name: string;
+  status: string | null; // Allow null
+  due_date?: Date | string | null;
+  // Include other relevant fields if needed by TaskItem
+};
+export type DashboardState = {
+  id: string;
+  name: string | null;
+  unit: string | null;
+  currentValue: number | string | null;
+  lastUpdated: string | null;
+  lastEntry: { value: number | null; created_at: Date | string } | null; // Explicitly include lastEntry
+};
+// --- End mapped type definitions ---
+
+export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const toast = useToastController();
+  const utils = trpc.useUtils(); // Get tRPC utils for mutations
+  
+  // Define types using RouterOutputs for clarity and safety
+  // type DashboardGoal = RouterOutputs['dashboard']['getDashboardData']['goals'][number];
+  // type DashboardHabit = RouterOutputs['dashboard']['getDashboardData']['habits'][number];
+  // type DashboardTask = RouterOutputs['dashboard']['getDashboardData']['tasks'][number];
+
+  // Use tRPC hooks to fetch data - Types are inferred but can be explicitly used
+  const { 
+    data: dashboardData, 
+    isLoading, 
+    error, 
+    refetch,
+    isRefetching 
+  } = trpc.dashboard.getDashboardData.useQuery();
+
+  // Define the habit entry mutation hook
+  const createHabitEntryMutation = trpc.habit.createHabitEntry.useMutation({
+    onSuccess: () => {
+      refetch(); // Refresh data after successful mutation
+      // Optional: Add success toast
+      // toast.show('Habit updated!', { type: 'success' });
+    },
+    onError: (error) => {
+      // Handle tRPC client error
+      toast.show(error.message || 'Failed to update habit', { type: 'error' });
+    }
+  });
+
+  // Handle errors
+  React.useEffect(() => {
+    if (error) {
+      toast.show(error.message || 'Failed to load dashboard data', { type: 'error' });
+    }
+  }, [error, toast]);
+
+  // Set up pull-to-refresh
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Custom skeleton states from your hooks
+  const { isLoading: skeletonsLoading, count: skeletonCount = 3 } = {
+    isLoading,
+    count: 3 // Number of skeleton items to show
+  };
+  
+  // Generate skeleton UI based on loading state
+  const renderSkeletons = () => {
+    return Array.from({ length: skeletonCount }).map((_, index) => (
+      <SkeletonCard key={`skeleton-${index}`} />
+    ));
+  };
+
+  // Get current date and greeting
+  const greeting = getGreeting();
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  const dashboardDataMemo = useMemo(() => {
+    // Fix: Add check to ensure dashboardData exists before accessing properties
+    if (!dashboardData) {
+      return null; // Or return default structure: { goals: [], habits: [], tasks: [], trackedStates: [] }
+    }
+
+    // Map and filter data, ensuring structure matches exported types
+    return {
+      // Filter goals to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      goals: (dashboardData.goals ?? [])
+        .filter((goal): goal is typeof goal & { id: string } => !!goal?.id)
+        .map((goal) => ({
+        // Map to DashboardGoal structure
+        id: goal.id, 
+        title: goal.title ?? 'Untitled Goal', // Provide default for title
+        progress: goal.progress ?? 0, 
+        tasks: goal.tasks ?? { completed: 0, total: 0 }, 
+        status: goal.status,
+        priority: goal.priority,
+      })),
+      // Filter habits to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      habits: (dashboardData.habits ?? [])
+        .filter((habit): habit is typeof habit & { id: string } => !!habit?.id)
+        .map((habit) => ({
+        // Map to DashboardHabit structure
+        id: habit.id, 
+        name: habit.name ?? 'Unnamed Habit', // Provide default for name
+        description: habit.description,
+        completed: habit.completedToday ?? false, // Map completedToday to completed
+        streak: habit.streak ?? 0, 
+        last_entry_id: habit.last_entry_id ?? undefined, // Map null to undefined
+        habit_type: habit.habit_type,
+      })),
+      // Filter tasks to ensure they have an ID before mapping
+      // Fix: Use nullish coalescing and optional chaining
+      tasks: (dashboardData.tasks ?? [])
+        .filter((task): task is typeof task & { id: string } => !!task?.id)
+        .map((task) => ({
+        // Map to DashboardTask structure
+        id: task.id,
+        name: task.name ?? 'Untitled Task', // Provide default name
+        status: task.status,
+        due_date: task.due_date,
+      })),
+      // Map trackedStates, ensuring lastEntry is preserved
+      // Fix: Use nullish coalescing and optional chaining
+      trackedStates: (dashboardData.trackedStates ?? [])
+        .filter((state): state is typeof state & { id: string } => !!state?.id)
+        .map((trackedState) => ({
+        // Map to DashboardState structure
+        id: trackedState.id,
+        name: trackedState.name,
+        unit: trackedState.unit,
+        currentValue: trackedState.currentValue,
+        lastUpdated: trackedState.lastUpdated,
+        // Ensure lastEntry structure matches definition or is null
+        lastEntry: trackedState.lastEntry ?? null, 
+      })),
+    };
+  }, [dashboardData]);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor="transparent" // Hide default spinner
+            colors={['transparent']} // Hide default spinner (Android)
+            progressBackgroundColor="transparent" // Hide default bg (Android)
+            refreshingComponent={
+              <LottieView
+                source={require('@/assets/refresh-sheikah.json')} // ASSUMES this file exists
+                autoPlay
+                loop
+                style={{ width: 48, height: 48, alignSelf: 'center' }} // Center the animation
+              />
+            }
+          />
+        }
+      >
+        <YStack space="$4" paddingHorizontal="$4">
+          {/* Header */}
+          <YStack space="$1">
+            <H1>{greeting}</H1>
+            <Text color="$gray10">{currentDate}</Text>
+          </YStack>
+
+          {/* Daily Progress Banner */}
+          <DailyProgressBanner 
+            // tasksCompleted={...} 
+            // totalTasks={...} 
+            // habitsChecked={...} 
+            // totalHabits={...} 
+          />
+
+          {/* Goals Section */}
+          <DashboardSection 
+            title="Goals"
+            onSeeAll={() => router.push('/planner')}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load goals"
+              />
+            ) : !dashboardDataMemo?.goals || dashboardDataMemo.goals.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No goals yet"
+                actionText="Create a goal"
+                onAction={() => router.push('/planner/add-goal')}
+              />
+            ) : (
+              <YStack space="$3">
+                {dashboardDataMemo.goals.slice(0, 3).map((goal) => (
+                  <SwipeableRow
+                    key={goal.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.goal.delete.mutate({ id: goal.id })
+                      console.log('Attempting to delete goal:', goal.id); // Placeholder
+                      // utils.goal.delete.mutate({ id: goal.id });
+                    }}
+                  >
+                    <GoalSummaryCard
+                      goal={goal}
+                      onPress={() => router.push(`/planner/goal/${goal.id}`)}
+                    />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+
+          {/* Today's Habits */}
+          <DashboardSection 
+            title="Today's Habits"
+            onSeeAll={() => router.push('/planner?tab=habits')}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load habits"
+              />
+            ) : !dashboardDataMemo?.habits || dashboardDataMemo.habits.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No habits for today"
+                actionText="Create a habit"
+                onAction={() => router.push('/planner/add-habit')}
+              />
+            ) : (
+              <YStack space="$2">
+                {dashboardDataMemo.habits.slice(0, 4).map((habit) => (
+                  <SwipeableRow
+                    key={habit.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.habit.delete.mutate({ id: habit.id })
+                      console.log('Attempting to delete habit:', habit.id); // Placeholder
+                      // utils.habit.delete.mutate({ id: habit.id });
+                    }}
+                  >
+                    <HabitCheckItem habit={habit} />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+
+          {/* Today's State */}
+          <DashboardSection
+            title="Today's State"
+            // TODO: Add navigation to a dedicated state tracking screen
+            onSeeAll={() => console.log('Navigate to State Tracking screen')}
+          >
+            {isLoading ? (
+              renderSkeletons() // Use generic skeletons or specific state skeletons
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load state"
+              />
+            ) : !dashboardDataMemo?.trackedStates || dashboardDataMemo.trackedStates.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No states being tracked"
+                actionText="Track a state"
+                // TODO: Navigate to state definition creation screen
+                onAction={() => console.log('Navigate to Add State screen')}
+              />
+            ) : (
+              <XStack space="$3" flexWrap="wrap"> 
+                {dashboardDataMemo.trackedStates.map((stateData) => (
+                  <StateIndicator
+                    key={stateData.id}
+                    state={stateData} // Pass the whole state object which includes lastEntry
+                    lastEntry={stateData.lastEntry} // Pass lastEntry explicitly
+                    // TODO: Handle interaction - e.g., navigate to state detail/entry screen
+                    onPress={() => console.log('State pressed:', stateData.id)}
+                  />
+                ))}
+              </XStack>
+            )}
+          </DashboardSection>
+
+          {/* Upcoming Tasks */}
+          <DashboardSection 
+            title="Upcoming Tasks"
+            onSeeAll={() => {/* Navigate to tasks list */}}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : error ? (
+              <EmptyOrSkeleton
+                isEmpty={false}
+                isError={true}
+                onRetry={refetch}
+                text="Failed to load tasks"
+              />
+            ) : !dashboardDataMemo?.tasks || dashboardDataMemo.tasks.length === 0 ? (
+              <EmptyOrSkeleton
+                isEmpty={true}
+                text="No upcoming tasks"
+                actionText="Create a task"
+                onAction={() => {/* Navigate to create task */}}
+              />
+            ) : (
+              <YStack space="$2">
+                {dashboardDataMemo.tasks.slice(0, 5).map((task) => (
+                  <SwipeableRow
+                    key={task.id}
+                    onDelete={() => {
+                      // TODO: Add confirmation dialog?
+                      // Assuming mutation exists: utils.task.delete.mutate({ id: task.id })
+                      console.log('Attempting to delete task:', task.id); // Placeholder
+                      // utils.task.delete.mutate({ id: task.id });
+                    }}
+                  >
+                    <TaskItem
+                      task={{
+                        // Explicitly pass props matching DashboardTask type
+                        id: task.id, // Ensure id is passed
+                        name: task.name, // Already defaulted in map
+                        status: task.status, // Pass status
+                        due_date: task.due_date, // Pass due_date
+                      }}
+                      isLast={false} // Adjust if needed for styling
+                      onPress={() => console.log('Task Item Pressed:', task.id)}
+                    />
+                  </SwipeableRow>
+                ))}
+              </YStack>
+            )}
+          </DashboardSection>
+        </YStack>
+      </ScrollView>
+      <QuickAddFAB />
+    </SafeAreaView>
+  );
+}
+
+// Helper function for greeting
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good evening';
+}
+
+// Quick Add FAB Component
+function QuickAddFAB() {
+  return (
+    <BlurView intensity={40} tint="default" style={{ position:'absolute', bottom:24, right:24, borderRadius:32, overflow: 'hidden' }}>
+      <Button
+        circular
+        size="$5"
+        backgroundColor="$accent"
+        icon={Plus}
+        elevate
+        shadowColor="$shadowColor"
+        shadowRadius={5}
+        shadowOffset={{ width: 0, height: 2 }}
+        pressStyle={{ scale: 0.95, opacity: 0.9 }}
+        onPress={() => {
+          router.push('/planner/add-task');
+        }}
+      />
+    </BlurView>
+  );
+}
+```
+\n\n## Current  screen
+**Current implementation:** app/(tabs)/planner/index.tsx
+\n```
+// File: /Users/tylerbedford/Documents/Coding Projects/AetherIphone/app/(tabs)/planner/index.tsx
+import React, { useState, Suspense } from 'react';
+import { YStack, XStack, Text, Tabs, Button, Spinner, Card, ScrollView } from 'tamagui';
+import { SafeAreaView, FlatList, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { trpc } from '@/utils/trpc';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
+import { RouterOutputs } from '@/utils/api-types';
+import { SectionError } from '@/components/ui/ErrorBanner';
+
+
+interface TabData {
+  key: string;
+  title: string;
+  icon: React.ReactNode;
+}
+
+// Tab configurations
+const TABS: TabData[] = [
+  {
+    key: 'goals',
+    title: 'Goals',
+    icon: <Ionicons name="trophy-outline" size={18} color="currentColor" />
+  },
+  {
+    key: 'habits',
+    title: 'Habits',
+    icon: <Ionicons name="repeat-outline" size={18} color="currentColor" />
+  },
+  {
+    key: 'calendar',
+    title: 'Calendar',
+    icon: <Ionicons name="calendar-outline" size={18} color="currentColor" />
+  }
+];
+
+export default function PlannerScreen() {
+  const [activeTab, setActiveTab] = useState<string>('goals');
+  const colorScheme = useColorScheme();
+  
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <YStack flex={1} padding="$4">
+        {/* Header */}
+        <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+          <Text fontSize={24} fontWeight="bold">Planner</Text>
+          <Button
+            size="$3"
+            circular
+            onPress={() => {/* Handle new item */}}
+            icon={<Ionicons name="add" size={22} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          />
+        </XStack>
+        
+        {/* Tabs */}
+        <Tabs
+          defaultValue="goals"
+          orientation="horizontal"
+          flexDirection="column"
+          flex={1}
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
+          <Tabs.List 
+            backgroundColor="$backgroundStrong"
+            paddingHorizontal="$2"
+            borderRadius="$4"
+            marginBottom="$4"
+          >
+            {TABS.map((tab) => (
+              <Tabs.Tab
+                key={tab.key}
+                flex={1}
+                value={tab.key}
+                padding="$3"
+                borderRadius="$2"
+                backgroundColor={activeTab === tab.key ? '$backgroundFocus' : 'transparent'}
+              >
+                <XStack space="$2" justifyContent="center" alignItems="center">
+                  {tab.icon}
+                  <Text>{tab.title}</Text>
+                </XStack>
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          
+          {/* Tab Content */}
+          <Tabs.Content value="goals" flex={1}>
+            <ScrollView>
+              <GoalsTab />
+            </ScrollView>
+          </Tabs.Content>
+          
+          <Tabs.Content value="habits" flex={1}>
+            <ScrollView>
+              <HabitsTab />
+            </ScrollView>
+          </Tabs.Content>
+          
+          <Tabs.Content value="calendar" flex={1}>
+            <ScrollView>
+              <CalendarTab />
+            </ScrollView>
+          </Tabs.Content>
+        </Tabs>
+      </YStack>
+    </SafeAreaView>
+  );
+}
+
+// Goals Tab
+function GoalsTab() {
+  // Fetch goals using tRPC
+  const { data: goals, isLoading, error, refetch } = trpc.goal.getGoals.useQuery();
+  
+  // Define the inferred type for a single goal
+  type PlannerGoal = RouterOutputs['goal']['getGoals'][number];
+
+  if (isLoading) {
+    return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
+  }
+  
+  if (error) {
+    return (
+      <EmptyOrSkeleton 
+        isEmpty={false} 
+        isError={true} 
+        onRetry={refetch} 
+        text="Failed to load goals" 
+      />
+    );
+  }
+  
+  if (!goals || goals.length === 0) {
+    return (
+      <EmptyOrSkeleton 
+        isEmpty={true} 
+        text="No goals yet" 
+        actionText="Create a goal" 
+        onAction={() => router.push('/planner/add-goal')} 
+      />
+    );
+  }
+  
+  return (
+    <YStack space="$4">
+      {goals.map((goal: PlannerGoal) => (
+        <Button 
+          key={goal.id} 
+          height="$12" 
+          justifyContent="flex-start" 
+          paddingHorizontal="$3"
+          onPress={() => router.push({ pathname: '/planner/goal/[id]', params: { id: goal.id } })}
+        >
+          <YStack>
+            <Text fontWeight="bold">{goal.title}</Text>
+            <Text fontSize="$2" color="$gray10">
+              {goal.dueDate ? new Date(goal.dueDate).toLocaleDateString() : 'No due date'}
+            </Text>
+          </YStack>
+        </Button>
+      ))}
+    </YStack>
+  );
+}
+
+// Habits Tab
+function HabitsTab() {
+  // Fetch habits using tRPC
+  const { data: habits, isLoading, error, refetch } = trpc.habit.getHabits.useQuery();
+  
+  // Define the inferred type for a single habit
+  type PlannerHabit = RouterOutputs['habit']['getHabits'][number];
+
+  if (isLoading) {
+    return <EmptyOrSkeleton isLoading={isLoading} count={3} type="row" />;
+  }
+  
+  if (error) {
+    return (
+      <EmptyOrSkeleton 
+        isEmpty={false} 
+        isError={true} 
+        onRetry={refetch} 
+        text="Failed to load habits" 
+      />
+    );
+  }
+  
+  if (!habits || habits.length === 0) {
+    return (
+      <EmptyOrSkeleton 
+        isEmpty={true} 
+        text="No habits yet" 
+        actionText="Create a habit" 
+        onAction={() => router.push('/planner/add-habit')} 
+      />
+    );
+  }
+  
+  return (
+    <YStack space="$3">
+      {habits.map((habit: PlannerHabit) => (
+        <XStack 
+          key={habit.id} 
+          justifyContent="space-between" 
+          alignItems="center" 
+          paddingVertical="$3" 
+          paddingHorizontal="$3" 
+          borderBottomWidth={1} 
+          borderColor="$gray5"
+          pressStyle={{ opacity: 0.7 }}
+          tag="pressable"
+          onPress={() => router.push({ pathname: '/planner/habit/[id]', params: { id: habit.id } })}
+        >
+          <Text>{habit.title}</Text>
+          <Button
+            size="$2"
+            circular
+            backgroundColor={habit.completed ? '$green9' : '$gray9'}
+            onPress={() => {
+              // Use today's date for the habit entry
+              const today = new Date().toISOString().split('T')[0];
+              
+              // Create a mutation to toggle habit completion
+              const toggleHabit = trpc.habit.createHabitEntry.useMutation({
+                onSuccess: () => {
+                  refetch(); // Refresh data after toggling
+                },
+                onError: (error) => {
+                  // Show error message
+                  console.error('Failed to toggle habit:', error.message);
+                }
+              });
+              
+              // Toggle the habit completion status
+              toggleHabit.mutate({
+                habitId: habit.id,
+                completed: !habit.completed,
+                date: today
+              });
+            }}
+            icon={<Ionicons name="checkmark" size={18} color="white" />}
+          />
+        </XStack>
+      ))}
+    </YStack>
+  );
+}
+
+// Calendar Tab
+function CalendarTab() {
+  return (
+    <YStack alignItems="center" justifyContent="center" padding="$8">
+      <Text fontSize="$5" textAlign="center">
+        Calendar integration coming soon
+      </Text>
+      <Text marginTop="$2" color="$gray10" textAlign="center">
+        This tab will display task and habit schedules in a calendar view
+      </Text>
+    </YStack>
+  );
+}
+```
+\n\n## Current  screen
+**Current implementation:** app/(tabs)/compass/index.tsx
+\n```
+// Compass screen with Principles and States tabs
+import React, { useState } from 'react';
+import { YStack, XStack, Text, Tabs, Button, ScrollView } from 'tamagui'; 
+import { SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { trpc, type RouterOutputs } from '@/utils/trpc'; 
+import { useColorScheme } from '@/hooks/useColorScheme'; 
+import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton';
+import { router, type Href } from 'expo-router'; 
+import { PrincipleCard } from '@/components/compass/PrincipleCard';
+import PrinciplesTab from '@/components/compass/PrinciplesTab';
+import { StateDefinitionCard } from '@/components/compass/StateDefinitionCard'; 
+
+interface TabData {
+  key: string;
+  title: string;
+  icon: React.ReactNode;
+}
+
+// Tab configurations
+const TABS: TabData[] = [
+  {
+    key: 'principles',
+    title: 'Principles',
+    icon: <Ionicons name="compass-outline" size={18} color="currentColor" />
+  },
+  {
+    key: 'states',
+    title: 'States',
+    icon: <Ionicons name="pulse-outline" size={18} color="currentColor" />
+  }
+];
+
+export default function CompassScreen() {
+  const [activeTab, setActiveTab] = useState<string>('principles');
+  const colorScheme = useColorScheme();
+
+  const handleAddPress = () => {
+    const route = `/compose?type=${activeTab === 'principles' ? 'value' : 'state'}` as Href;
+    router.push(route);
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <YStack flex={1} padding="$4">
+        {/* Header */}
+        <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+          <Text fontSize={24} fontWeight="bold">Compass</Text>
+          <Button
+            size="$3"
+            circular
+            onPress={handleAddPress} 
+            icon={<Ionicons name="add" size={22} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          />
+        </XStack>
+
+        {/* Tabs */}
+        <Tabs
+          defaultValue="principles"
+          orientation="horizontal"
+          flexDirection="column"
+          flex={1}
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
+          <Tabs.List
+            backgroundColor="$backgroundStrong"
+            paddingHorizontal="$2"
+            borderRadius="$4"
+            marginBottom="$4"
+          >
+            {TABS.map((tab) => (
+              <Tabs.Tab
+                key={tab.key}
+                flex={1}
+                value={tab.key}
+                padding="$3"
+                borderRadius="$2"
+                backgroundColor={activeTab === tab.key ? '$backgroundFocus' : 'transparent'}
+              >
+                <XStack space="$2" justifyContent="center" alignItems="center">
+                  {React.cloneElement(tab.icon as React.ReactElement, { color: activeTab === tab.key ? '$colorFocus' : '$color' })}
+                  <Text color={activeTab === tab.key ? '$colorFocus' : '$color'}>{tab.title}</Text>
+                </XStack>
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+
+          {/* Tab Content */}
+          <Tabs.Content value="principles" flex={1} key="principles-content">
+            <ScrollView>
+              <PrinciplesTab />
+            </ScrollView>
+          </Tabs.Content>
+
+          <Tabs.Content value="states" flex={1} key="states-content">
+            <ScrollView>
+              <StatesTab />
+            </ScrollView>
+          </Tabs.Content>
+        </Tabs>
+      </YStack>
+    </SafeAreaView>
+  );
+}
+
+// Define the specific types from RouterOutputs
+// Types are now defined in the PrinciplesTab component
+type StateDefinition = RouterOutputs['state']['getDefinitions'][number]; 
+
+// Principles Tab Component is now imported from '@/components/compass/PrinciplesTab'
+
+// States Tab Component (manages data fetching and list rendering)
+function StatesTab() {
+  const { data: states, isLoading, error, refetch } = trpc.state.getDefinitions.useQuery(); 
+
+  if (isLoading) {
+    return <EmptyOrSkeleton isLoading={true} count={3} type="card" />;
+  }
+
+  if (error) {
+    return (
+      <EmptyOrSkeleton
+        isEmpty={false}
+        isError={true}
+        onRetry={refetch}
+        text="Failed to load tracked state definitions"
+      />
+    );
+  }
+
+  if (!states || states.length === 0) {
+    return (
+      <EmptyOrSkeleton
+        isEmpty={true}
+        text="No state definitions found"
+        actionText="Define Your First State"
+        onAction={() => router.push('/compose?type=state' as Href)}
+      />
+    );
+  }
+
+  return (
+    <YStack space="$3"> 
+      {states.map((state: StateDefinition) => (
+        <StateDefinitionCard
+          key={state.id}
+          state={state}
+          onPress={() => router.push(`/states/${state.id}` as Href)}
+        />
+      ))}
+    </YStack>
+  );
+}
+
+// 
+// Removed inline PrincipleCard definition (extracted to components/compass/PrincipleCard.tsx)
+// 
+
+// 
+// Removed inline StateDefinitionCard definition (extracted to components/compass/StateDefinitionCard.tsx)
+// 
+```
+\n\n## Current  screen
+**Current implementation:** app/(tabs)/rewards/index.tsx
+\n```
+// Rewards screen with grid/list toggle and claim functionality
+import React, { useState, useCallback } from 'react';
+import { YStack, XStack, Text, Button, ScrollView, Card, Checkbox, useTheme, H1 } from 'tamagui';
+import { SafeAreaView, View, FlatList, ImageBackground, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { trpc } from '@/utils/trpc';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { RouterOutputs } from '@/utils/trpc'; // Import RouterOutputs
+import { EmptyOrSkeleton } from '@/components/ui/EmptyOrSkeleton'; // Import helper component
+
+// Define inferred type for rewards
+type RewardItem = RouterOutputs['rewards']['getAvailableRewards'][number];
+
+enum ViewMode {
+  Grid = 'grid',
+  List = 'list'
+}
+
+export default function RewardsScreen() {
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Grid);
+  const colorScheme = useColorScheme();
+  const theme = useTheme();
+
+  // Define fallback colors
+  const blue2 = theme?.blue2?.val ?? '#eff6ff';
+  const blue5 = theme?.blue5?.val ?? '#60a5fa';
+  const blue10 = theme?.blue10?.val ?? '#1e40af';
+  const blue11 = theme?.blue11?.val ?? '#1e3a8a';
+  const green9 = theme?.green9?.val ?? '#16a34a';
+
+  // Fetch available rewards from tRPC
+  const { 
+    data: rewards, 
+    isLoading, 
+    error, 
+    refetch 
+  } = trpc.rewards.getAvailableRewards.useQuery();
+
+  // Mutation for claiming rewards
+  const claimMutation = trpc.rewards.earnReward.useMutation({
+    onSuccess: (data) => {
+      console.log('Reward claimed successfully:', data);
+      // Maybe show confetti?
+      Alert.alert('Reward Claimed!', `You spent ${data.reward.points_spent} points. Remaining: ${data.remainingPoints}`);
+      refetch(); // Refetch the list of available rewards
+    },
+    onError: (err) => {
+      console.error('Failed to claim reward:', err);
+      Alert.alert('Claim Failed', err.message || 'Could not claim reward.');
+    }
+  });
+  
+  const handleClaimReward = useCallback((rewardId: string) => {
+    if (claimMutation.isPending) return; // Prevent double-clicks
+    
+    Alert.alert(
+      'Confirm Claim',
+      'Are you sure you want to spend points on this reward?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Claim', 
+          onPress: () => {
+            claimMutation.mutate({ rewardId });
+          },
+          style: 'default'
+        }
+      ]
+    );
+  }, [claimMutation]);
+  
+  const renderItem = ({ item }: { item: RewardItem }) => { // Use inferred type
+    // Assuming backend field is image_url, map to imagePath
+    const imagePath = item.image_url; 
+    // All items from getAvailableRewards are considered claimable (not yet claimed)
+    const claimed = false; 
+    // Map required_points to pointCost
+    const pointCost = item.required_points;
+
+    if (viewMode === ViewMode.Grid) {
+      return (
+        <Card
+          size="$4"
+          bordered
+          width={160}
+          height={200}
+          margin="$2"
+          overflow="hidden"
+          elevation="$2"
+          opacity={claimed ? 0.7 : 1}
+        >
+          <ImageBackground
+            source={{ uri: imagePath }}
+            style={{ width: '100%', height: 100 }}
+          >
+            <View style={{ 
+              position: 'absolute', 
+              top: 5, 
+              right: 5, 
+              backgroundColor: blue5,
+              borderRadius: 10,
+              padding: 4
+            }}>
+              <Text color="white" fontSize="$2" fontWeight="bold">
+                {pointCost} pts
+              </Text>
+            </View>
+          </ImageBackground>
+          
+          <YStack padding="$2" flex={1} justifyContent="space-between">
+            <Text fontSize="$4" fontWeight="bold" numberOfLines={1}>
+              {item.name}
+            </Text>
+            
+            <Button
+              size="$2"
+              themeInverse={claimed}
+              backgroundColor={claimed ? undefined : blue10}
+              onPress={() => handleClaimReward(item.id)}
+              disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
+            >
+              {claimMutation.isPending && claimMutation.variables?.rewardId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
+            </Button>
+          </YStack>
+        </Card>
+      );
+    } else {
+      return (
+        <Card
+          bordered
+          margin="$2"
+          padding="$3"
+          opacity={claimed ? 0.7 : 1}
+        >
+          <XStack space="$3" alignItems="center">
+            {imagePath && (
+              <View style={{ 
+                width: 60, 
+                height: 60, 
+                borderRadius: 8, 
+                overflow: 'hidden',
+                backgroundColor: theme.gray3.val
+              }}>
+                <ImageBackground
+                  source={{ uri: imagePath }}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </View>
+            )}
+            
+            <YStack flex={1} space="$1">
+              <Text fontSize="$5" fontWeight="bold">{item.name}</Text>
+              <Text fontSize="$3" color="$gray11" numberOfLines={2}>{item.description}</Text>
+              <Text fontSize="$3" color={blue10} fontWeight="500">{pointCost} points</Text>
+            </YStack>
+            
+            <Button
+              size="$3"
+              backgroundColor={claimed ? undefined : blue10}
+              themeInverse={claimed}
+              onPress={() => handleClaimReward(item.id)}
+              disabled={claimed || claimMutation.isPending} // Disable if claimed or mutation pending
+            >
+              {claimMutation.isPending && claimMutation.variables?.rewardId === item.id ? 'Claiming...' : (claimed ? 'Claimed' : 'Claim')}
+            </Button>
+          </XStack>
+        </Card>
+      );
+    }
+  };
+  
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <YStack flex={1} padding="$4">
+        <YStack space="$4">
+          {/* Header */}
+          <XStack justifyContent="space-between" alignItems="center">
+            <H1>Rewards</H1>
+            
+            <XStack space="$2">
+              <Button
+                chromeless
+                circular
+                padding="$2"
+                backgroundColor={viewMode === ViewMode.Grid ? blue5 : 'transparent'}
+                onPress={() => setViewMode(ViewMode.Grid)}
+              >
+                <Ionicons 
+                  name="grid-outline" 
+                  size={22} 
+                  color={viewMode === ViewMode.Grid ? blue10 : (colorScheme === 'dark' ? '#fff' : '#000')} 
+                />
+              </Button>
+              
+              <Button
+                chromeless
+                circular
+                padding="$2"
+                backgroundColor={viewMode === ViewMode.List ? blue5 : 'transparent'}
+                onPress={() => setViewMode(ViewMode.List)}
+              >
+                <Ionicons 
+                  name="list-outline" 
+                  size={22} 
+                  color={viewMode === ViewMode.List ? blue10 : (colorScheme === 'dark' ? '#fff' : '#000')} 
+                />
+              </Button>
+            </XStack>
+          </XStack>
+          
+          {/* Stats */}
+          <Card padding="$3" backgroundColor={blue2}>
+            <XStack justifyContent="space-between" alignItems="center">
+              <Text fontSize="$5" fontWeight="bold" color={blue11}>Your Points</Text>
+              <Text fontSize="$6" fontWeight="bold" color={blue10}>275</Text>
+            </XStack>
+          </Card>
+        </YStack>
+        
+        {/* Content Area */} 
+        <EmptyOrSkeleton 
+          isLoading={isLoading}
+          isEmpty={!isLoading && !error && (!rewards || rewards.length === 0)}
+          isError={!!error}
+          text={error ? error.message : 'No rewards available yet.'} // Use text for error OR empty msg
+          onRetry={refetch}
+          type={viewMode === ViewMode.Grid ? 'card' : 'row'}
+          count={viewMode === ViewMode.Grid ? 6 : 3}
+        >
+          <FlatList
+            key={viewMode} // Change key based on viewMode to force re-render
+            data={rewards}
+            renderItem={renderItem}
+            keyExtractor={(item, index) =>
+              `${item?.id ?? `tmp-${index}`}-${viewMode}`   // fall back to index if ID is missing
+            }
+            
+            // Optional: Log corrupt data in development
+            onLayout={() => {
+              if (__DEV__) {
+                const missing = (rewards ?? []).filter(r => !r?.id);
+                if (missing.length) console.warn('Rewards missing id:', missing);
+              }
+            }}
+            numColumns={viewMode === ViewMode.Grid ? 2 : 1}
+            contentContainerStyle={{ paddingBottom: 50 }} // Add padding at the bottom
+            // Optional Optimizations (Patch #6)
+            initialNumToRender={8}
+            removeClippedSubviews={true} // Note: Can have visual glitches on iOS sometimes
+          />
+        </EmptyOrSkeleton>
+
+      </YStack>
+    </SafeAreaView>
+  );
+}
+```
+\n\n## Current  screen
+**Current implementation:** app/(tabs)/settings/index.tsx
+\n```
+// Settings screen with account, preferences, and app settings
+import React, { useState } from 'react';
+import { YStack, XStack, Text, Button, Switch, Separator, ScrollView, Card, H1 } from 'tamagui';
+import { SafeAreaView, View, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { supabase } from '@/utils/supabase';
+import { useColorScheme } from 'react-native';
+import { useAccent } from '@/app/_layout'; // Import the useAccent hook
+
+interface SettingsSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const SettingsSection = ({ title, icon, children }: SettingsSectionProps) => {
+  return (
+    <YStack marginVertical="$2">
+      <XStack alignItems="center" space="$2" marginBottom="$2">
+        {icon}
+        <Text fontSize="$5" fontWeight="bold">{title}</Text>
+      </XStack>
+      <Card padding="$3" bordered>
+        {children}
+      </Card>
+    </YStack>
+  );
+};
+
+interface SettingsRowProps {
+  label: string;
+  icon?: React.ReactNode;
+  rightElement?: React.ReactNode;
+  onPress?: () => void;
+  showChevron?: boolean;
+}
+
+const SettingsRow = ({ label, icon, rightElement, onPress, showChevron = false }: SettingsRowProps) => {
+  return (
+    <XStack
+      paddingVertical="$3"
+      justifyContent="space-between"
+      alignItems="center"
+      onPress={onPress}
+      pressStyle={onPress ? { opacity: 0.7 } : undefined}
+    >
+      <XStack space="$3" alignItems="center" flex={1}>
+        {icon}
+        <Text fontSize="$4">{label}</Text>
+      </XStack>
+      <XStack space="$2" alignItems="center">
+        {rightElement}
+        {showChevron && <Ionicons name="chevron-forward" size={18} color="#A0A0A0" />}
+      </XStack>
+    </XStack>
+  );
+};
+
+export default function SettingsScreen() {
+  const colorScheme = useColorScheme();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [trackingEnabled, setTrackingEnabled] = useState(true);
+  const { setAccent } = useAccent(); // Get the function to update accent color
+  const [selectedAccent, setSelectedAccent] = useState('blue'); // Placeholder state for selected accent
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Log Out', 
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.auth.signOut();
+            router.replace('/(auth)/login');
+          }
+        }
+      ]
+    );
+  };
+
+  const AccentSelector = ({ currentAccent, onSelect }: { currentAccent: string, onSelect: (accent: string) => void }) => {
+    const accents = ['blue', 'green', 'orange', 'red']; // Example accents corresponding to theme names
+    return (
+      <XStack space="$2">
+        {accents.map((accent) => (
+          <Button 
+            key={accent} 
+            onPress={() => {
+              onSelect(accent);
+              setAccent(accent); // Call setAccent with the selected accent
+            }} 
+            theme={accent as any} // Preview the theme (cast needed for demo)
+            backgroundColor={accent === currentAccent ? '$backgroundStrong' : '$background'}
+          >
+            {accent.charAt(0).toUpperCase() + accent.slice(1)}
+          </Button>
+        ))}
+      </XStack>
+    );
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+      <ScrollView>
+        <YStack flex={1} padding="$4">
+          <H1 marginBottom="$4">Settings</H1>
+          
+          {/* Account Section */}
+          <SettingsSection
+            title="Account"
+            icon={<Ionicons name="person-circle-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          >
+            <YStack>
+              <SettingsRow
+                label="Edit Profile"
+                icon={<Ionicons name="person-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/profile' as any)}
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="Security"
+                icon={<Ionicons name="lock-closed-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/security' as any)}
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="Data & Privacy"
+                icon={<Ionicons name="shield-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/privacy' as any)}
+              />
+            </YStack>
+          </SettingsSection>
+          
+          {/* Appearance Section */}
+          <SettingsSection
+            title="Appearance"
+            icon={<Ionicons name="color-palette-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          >
+            <YStack>
+              <SettingsRow
+                label="Theme"
+                icon={<Ionicons name="moon-outline" size={20} color="#A0A0A0" />}
+                rightElement={<Text color="$gray10">{colorScheme === 'dark' ? 'Dark (System)' : 'Light (System)'}</Text>}
+              />
+              <SettingsRow
+                label="Accent Color"
+                icon={<Ionicons name="color-palette-outline" size={20} color="#A0A0A0" />}
+                rightElement={
+                  <AccentSelector 
+                    currentAccent={selectedAccent} 
+                    onSelect={(accent) => setSelectedAccent(accent)} 
+                  />
+                }
+              />
+            </YStack>
+          </SettingsSection>
+          
+          {/* Notifications Section */}
+          <SettingsSection
+            title="Notifications"
+            icon={<Ionicons name="notifications-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          >
+            <YStack>
+              <SettingsRow
+                label="Push Notifications"
+                icon={<Ionicons name="push-outline" size={20} color="#A0A0A0" />}
+                rightElement={
+                  <Switch
+                    size="$3"
+                    checked={notificationsEnabled}
+                    onCheckedChange={setNotificationsEnabled}
+                  />
+                }
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="Notification Settings"
+                icon={<Ionicons name="options-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/notifications' as any)}
+              />
+            </YStack>
+          </SettingsSection>
+          
+          {/* Privacy Section */}
+          <SettingsSection
+            title="Privacy & Data"
+            icon={<Ionicons name="analytics-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          >
+            <YStack>
+              <SettingsRow
+                label="Analytics Tracking"
+                icon={<Ionicons name="trending-up-outline" size={20} color="#A0A0A0" />}
+                rightElement={
+                  <Switch
+                    size="$3"
+                    checked={trackingEnabled}
+                    onCheckedChange={setTrackingEnabled}
+                  />
+                }
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="Export Data"
+                icon={<Ionicons name="download-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => {
+                  Alert.alert(
+                    'Export Data',
+                    'Your data will be prepared for export and sent to your email address.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Export', onPress: () => {
+                        // Would call an API endpoint to initiate export
+                        Alert.alert('Export Initiated', 'Check your email for the export file.');
+                      }}
+                    ]
+                  );
+                }}
+              />
+            </YStack>
+          </SettingsSection>
+          
+          {/* Support Section */}
+          <SettingsSection
+            title="Support & About"
+            icon={<Ionicons name="help-circle-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />}
+          >
+            <YStack>
+              <SettingsRow
+                label="Help Center"
+                icon={<Ionicons name="help-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/help' as any)}
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="About Aether"
+                icon={<Ionicons name="information-circle-outline" size={20} color="#A0A0A0" />}
+                showChevron
+                onPress={() => router.push('/settings/about' as any)}
+              />
+              <Separator marginVertical="$1" />
+              <SettingsRow
+                label="App Version"
+                icon={<Ionicons name="code-outline" size={20} color="#A0A0A0" />}
+                rightElement={<Text color="$gray10">1.0.0</Text>}
+              />
+            </YStack>
+          </SettingsSection>
+          
+          {/* Logout Button */}
+          <Button
+            marginTop="$6"
+            marginBottom="$8"
+            size="$4"
+            themeInverse
+            onPress={handleLogout}
+          >
+            Log Out
+          </Button>
+        </YStack>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+\n\n# 6️⃣ Utils & Hooks
+\n\n## supabase
+**Current implementation:** utils/supabase.ts
+\n```
+import 'react-native-url-polyfill/auto';
+import { createClient } from '@supabase/supabase-js';
+import * as SecureStore from 'expo-secure-store';
+
+// SecureStore adapter for Supabase auth persistence
+const ExpoSecureStoreAdapter = {
+  getItem: (key: string) => {
+    return SecureStore.getItemAsync(key);
+  },
+  setItem: (key: string, value: string) => {
+    return SecureStore.setItemAsync(key, value);
+  },
+  removeItem: (key: string) => {
+    return SecureStore.deleteItemAsync(key);
+  },
+};
+
+// Get Supabase URL and anon key from environment variables
+// In production, these should be set in app.config.js or via EAS secrets
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    'Supabase URL or anon key not found. Make sure to set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY environment variables.'
+  );
+}
+
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: ExpoSecureStoreAdapter,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
+
+// Helper function to check if user is authenticated
+export const isAuthenticated = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  return !!data.session;
+};
+
+// Helper function to get current user
+export const getCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) {
+    console.error('Error getting user:', error.message);
+    return null;
+  }
+  return data.user;
+}; ```
+\n\n## trpc
+**Current implementation:** utils/trpc.ts
+\n```
+import { createTRPCReact } from '@trpc/react-query';
+import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
+
+// Import the real AppRouter type from our server
+import { type AppRouter } from '../server/src/router';
+
+// Import types using the updated path
+import { RouterInputs as TypedRouterInputs, RouterOutputs as TypedRouterOutputs } from '../server/src/types/trpc-types';
+
+/**
+ * tRPC React client
+ * The client for consuming your tRPC API from React components
+ */
+export const trpc = createTRPCReact<AppRouter>();
+
+/**
+ * Inference helpers for input/output types
+ * Use the pre-defined types from trpc-types.ts
+ */
+export type RouterInputs = TypedRouterInputs;
+export type RouterOutputs = TypedRouterOutputs; ```
+\n\n# Type Definitions (for reference)
+\n\n## api-types
+**Current implementation:** utils/api-types.ts
+\n```
+/**
+ * This file was auto-generated by the generate-trpc-types script.
+ * Do not edit manually! Instead, run the script again.
+ */
+
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { AppRouter } from '../server/src/router';
+
+/**
+ * Inference helper for inputs.
+ *
+ * @example type HelloInput = RouterInputs['example']['hello']
+ */
+export type RouterInputs = inferRouterInputs<AppRouter>;
+
+/**
+ * Inference helper for outputs.
+ *
+ * @example type HelloOutput = RouterOutputs['example']['hello']
+ */
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
+```
+\n\n## trpc-types
+**Current implementation:** server/src/types/trpc-types.ts
+\n```
+// server/src/types/trpc-types.ts
+/*
+  Aether – Shared tRPC Types
+  ------------------------------------------------------------------
+  Every Zod schema that powers a router lives here so both the server
+  (routers) and the client (React Query hooks) reference a **single**
+  source‑of‑truth.  Import these types everywhere else – **never** hand‑roll
+  shapes again.
+*/
+
+import { z } from 'zod';
+import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { AppRouter } from '../router';
+
+/* ------------------------------------------------------------------
+ * Enums (keep in sync with DB enums)
+ * ----------------------------------------------------------------*/
+export const TaskStatusEnum = z.enum(['todo', 'doing', 'done', 'blocked', 'pending']);
+export const TaskPriorityEnum = z.enum(['low', 'medium', 'high']);
+export const RewardTypeEnum = z.enum(['badge', 'achievement', 'item', 'discount']);
+export const HabitTypeEnum = z.enum(['boolean', 'quantity']);
+export const HabitFrequencyPeriodEnum = z.enum(['day', 'week', 'month']);
+
+/* ------------------------------------------------------------------
+ * Domain Models (DB row shapes) – keep in sync with Supabase tables
+ * ----------------------------------------------------------------*/
+export const UserProfile = z.object({
+  id: z.string().uuid(),
+  username: z.string().nullish(),
+  avatar_url: z.string().url().nullish(),
+  full_name: z.string().nullish(),
+  bio: z.string().nullish(),
+  points: z.number().int().nonnegative().default(0),
+  time_zone: z.string().nullish(),
+  onboarding_completed: z.boolean().default(false),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type UserProfile = z.infer<typeof UserProfile>;
+
+export const NotificationPrefs = z.object({
+  email: z.boolean().default(true),
+  push: z.boolean().default(true),
+  task_reminders: z.boolean().default(true),
+  goal_updates: z.boolean().default(true),
+  habit_reminders: z.boolean().default(true),
+});
+
+export const UiPrefs = z.object({
+  theme: z.enum(['system', 'light', 'dark']).default('system'),
+  compact_view: z.boolean().default(false),
+  show_completed_tasks: z.boolean().default(true),
+  first_day_of_week: z.number().int().min(0).max(6).default(0),
+});
+
+export const UserSettings = z.object({
+  id: z.string().uuid().optional(),
+  user_id: z.string().uuid(),
+  notification_preferences: NotificationPrefs,
+  ui_preferences: UiPrefs,
+});
+export type UserSettings = z.infer<typeof UserSettings>;
+
+export const Value = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  title: z.string(), 
+  description: z.string().nullish(),
+  color: z.string().nullish(),
+  icon: z.string().nullish(),
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
+});
+export type Value = z.infer<typeof Value>;
+
+export const Principle = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  title: z.string(), // <<< Changed from 'name' to 'title'
+  body: z.string(), // <<< Renamed from description for clarity, matching migration
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
+});
+export type Principle = z.infer<typeof Principle>;
+
+export const Goal = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  title: z.string(),
+  description: z.string().nullish(),
+  progress: z.number().nullish(),
+  target_date: z.string().nullish(),
+  archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime().nullish(),
+  updated_at: z.string().datetime().nullish(),
+});
+export type Goal = z.infer<typeof Goal>;
+
+export const Task = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  title: z.string(),
+  notes: z.string().nullish(),
+  status: TaskStatusEnum.default('todo'),
+  priority_enum: TaskPriorityEnum.nullish(), // <<< Renamed from priority
+  due_date: z.string().datetime().nullish(),
+  goal_id: z.string().uuid().nullish(),
+  parent_task_id: z.string().uuid().nullish(),
+  recurrence_rule: z.string().nullish(),
+  recurrence_end_date: z.string().datetime().nullish(),
+  archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type Task = z.infer<typeof Task>;
+
+export const Habit = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  title: z.string(),
+  cue: z.string().nullish(),
+  routine: z.string().nullish(),
+  reward: z.string().nullish(),
+  streak: z.number().nonnegative().default(0),
+  best_streak: z.number().nonnegative().default(0),
+  habit_type: HabitTypeEnum.default('boolean'),
+  goal_quantity: z.number().int().nullish(),
+  goal_unit: z.string().nullish(),
+  frequency_period: HabitFrequencyPeriodEnum.default('day'),
+  goal_frequency: z.number().int().positive().default(1),
+  recurrence_rule: z.string().nullish(),
+  recurrence_end_date: z.string().datetime().nullish(),
+  archived_at: z.string().datetime().nullish(),
+  sort_order: z.number().int().nullish(), // <<< Added sort_order
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type Habit = z.infer<typeof Habit>;
+
+export const HabitEntry = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  habit_id: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  completed: z.boolean().default(false),
+  quantity_value: z.number().int().nullish(),
+  notes: z.string().nullish(),
+  created_at: z.string().datetime(),
+});
+export type HabitEntry = z.infer<typeof HabitEntry>;
+
+export const TrackedStateDef = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  name: z.string(),
+  // category: z.string(), // Category seems removed/replaced in DB schema by scale/custom_labels
+  scale: z.enum(['1-5', 'low-high', 'custom']), // <<< Added scale
+  custom_labels: z.array(z.string()).nullish(), // <<< Added custom_labels
+  unit: z.string().nullish(), // Keep unit if still used alongside scale
+  icon: z.string().nullish(), // Keep icon if still used
+  target_min_value: z.number().nullish(), // <<< Added
+  target_max_value: z.number().nullish(), // <<< Added
+  active: z.boolean().default(true), // <<< Added active
+  priority: z.number().int().default(1), // <<< Added priority
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime().nullish(),
+});
+export type TrackedStateDef = z.infer<typeof TrackedStateDef>;
+
+export const StateEntry = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  definition_id: z.string().uuid(), // <<< Renamed from tracked_state_def_id for consistency? check DB
+  value_numeric: z.number().optional().nullable(),
+  value_text: z.string().optional().nullable(),
+  entry_timestamp: z.string().datetime({ message: "Invalid datetime string. Must be UTC ISO 8601" }).optional(),
+  notes: z.string().optional().nullable(), // <<< Added notes
+});
+export type StateEntry = z.infer<typeof StateEntry>;
+
+export const Reward = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullish(),
+  type: RewardTypeEnum,
+  required_points: z.number().int().nonnegative().default(0),
+  can_earn_multiple: z.boolean().default(false),
+  image_url: z.string().url().nullish(),
+  metadata: z.record(z.any()).nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type Reward = z.infer<typeof Reward>;
+
+export const UserReward = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  reward_id: z.string().uuid(),
+  reward_type: z.string().nullish(), // From DB schema
+  earned_at: z.string().datetime(),
+  points_spent: z.number().int().nonnegative().default(0),
+  metadata: z.record(z.any()).nullish(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type UserReward = z.infer<typeof UserReward>;
+
+export const PointTransaction = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  points: z.number().int(),
+  reason: z.string(),
+  source_type: z.string(),
+  source_id: z.string().uuid().nullish(),
+  created_at: z.string().datetime(),
+});
+export type PointTransaction = z.infer<typeof PointTransaction>;
+
+export const BadgeDefinition = z.object({
+  id: z.string(), // From DB: text primary key
+  title: z.string(),
+  description: z.string().nullish(),
+  icon: z.string(),
+});
+export type BadgeDefinition = z.infer<typeof BadgeDefinition>;
+
+export const UserBadge = z.object({
+  // Note: user_badges might be merged into user_rewards with type='badge'
+  user_id: z.string().uuid(),
+  badge_id: z.string(), // Matches badge_definitions.id (text)
+  earned_at: z.string().datetime(),
+  progress: z.number().nullish(), // From DB schema
+});
+export type UserBadge = z.infer<typeof UserBadge>;
+
+export const Reminder = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  related_entity_type: z.string(),
+  related_entity_id: z.string().uuid(),
+  reminder_time: z.string().datetime(),
+  is_active: z.boolean().default(true),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+export type Reminder = z.infer<typeof Reminder>;
+
+export const GoalProgressNote = z.object({
+  id: z.string().uuid(),
+  goal_id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  note: z.string(),
+  created_at: z.string().datetime(),
+});
+export type GoalProgressNote = z.infer<typeof GoalProgressNote>;
+
+/* ------------------------------------------------------------------
+ * Router‑level Schemas – inputs & outputs for every procedure
+ * ----------------------------------------------------------------*/
+export const greetingInput = z.object({ name: z.string().optional() });
+export const greetingOutput = z.object({ greeting: z.string() });
+
+// User
+export const updateProfileInput = UserProfile.partial().omit({ id: true, created_at: true, updated_at: true });
+export const updateSettingsInput = z.object({
+  notification_preferences: NotificationPrefs.partial().optional(),
+  ui_preferences: UiPrefs.partial().optional(),
+});
+
+// Values
+export const createValueInput = Value.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateValueInput = createValueInput.partial().extend({ id: z.string().uuid() });
+
+// Principles
+// Uses 'title' and 'body' from the updated Principle schema
+export const createPrincipleInput = Principle.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updatePrincipleInput = createPrincipleInput.partial().extend({ id: z.string().uuid() });
+
+// Goals
+export const createGoalInput = Goal.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateGoalInput = createGoalInput.partial().extend({ id: z.string().uuid() });
+
+// Tasks
+export const createTaskInput = Task.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateTaskInput = createTaskInput.partial().extend({ id: z.string().uuid() });
+export const updateTaskStatusInput = z.object({ id: z.string().uuid(), status: TaskStatusEnum });
+
+// Habits
+export const createHabitInput = Habit.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateHabitInput = createHabitInput.partial().extend({ id: z.string().uuid() });
+
+// Habit Entries
+export const createHabitEntryInput = HabitEntry.omit({ id: true, user_id: true, created_at: true });
+export const updateHabitEntryInput = createHabitEntryInput.partial().extend({ id: z.string().uuid() });
+
+// Tracked State Definitions
+export const createTrackedStateDefInput = TrackedStateDef.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateTrackedStateDefInput = createTrackedStateDefInput.partial().extend({ id: z.string().uuid() });
+export const GetTrackedStateDefByIdInput = z.object({ id: z.string().uuid() });
+export const DeleteTrackedStateDefInput = z.object({ id: z.string().uuid() });
+
+// State Entries
+export const CreateStateEntryInput = StateEntry.omit({ id: true, user_id: true })
+.extend({
+  tracked_state_def_id: z.string().uuid(), // Ensure this is required
+  // Values are optional in base schema
+});
+export const updateStateEntryInput = CreateStateEntryInput.partial().extend({ id: z.string().uuid() });
+export const GetStateEntriesInput = z.object({
+  tracked_state_def_id: z.string().uuid(), // Renamed from definition_id to match DB? Check usage.
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  limit: z.number().int().positive().optional(),
+});
+export const DeleteStateEntryInput = z.object({ id: z.string().uuid() });
+
+// Rewards (Assuming rewards definitions are managed elsewhere)
+// No create/update for Reward definitions needed via API?
+export const claimLootInput = z.object({
+  rewardId: z.string().uuid(), // Use rewardId to match router
+});
+
+// Badges
+export const awardBadgeInput = z.object({
+  badgeId: z.string(), // Matches text ID in badge_definitions
+  description: z.string().optional(), // Example custom field if needed
+});
+
+// Reminders
+export const createReminderInput = Reminder.omit({ id: true, user_id: true, created_at: true, updated_at: true });
+export const updateReminderInput = createReminderInput.partial().extend({ id: z.string().uuid() });
+export const GetRemindersForEntityInput = z.object({
+  related_entity_type: z.string(),
+  related_entity_id: z.string().uuid(),
+});
+export const DeleteReminderInput = z.object({ id: z.string().uuid() });
+
+// Goal Progress Notes
+export const createGoalProgressNoteInput = GoalProgressNote.omit({ id: true, user_id: true, created_at: true });
+export const updateGoalProgressNoteInput = createGoalProgressNoteInput.partial().extend({ id: z.string().uuid() });
+export const GetGoalProgressNotesInput = z.object({ goal_id: z.string().uuid() });
+export const DeleteGoalProgressNoteInput = z.object({ id: z.string().uuid() });
+
+/* ------------------------------------------------------------------
+ * Aggregate Router Types – automatically inferred
+ * ----------------------------------------------------------------*/
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
+
+/*
+  Usage (client‑side):
+
+  const utils = trpc.useUtils();
+  type TasksOutput = RouterOutputs['task']['getTasks'];
+  type CreateTaskInput = RouterInputs['task']['createTask'];
+*/```
+\n\n# 7️⃣ Assets
+\n\n## Font Files in assets/fonts:
+total 184
+drwxr-xr-x  3 tylerbedford  staff     96 Apr 23 09:37 .
+drwxr-xr-x  5 tylerbedford  staff    160 Apr 29 22:50 ..
+-rwxr-xr-x  1 tylerbedford  staff  93252 Apr 21 23:33 SpaceMono-Regular.ttf
+\n\n## Lottie Files in assets:
+assets/refresh-sheikah.json

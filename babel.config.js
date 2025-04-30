@@ -22,6 +22,9 @@ module.exports = function (api) {
         },
       ],
       
+      // NativeWind plugin for Tailwind CSS support
+      'nativewind/babel',
+      
       // Reanimated plugin must be last
       'react-native-reanimated/plugin',
     ],

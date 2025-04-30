@@ -9,7 +9,8 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { useColorScheme } from 'react-native';
-import { TamaguiProvider, Theme } from 'tamagui'; // Consolidate Tamagui imports
+import { TamaguiProvider, Theme } from 'tamagui'; // Will be gradually removed
+import { GluestackProvider } from '@/providers/GluestackProvider'; // New UI provider
 // tamagui config is already imported at the top of the file
 import type { ThemeName } from '@tamagui/core'; // Ensure ThemeName is imported from @tamagui/core
 import * as SecureStore from 'expo-secure-store'; // Import SecureStore
@@ -284,14 +285,17 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        {/* Core Providers (Tamagui, QueryClient, tRPC) */}
-        <Providers>
-          {/* Auth Provider manages session state */}
-          <AuthProvider>
-            {/* Root handles splash, font loading, and redirects */}
-            <RootLayoutNav />
-          </AuthProvider>
-        </Providers>
+        {/* Gluestack Provider (wraps everything for migration) */}
+        <GluestackProvider>
+          {/* Core Providers (Tamagui, QueryClient, tRPC) */}
+          <Providers>
+            {/* Auth Provider manages session state */}
+            <AuthProvider>
+              {/* Root handles splash, font loading, and redirects */}
+              <RootLayoutNav />
+            </AuthProvider>
+          </Providers>
+        </GluestackProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
