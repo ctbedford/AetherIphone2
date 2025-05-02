@@ -1,3 +1,16 @@
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      // NativeWind/Tailwind macros for className support
+      'nativewind/babel',
+      // Keep Reanimated last per docs
+      'react-native-reanimated/plugin',
+    ],
+  };
+};
+
 module.exports = function(api) {
   api.cache(true);
   return {

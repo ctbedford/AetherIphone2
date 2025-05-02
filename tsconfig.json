@@ -5,12 +5,9 @@
     "baseUrl": ".",
     "jsx": "react-native",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "server/*": [
-        "./server/*"
-      ]
+      "@/*": ["./*"],
+      "server/*": ["./server/*"],
+      "tamagui": ["./design-system/Primitives.tsx"]
     },
     "types": [
       "./expo-env.d.ts"
